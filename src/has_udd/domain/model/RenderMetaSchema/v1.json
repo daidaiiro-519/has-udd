@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RenderMetaSchema/v1",
+  "title": "Render Meta Schema v1",
+  "description": "各 block の x-render（部品宣言）を検証するメタスキーマ。x-render は RenderPart の配列。部品語彙は閉じた enum で、未知部品・属性漏れは validate で弾ける。engine が各部品を md/html 両形式に描画する（block の見出しは x-render-level + title から engine が自動付与し、parts は本文を担う）。",
+
+  "$defs": {
+    "RenderPart": {
+      "type": "object",
+      "required": ["as"],
+      "additionalProperties": false,
+      "properties": {
+        "as": {
+          "enum": ["paragraph", "list", "table", "section", "keyvalue", "code", "divider"],
+          "description": "部品の種類（閉じた語彙）"
+        },
+        "from": {
+          "type": "string",
+          "description": "描画する content フィールドのキー。section の each 内では item のフィールドを指す。from 先が空(None/空配列)なら部品ごと（heading 含め）省略する"
+        },
+        "text": {
+          "type": "string",
+          "description": "paragraph: 静的テキスト（from の代わり。markdown インライン記法可）"
+        },
+        "heading": {
+          "type": "string",
+          "description": "この部品の直前に出す小見出し（任意）。例: 入力 / 出力"
+        },
+        "ordered": {
+          "type": "boolean",
+          "description": "list: true で順序つき(ol)。既定 false(ul)"
+        },
+        "columns": {
+          "type": "array",
+          "description": "table: 列定義",
+          "items": {
+            "type": "object",
+            "required": ["field"],
+            "additionalProperties": false,
+            "properties": {
+              "field": { "type": "string", "description": "行オブジェクトのフィールド名" },
+              "header": { "type": "string", "description": "列見出し（省略時は field）" },
+              "code": { "type": "boolean", "description": "セル値を code（`...`）表示する" }
+            }
+          }
+        },
+        "titleFrom": {
+          "type": "string",
+          "description": "section: 各 item の見出しに使うフィールド（既定 title）"
+        },
+        "itemLabel": {
+          "type": "string",
+          "description": "section: 各 item 見出しの接頭辞（例: Step → 'Step 1: ...'）。省略時は接頭辞なし"
+        },
+        "each": {
+          "type": "array",
+          "description": "section: 各 item を描画する部品列（再帰）",
+          "items": { "$ref": "#/$defs/RenderPart" }
+        },
+        "labelFrom": {
+          "type": "string",
+          "description": "keyvalue: from が配列のとき各要素のラベルに使うフィールド"
+        },
+        "valueFrom": {
+          "type": "string",
+          "description": "keyvalue: from が配列のとき各要素の値に使うフィールド"
+        },
+        "pairs": {
+          "type": "array",
+          "description": "keyvalue: 明示ペア。block 直下の各フィールドを固定ラベルつきで並べる（from の代わり）。値が空のペアは省略",
+          "items": {
+            "type": "object",
+            "required": ["label", "from"],
+            "additionalProperties": false,
+            "properties": {
+              "label": { "type": "string", "description": "固定ラベル" },
+              "from":  { "type": "string", "description": "値を引く block フィールド名" }
+            }
+          }
+        },
+        "labelCode": {
+          "type": "boolean",
+          "description": "keyvalue: ラベルを code（`...`）表示する（既定は太字）"
+        },
+        "valueCode": {
+          "type": "boolean",
+          "description": "keyvalue: 値を code（`...`）表示する"
+        },
+        "lang": {
+          "type": "string",
+          "description": "code: 言語識別子（任意）"
+        }
+      },
+      "allOf": [
+        { "if": { "properties": { "as": { "const": "paragraph" } } }, "then": { "anyOf": [{ "required": ["from"] }, { "required": ["text"] }] } },
+        { "if": { "properties": { "as": { "const": "list" } } },      "then": { "required": ["from"] } },
+        { "if": { "properties": { "as": { "const": "table" } } },     "then": { "required": ["from", "columns"] } },
+        { "if": { "properties": { "as": { "const": "section" } } },   "then": { "required": ["from", "each"] } },
+        { "if": { "properties": { "as": { "const": "keyvalue" } } },  "then": { "anyOf": [{ "required": ["from"] }, { "required": ["pairs"] }] } },
+        { "if": { "properties": { "as": { "const": "code" } } },      "then": { "required": ["from"] } }
+      ]
+    },
+
+    "XRender": {
+      "type": "array",
+      "description": "1 block の x-render。RenderPart を順に並べる。",
+      "items": { "$ref": "#/$defs/RenderPart" }
+    }
+  }
+}

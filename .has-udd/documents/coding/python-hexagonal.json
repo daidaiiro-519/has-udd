@@ -1,0 +1,44 @@
+{
+  "documentId": "python-hexagonal",
+  "documentType": "Coding",
+  "schemaRef": "CodingSchema/v1",
+  "codingKind": "code-template",
+  "status": "ACTIVE",
+  "tags": ["stack:python", "arch:hexagonal"],
+  "content": {
+    "title": { "blockType": "Title", "title": "python-hexagonal" },
+    "conventions": {
+      "blockType": "Conventions",
+      "title": "コード規約",
+      "items": [
+        { "concept": "port",            "folder": "src/has_udd/application/ports",    "namingRule": "{Name}（Protocol）。driven port は能力を必要とする application が所有" },
+        { "concept": "usecase",         "folder": "src/has_udd/application/usecases",  "namingRule": "{verb}_engine.py / {Verb}Engine・実行は run()（ヘキサゴナルのユースケース。公開名は engine）" },
+        { "concept": "domain-service",  "folder": "src/has_udd/domain/services",      "namingRule": "{Name}Service（ステートレス）" },
+        { "concept": "outbound-adapter","folder": "src/has_udd/adapters/outbound",    "namingRule": "{Tech}{Port}（例: Jinja2Renderer）" },
+        { "concept": "inbound-adapter", "folder": "src/has_udd/adapters/inbound/cli", "namingRule": "Typer コマンド" },
+        { "concept": "shared",          "folder": "src/has_udd/shared",               "namingRule": "Result / 契約定数（tags）" }
+      ]
+    },
+    "validationRules": {
+      "blockType": "ValidationRules",
+      "title": "検証ルール",
+      "items": [
+        { "id": "anchor-required", "kind": "anchor-required",      "spec": "engine/adapter の各クラスは @spec か @stack を DocComment に持つ", "severity": "error" },
+        { "id": "dep-inward",      "kind": "dependency",           "spec": "domain は外側(application/adapters)を import 不可（受動的データ＋純ロジックのみ）。application は adapters を import 不可（application/ports 経由・adapters が実装）", "severity": "error" },
+        { "id": "lib-via-adapter", "kind": "required-abstraction", "spec": "外部 library（jsonschema/jinja2 等）は outbound adapter 経由。application から直 import 禁止", "severity": "error" },
+        { "id": "no-print",        "kind": "ban",                  "spec": "print() 禁止。logging を使う", "severity": "error" },
+        { "id": "engine-run",      "kind": "naming",               "spec": "engine の公開エントリは run()。application 配下に置く", "severity": "warn" },
+        { "id": "gen-gap",         "kind": "placement",            "spec": "実装本体は has-udd:impl-start / impl-end で囲う", "severity": "warn" }
+      ]
+    },
+    "subdomainRichness": {
+      "blockType": "SubdomainRichness",
+      "title": "サブドメイン較正",
+      "items": [
+        { "subdomain": "core",       "implementationMethod": "domain-service + application（汎用engine）", "conventionDepth": "full" },
+        { "subdomain": "supporting", "implementationMethod": "transaction-script（薄いadapter/CLI）",      "conventionDepth": "thin" },
+        { "subdomain": "generic",    "implementationMethod": "library-integration（outbound adapter）",    "conventionDepth": "stack-only" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,13 @@
+<h1>python-hexagonal</h1>
+
+<h2>コード規約</h2>
+
+<table><thead><tr><th>概念</th><th>配置</th><th>命名規約</th></tr></thead><tbody><tr><td>port</td><td><code>src/has_udd/application/ports</code></td><td>{Name}（Protocol）。driven port は能力を必要とする application が所有</td></tr><tr><td>usecase</td><td><code>src/has_udd/application/usecases</code></td><td>{verb}_engine.py / {Verb}Engine・実行は run()（ヘキサゴナルのユースケース。公開名は engine）</td></tr><tr><td>domain-service</td><td><code>src/has_udd/domain/services</code></td><td>{Name}Service（ステートレス）</td></tr><tr><td>outbound-adapter</td><td><code>src/has_udd/adapters/outbound</code></td><td>{Tech}{Port}（例: Jinja2Renderer）</td></tr><tr><td>inbound-adapter</td><td><code>src/has_udd/adapters/inbound/cli</code></td><td>Typer コマンド</td></tr><tr><td>shared</td><td><code>src/has_udd/shared</code></td><td>Result / 契約定数（tags）</td></tr></tbody></table>
+
+<h2>検証ルール</h2>
+
+<table><thead><tr><th>id</th><th>kind</th><th>spec</th><th>severity</th></tr></thead><tbody><tr><td>anchor-required</td><td>anchor-required</td><td>engine/adapter の各クラスは @spec か @stack を DocComment に持つ</td><td>error</td></tr><tr><td>dep-inward</td><td>dependency</td><td>domain は外側(application/adapters)を import 不可（受動的データ＋純ロジックのみ）。application は adapters を import 不可（application/ports 経由・adapters が実装）</td><td>error</td></tr><tr><td>lib-via-adapter</td><td>required-abstraction</td><td>外部 library（jsonschema/jinja2 等）は outbound adapter 経由。application から直 import 禁止</td><td>error</td></tr><tr><td>no-print</td><td>ban</td><td>print() 禁止。logging を使う</td><td>error</td></tr><tr><td>engine-run</td><td>naming</td><td>engine の公開エントリは run()。application 配下に置く</td><td>warn</td></tr><tr><td>gen-gap</td><td>placement</td><td>実装本体は has-udd:impl-start / impl-end で囲う</td><td>warn</td></tr></tbody></table>
+
+<h2>サブドメイン較正</h2>
+
+<table><thead><tr><th>サブドメイン</th><th>実装方法</th><th>規約の厚み</th></tr></thead><tbody><tr><td>core</td><td>domain-service + application（汎用engine）</td><td>full</td></tr><tr><td>supporting</td><td>transaction-script（薄いadapter/CLI）</td><td>thin</td></tr><tr><td>generic</td><td>library-integration（outbound adapter）</td><td>stack-only</td></tr></tbody></table>

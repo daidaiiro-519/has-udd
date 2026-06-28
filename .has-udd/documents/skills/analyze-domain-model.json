@@ -1,0 +1,98 @@
+{
+  "documentId": "analyze-domain-model",
+  "documentType": "Skill",
+  "schemaRef": "SkillSchema/v1",
+  "skillKind": "custom",
+  "status": "DRAFT",
+  "tags": [
+    "domain:ddd",
+    "domain:modeling"
+  ],
+  "createdAt": "2026-06-21T00:00:00Z",
+  "updatedAt": "2026-06-21T00:00:00Z",
+  "content": {
+    "purpose": {
+      "blockType": "Purpose",
+      "title": "目的",
+      "text": "要件・会話・既存コードから業務ドメインを分析し、集約・値オブジェクト・業務ルールを抽出して DomainModelSpec の素材を作る。"
+    },
+    "role": {
+      "blockType": "Role",
+      "title": "役割",
+      "items": [
+        "業務語彙（ユビキタス言語）を収集・整理する",
+        "エンティティと値オブジェクトを識別する",
+        "集約境界と整合性ルールを特定する",
+        "サブドメインの分類（中核・一般・補完）を判定する"
+      ]
+    },
+    "processingTarget": {
+      "blockType": "ProcessingTarget",
+      "title": "処理対象と成果物",
+      "target": "業務要件・会話・既存コードベース・DDD に関する知識。SubAgent がコンテキストとして渡した情報すべてを処理対象とする。",
+      "artifact": "業務語彙リスト・集約候補リスト・値オブジェクト候補リスト・業務ルール一覧。DomainModelSpec（CREATED 状態）の content に記載できる形式で出力する。"
+    },
+    "title": {
+      "blockType": "Title",
+      "title": "analyze-domain-model"
+    },
+    "steps": {
+      "blockType": "CustomSteps",
+      "title": "実行手順",
+      "items": [
+        {
+          "stepId": "step-1",
+          "title": "業務語彙を収集する",
+          "children": [
+            {
+              "stepId": "step-1-1",
+              "title": "名詞を列挙する",
+              "summary": "ドメイン固有の名詞を列挙し、各名詞が何を指すかを1文で定義する。"
+            },
+            {
+              "stepId": "step-1-2",
+              "title": "動詞（業務操作）を列挙する",
+              "summary": "ドメイン固有の動詞を列挙し、誰が・何を・どうするかを明示する。"
+            }
+          ],
+          "summary": "渡された要件・会話・コードから業務固有の名詞・動詞を抽出し、定義を整理する。"
+        },
+        {
+          "stepId": "step-2",
+          "title": "エンティティと値オブジェクトを識別する",
+          "summary": "収集した名詞を「同一性を持つか（エンティティ）」「値で区別されるか（値オブジェクト）」の観点で分類する。"
+        },
+        {
+          "stepId": "step-3",
+          "title": "集約境界を特定する",
+          "summary": "エンティティ群の中からルートエンティティを特定し、「この操作が失敗した場合どこまでロールバックするか」を問いとして集約境界を引く。"
+        },
+        {
+          "stepId": "step-4",
+          "title": "サブドメインを分類する",
+          "summary": "識別された集約が所属するサブドメインを特定し、中核・一般・補完のいずれかに分類する。分類の根拠を明示する。"
+        }
+      ]
+    },
+    "guardrails": {
+      "blockType": "Guardrails",
+      "title": "ガードレール",
+      "items": [
+        "集約境界の判定には必ず「失敗時のロールバック範囲」を問いとして使うこと。感覚的な境界引きは禁止",
+        "「中核サブドメイン」の判定は慎重に行うこと。ほとんどの業務は一般・補完に分類される",
+        "エンティティと値オブジェクトの区別を省略しないこと。後の実装設計に直接影響する",
+        "ユビキタス言語に技術用語（テーブル・カラム・API 等）を混入しないこと"
+      ]
+    },
+    "references": {
+      "blockType": "References",
+      "title": "参照",
+      "items": [
+        {
+          "path": ".has-udd/schemas/DomainModelSpec/v1.json",
+          "description": "分析結果を記録する DomainModelSpec の Schema 定義"
+        }
+      ]
+    }
+  }
+}

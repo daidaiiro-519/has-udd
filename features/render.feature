@@ -1,0 +1,66 @@
+# uc-render-document の受け入れシナリオ（What の SSOT・実行可能）。
+# render は schema 適合検証をしない（検証は uc-validate-document の責務）。frontmatter のみ x-frontmatter 駆動。
+Feature: document.json を成果物にレンダリング (uc-render-document)
+
+  Background:
+    Given render engine
+
+  # --- 正常系（SkillSchema → Markdown） ---
+
+  Scenario: SkillSchema を Markdown にレンダリングする
+    Given 対象は ".has-udd/documents/skills/harness-query-engine.json"
+    When deploy なしでレンダリングする
+    Then 成功する
+    And 出力フォーマットは "md"
+    And 出力に "# harness-query-engine" を含む
+    And 出力に "## 目的" を含む
+    And 出力に "| name | type | 必須 | 説明 | 例 |" を含む
+    And 出力に "### Step 2: オペレーションを選ぶ" を含む
+    And 出力に "| operation | 用途 | 必須引数 | 例 |" を含む
+    And 出力に "has-udd query --operation get_block" を含む
+
+  Scenario: frontmatter は x-frontmatter のドットパスを解決して生成する
+    Given 対象は ".has-udd/documents/skills/harness-query-engine.json"
+    When deploy なしでレンダリングする
+    Then 成功する
+    And 出力に "name:" を含む
+    And 出力に "description:" を含む
+    And 出力に "harness-query-engine" を含む
+
+  Scenario: deploy すると canonical と deploy 先の両方に書く
+    Given 対象は ".has-udd/documents/skills/harness-query-engine.json"
+    When レンダリングして deploy する
+    Then 成功する
+    And 出力パスは ".has-udd/skills/harness-query-engine/SKILL.md"
+    And deploy 先に ".claude/skills/harness-query-engine/SKILL.md" を含む
+
+  # --- CodingSchema → HTML ---
+
+  Scenario: CodingSchema は HTML として描画できる
+    Given 対象は ".has-udd/documents/coding/stack.json"
+    When deploy なしでレンダリングする
+    Then 成功する
+    And 出力フォーマットは "html"
+    And 出力に "<h1>" を含む
+
+  # --- エラー / セキュリティ（頑健化） ---
+
+  Scenario: schemaRef を持たない document は MISSING_SCHEMA_REF
+    Given schemaRef なしの一時ファイルを対象にする
+    When deploy なしでレンダリングする
+    Then エラーコード "MISSING_SCHEMA_REF" で失敗する
+
+  Scenario: 存在しないパスは INVALID_PATH
+    Given 対象は "does/not/exist.json"
+    When deploy なしでレンダリングする
+    Then エラーコード "INVALID_PATH" で失敗する
+
+  Scenario: パストラバーサルは拒否する (G6)
+    Given 対象は "../etc/passwd.json"
+    When deploy なしでレンダリングする
+    Then エラーコード "INVALID_PATH" で失敗する
+
+  Scenario: 不正な JSON は INVALID_JSON
+    Given 不正な JSON の一時ファイルを対象にする
+    When deploy なしでレンダリングする
+    Then エラーコード "INVALID_JSON" で失敗する

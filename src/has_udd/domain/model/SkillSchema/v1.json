@@ -1,0 +1,501 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "SkillSchema/v1",
+  "title": "SkillSchema v1",
+  "description": "has-udd Skill document の Schema（engine / custom 両対応）",
+  "x-render-target": {
+    "formats": ["md"],
+    "path": ".has-udd/skills/{documentId}/SKILL.md",
+    "deploy": [".claude/skills/{documentId}/SKILL.md"]
+  },
+  "x-source-target": ".has-udd/documents/skills/{documentId}.json",
+  "x-frontmatter": {
+    "name": "doc.documentId",
+    "description": "doc.content.purpose.text"
+  },
+  "type": "object",
+  "required": ["documentId", "documentType", "schemaRef", "skillKind", "status", "content"],
+  "properties": {
+    "documentId": {
+      "type": "string",
+      "x-prompt-write": "このSkillを一意に識別するIDを kebab-case で付けてください。例: harness-render-engine, analyze-domain-model"
+    },
+    "documentType": { "type": "string", "const": "Skill" },
+    "schemaRef":    { "type": "string", "const": "SkillSchema/v1" },
+    "skillKind": {
+      "type": "string",
+      "enum": ["engine", "custom"],
+      "x-prompt-write": "engine（OSS提供・インフラ基盤）か custom（ユーザー作成・ドメイン手順）かを指定してください。"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "ACTIVE", "DEPRECATED"],
+      "x-prompt-write": "作成中は DRAFT、利用可能になったら ACTIVE、廃止する場合は DEPRECATED を指定してください。"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "x-prompt-write": "このSkillを分類するタグを付けてください。例: [\"engine:render\", \"domain:spec\"]"
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt":  { "type": "string", "format": "date-time" },
+    "_index": {
+      "description": "has-udd が x-prompt-query から自動生成する。AI は直接書かない。",
+      "readOnly": true,
+      "type": "object",
+      "properties": {
+        "blocks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["blockType", "prompt"],
+            "properties": {
+              "blockType": { "type": "string" },
+              "prompt":    { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "content": { "type": "object" }
+  },
+
+  "if":   { "properties": { "skillKind": { "const": "engine" } }, "required": ["skillKind"] },
+  "then": { "properties": { "content": { "$ref": "#/$defs/EngineContent" } } },
+  "else": { "properties": { "content": { "$ref": "#/$defs/CustomContent" } } },
+
+  "$defs": {
+
+    "EngineContent": {
+      "type": "object",
+      "required": ["title", "purpose", "role", "interface", "invocationSpec", "steps"],
+      "additionalProperties": false,
+      "properties": {
+        "title":          { "$ref": "#/$defs/TitleBlock" },
+        "purpose":        { "$ref": "#/$defs/PurposeBlock" },
+        "role":           { "$ref": "#/$defs/RoleBlock" },
+        "interface":      { "$ref": "#/$defs/InterfaceBlock" },
+        "invocationSpec": { "$ref": "#/$defs/InvocationSpecBlock" },
+        "steps":          { "$ref": "#/$defs/EngineStepsBlock" },
+        "guardrails":     { "$ref": "#/$defs/GuardrailsBlock" },
+        "references":     { "$ref": "#/$defs/ReferencesBlock" }
+      }
+    },
+
+    "CustomContent": {
+      "type": "object",
+      "required": ["title", "purpose", "role", "processingTarget", "steps"],
+      "additionalProperties": false,
+      "properties": {
+        "title":            { "$ref": "#/$defs/TitleBlock" },
+        "purpose":          { "$ref": "#/$defs/PurposeBlock" },
+        "role":             { "$ref": "#/$defs/RoleBlock" },
+        "processingTarget": { "$ref": "#/$defs/ProcessingTargetBlock" },
+        "steps":            { "$ref": "#/$defs/CustomStepsBlock" },
+        "guardrails":       { "$ref": "#/$defs/GuardrailsBlock" },
+        "references":       { "$ref": "#/$defs/ReferencesBlock" }
+      }
+    },
+
+    "TitleBlock": {
+      "type": "object",
+      "required": ["blockType", "title"],
+      "x-render-order": 0,
+      "x-render-level": 1,
+      "x-prompt-query": "このSkillのタイトルを持ちます。documentId がそのまま使われます。レンダリング時に h1 見出しになります。",
+      "x-render": [],
+      "properties": {
+        "blockType": { "type": "string", "const": "Title" },
+        "title":     { "type": "string", "x-prompt-write": "documentId をそのまま設定してください。" }
+      }
+    },
+
+    "PurposeBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "text"],
+      "x-render-order": 1,
+      "x-render-level": 2,
+      "x-prompt-query": "このSkillの目的を1〜2文で持ちます。Skill選択・ルーティング判断・ドキュメント理解に使います。",
+      "x-render": [
+        { "as": "paragraph", "from": "text" }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "Purpose" },
+        "title":     { "type": "string", "const": "目的" },
+        "text": {
+          "type": "string",
+          "x-prompt-write": "このSkillが何をするためのものかを1〜2文で記述してください。動詞で始め、何を実現するかを明示してください。"
+        }
+      }
+    },
+
+    "RoleBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 2,
+      "x-render-level": 2,
+      "x-prompt-query": "このSkillの役割リストを持ちます。Skillの責務範囲の把握に使います。",
+      "x-render": [
+        { "as": "list", "from": "items" }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "Role" },
+        "title":     { "type": "string", "const": "役割" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "このSkillが担う責務を列挙してください。各項目は「〜する」「〜を提供する」の形で記述してください。",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "InterfaceBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "input", "output"],
+      "x-render-order": 3,
+      "x-render-level": 2,
+      "x-prompt-query": "この engine の I/O 定義を持ちます。受け取ったテキスト(意図)を、ここで定義された params に成型して CLI/MCP を呼ぶための『成型ガイド』。各 param の description がその意味を表す（Orchestrator が外部から満たす契約ではなく、受け手 Skill が成型に使う）。",
+      "x-render": [
+        { "as": "paragraph", "text": "**入力は自然言語のテキスト（要望）**。受け取ったテキストから下表の **パラメータに成型** し、『呼び出し』の形に当てはめて呼ぶ（実行手順参照）。**出力は `{ prompt, value }`**（`value` はそのまま・`prompt` が読み方）。" },
+        { "as": "table", "heading": "パラメータ（テキストから成型して埋める・呼び出しに渡す値）", "from": "input", "columns": [
+          { "field": "name", "header": "name" },
+          { "field": "type", "header": "type" },
+          { "field": "required", "header": "必須" },
+          { "field": "description", "header": "説明" },
+          { "field": "example", "header": "例" }
+        ] },
+        { "as": "table", "heading": "出力（value の中身）", "from": "output", "columns": [
+          { "field": "name", "header": "name" },
+          { "field": "type", "header": "type" },
+          { "field": "required", "header": "必須" },
+          { "field": "description", "header": "説明" },
+          { "field": "example", "header": "例" }
+        ] }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "Interface" },
+        "title":     { "type": "string", "const": "インターフェース" },
+        "input": {
+          "type": "array",
+          "x-prompt-write": "受け取ったテキストから成型して埋める入力パラメータ（＝CLI/MCP の設定項目）を列挙してください。",
+          "items": {
+            "type": "object",
+            "required": ["name", "type", "required", "description"],
+            "properties": {
+              "name":        { "type": "string",  "x-prompt-write": "パラメータ名を camelCase で。" },
+              "type":        { "type": "string",  "x-prompt-write": "型。例: string, number, boolean, string[]。複数型は ' / ' 区切り（'|' は表が壊れるので使わない）。" },
+              "required":    { "type": "boolean", "x-prompt-write": "必須なら true、省略可能なら false。" },
+              "description": { "type": "string",  "x-prompt-write": "このパラメータが何を表すか1文で（テキストから何を読み取るかの手がかり）。" },
+              "example":     { "type": "string",  "x-prompt-write": "設定値の例（任意・親切のため）。例: uc-cancel-order" }
+            }
+          }
+        },
+        "output": {
+          "type": "array",
+          "x-prompt-write": "このengineが返す出力フィールドを列挙してください（パラメータ表と同じ列で揃えます）。",
+          "items": {
+            "type": "object",
+            "required": ["name", "type", "required", "description"],
+            "properties": {
+              "name":        { "type": "string",  "x-prompt-write": "出力フィールド名を camelCase で記述してください。" },
+              "type":        { "type": "string",  "x-prompt-write": "型。例: string, object, string[], markdown, html。複数型は ' / ' 区切り（'|' は使わない）。" },
+              "required":    { "type": "boolean", "x-prompt-write": "常に返るフィールドは true、条件付き（raw 時/エラー時のみ等）は false。" },
+              "description": { "type": "string",  "x-prompt-write": "このフィールドが何を表すかを1文で記述してください。" },
+              "example":     { "type": "string",  "x-prompt-write": "値の例（任意・親切のため）。" }
+            }
+          }
+        }
+      }
+    },
+
+    "ProcessingTargetBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "target", "artifact"],
+      "x-render-order": 3,
+      "x-render-level": 2,
+      "x-prompt-query": "このcustom Skillの処理対象と成果物を持ちます。SubAgentがSkillの意味的な入出力を把握するために使います。",
+      "x-render": [
+        { "as": "paragraph", "heading": "処理対象", "from": "target" },
+        { "as": "paragraph", "heading": "成果物", "from": "artifact" }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "ProcessingTarget" },
+        "title":     { "type": "string", "const": "処理対象と成果物" },
+        "target": {
+          "type": "string",
+          "x-prompt-write": "このSkillが受け取る処理対象を自然言語で記述してください。何を・どのような状態のものを受け取るかを明示してください。"
+        },
+        "artifact": {
+          "type": "string",
+          "x-prompt-write": "このSkillが生み出す成果物を自然言語で記述してください。何を・どのような形式で出力するかを明示してください。"
+        }
+      }
+    },
+
+    "InvocationSpecBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "cliTemplate", "cliExamples", "mcpTemplate", "mcpExamples"],
+      "x-render-order": 4,
+      "x-render-level": 2,
+      "x-prompt-query": "この engine の具体的な呼び出し形（CLI/MCP のテンプレと、operation+params を埋めた実例）を持ちます。実際に動く呼び出しを組み立てるために使います。",
+      "x-render": [
+        { "as": "paragraph", "text": "選んだ operation と成型したパラメータを、下記の CLI / MCP の形に当てはめて呼ぶ（各パラメータの意味は『インターフェース』参照）。" },
+        { "as": "code", "heading": "Skills（CLI）", "from": "cliTemplate" },
+        { "as": "paragraph", "text": "例:" },
+        { "as": "code", "from": "cliExamples" },
+        { "as": "code", "heading": "MCP", "from": "mcpTemplate" },
+        { "as": "paragraph", "text": "例:" },
+        { "as": "code", "from": "mcpExamples" },
+        { "as": "paragraph", "from": "note" }
+      ],
+      "properties": {
+        "blockType":   { "type": "string", "const": "InvocationSpec" },
+        "title":       { "type": "string", "const": "呼び出し" },
+        "cliTemplate": {
+          "type": "string",
+          "x-prompt-write": "CLI 呼び出しのテンプレ。operation/param をプレースホルダで示す。例: has-udd query --operation <operation> --path <path> [--<param> <value> ...]"
+        },
+        "cliExamples": {
+          "type": "array",
+          "items": { "type": "string" },
+          "x-prompt-write": "実際に動く CLI 呼び出し例を1〜2個。operation と代表的な params を埋めた完全な形で書く（受け手がそのまま当てはめられるように）。"
+        },
+        "mcpTemplate": {
+          "type": "string",
+          "x-prompt-write": "MCP 呼び出しのテンプレ。例: query_document({ \"operation\": \"<operation>\", \"path\": \"<path>\", ... })"
+        },
+        "mcpExamples": {
+          "type": "array",
+          "items": { "type": "string" },
+          "x-prompt-write": "実際に動く MCP 呼び出し例を1〜2個。operation と代表的な params を埋めた完全な形で書く。"
+        },
+        "note": {
+          "type": "string",
+          "x-prompt-write": "補足（任意。例: has-udd serve 起動後に MCP 利用可）。"
+        }
+      }
+    },
+
+    "EngineStepsBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 5,
+      "x-render-level": 2,
+      "x-prompt-write": "この engine の『使い方』を定義してください: どの操作・どのコマンド/MCP ツールを・どんな時に呼び、返り値（{prompt,value}）をどう解釈・活用するか。内部実装（ファイル読込・パース・例外処理等）は書かないでください（ソースコードが担保・2ヘキサゴンで不可視）。",
+      "x-prompt-query": "この engine の使い方を持ちます。Orchestrator が呼び出し方と返り値の扱いを把握するために使います。",
+      "x-render": [
+        { "as": "section", "from": "items", "titleFrom": "title", "itemLabel": "Step", "each": [
+          { "as": "paragraph", "from": "summary" },
+          { "as": "list", "from": "bullets" },
+          { "as": "table", "from": "operations", "columns": [
+            { "field": "operation", "header": "operation", "code": true },
+            { "field": "purpose", "header": "用途" },
+            { "field": "params", "header": "必須引数" },
+            { "field": "example", "header": "例" }
+          ] },
+          { "as": "section", "from": "children", "titleFrom": "title", "each": [
+            { "as": "paragraph", "from": "summary" },
+            { "as": "list", "from": "bullets" }
+          ] }
+        ] }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "EngineSteps" },
+        "title":     { "type": "string", "const": "実行手順" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "実行順に Step を列挙してください。",
+          "items": { "$ref": "#/$defs/EngineStepItem" }
+        }
+      }
+    },
+
+    "CustomStepsBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 5,
+      "x-render-level": 2,
+      "x-prompt-write": "このcustom Skillのドメイン実行手順を定義してください。インフラ語彙（document.json・MCP・ファイルパス・Python API 等）は絶対に書かないでください。SubAgentが実行するドメイン固有の操作のみを記述してください。",
+      "x-prompt-query": "このcustom Skillの実行手順を持ちます。SubAgentがSkillのドメイン操作を把握・実行するために使います。",
+      "x-render": [
+        { "as": "section", "from": "items", "titleFrom": "title", "itemLabel": "Step", "each": [
+          { "as": "paragraph", "from": "summary" },
+          { "as": "list", "from": "bullets" },
+          { "as": "section", "from": "children", "titleFrom": "title", "each": [
+            { "as": "paragraph", "from": "summary" },
+            { "as": "list", "from": "bullets" }
+          ] }
+        ] }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "CustomSteps" },
+        "title":     { "type": "string", "const": "実行手順" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "ドメイン固有の操作を実行順に列挙してください。",
+          "items": { "$ref": "#/$defs/CustomStepItem" }
+        }
+      }
+    },
+
+    "StepItemBase": {
+      "type": "object",
+      "required": ["stepId", "title"],
+      "properties": {
+        "stepId": {
+          "type": "string",
+          "x-prompt-write": "step-1, step-2 のように連番で付けてください。"
+        },
+        "title": {
+          "type": "string",
+          "x-prompt-write": "このStepで行うことを動詞で始めて簡潔に記述してください。"
+        }
+      }
+    },
+
+    "EngineStepItem": {
+      "allOf": [{ "$ref": "#/$defs/StepItemBase" }],
+      "required": ["summary"],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "x-prompt-write": "この Step の要点を1〜2文で簡潔に（どの操作/コマンド/MCP ツールを呼び、返り値をどう使うか）。内部実装は書かない（ソースが担保）。"
+        },
+        "bullets": {
+          "type": "array",
+          "items": { "type": "string" },
+          "x-prompt-write": "選択肢・一覧など箇条書きにすべき項目があれば1行ずつ列挙（任意）。"
+        },
+        "operations": {
+          "type": "array",
+          "x-prompt-write": "operation ディスパッチ型 engine で『どの operation を選ぶか』を示す Step のみ、各 operation の用途・必須引数・例を列挙（任意）。この Step の中に選択肢表として描画される。",
+          "items": {
+            "type": "object",
+            "required": ["operation", "purpose"],
+            "properties": {
+              "operation": { "type": "string", "x-prompt-write": "operation 名。" },
+              "purpose":   { "type": "string", "x-prompt-write": "その operation の用途を簡潔に。" },
+              "params":    { "type": "string", "x-prompt-write": "その operation で追加必須の引数（任意。'|' は使わない）。" },
+              "example":   { "type": "string", "x-prompt-write": "引数の埋め方の例（任意。'|' は使わない）。" }
+            }
+          }
+        },
+        "children": {
+          "type": "array",
+          "x-prompt-write": "さらに細かい使い方の手順に分割する場合に SubStep を列挙（任意）。",
+          "items": { "$ref": "#/$defs/EngineSubStepItem" }
+        }
+      }
+    },
+
+    "CustomStepItem": {
+      "allOf": [{ "$ref": "#/$defs/StepItemBase" }],
+      "required": ["summary"],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "x-prompt-write": "この Step でSubAgentが行うドメイン操作の要点を1〜2文で簡潔に。インフラ語彙（document.json・MCP・ファイルパス・Python API 等）は書かない。"
+        },
+        "bullets": {
+          "type": "array",
+          "items": { "type": "string" },
+          "x-prompt-write": "選択肢・一覧など箇条書きにすべき項目があれば1行ずつ列挙（任意）。"
+        },
+        "children": {
+          "type": "array",
+          "x-prompt-write": "さらに細かいドメイン操作に分割する場合に SubStep を列挙（任意）。",
+          "items": { "$ref": "#/$defs/CustomSubStepItem" }
+        }
+      }
+    },
+
+    "SubStepItemBase": {
+      "type": "object",
+      "required": ["stepId", "title", "summary"],
+      "properties": {
+        "stepId": {
+          "type": "string",
+          "x-prompt-write": "step-1-1, step-1-2 のように親 stepId を引き継いで連番で付けてください。"
+        },
+        "title": {
+          "type": "string",
+          "x-prompt-write": "このSubStepで行うことを動詞で始めて簡潔に記述してください。"
+        },
+        "bullets": {
+          "type": "array",
+          "items": { "type": "string" },
+          "x-prompt-write": "箇条書きにすべき項目があれば1行ずつ列挙（任意）。"
+        }
+      }
+    },
+
+    "EngineSubStepItem": {
+      "allOf": [{ "$ref": "#/$defs/SubStepItemBase" }],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "x-prompt-write": "この SubStep の要点を1〜2文で簡潔に（呼び出しと返り値の扱い）。内部実装は書かない（ソースが担保）。"
+        }
+      }
+    },
+
+    "CustomSubStepItem": {
+      "allOf": [{ "$ref": "#/$defs/SubStepItemBase" }],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "x-prompt-write": "この SubStep でSubAgentが行うドメイン操作の要点を1〜2文で簡潔に。インフラ語彙は書かない。"
+        }
+      }
+    },
+
+    "GuardrailsBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 6,
+      "x-render-level": 2,
+      "x-prompt-write": "このSkillを実行する際に必ず守るべき制約・禁止事項・前提条件を列挙してください。",
+      "x-prompt-query": "このSkillの実行制約を持ちます。Skillを実行する前に確認すべきガードレールの一覧です。",
+      "x-render": [
+        { "as": "list", "from": "items" }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "Guardrails" },
+        "title":     { "type": "string", "const": "ガードレール" },
+        "items": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "ReferencesBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 7,
+      "x-render-level": 2,
+      "x-prompt-write": "このSkillが参照するファイル・ドキュメント・スキーマを列挙してください。",
+      "x-prompt-query": "このSkillが参照するリソースの一覧を持ちます。Skill実行時に読み込むべきファイルの特定に使います。",
+      "x-render": [
+        { "as": "keyvalue", "from": "items", "labelFrom": "path", "valueFrom": "description", "labelCode": true }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "References" },
+        "title":     { "type": "string", "const": "参照" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "参照リソースを列挙してください。",
+          "items": {
+            "type": "object",
+            "required": ["path", "description"],
+            "properties": {
+              "path":        { "type": "string", "x-prompt-write": "参照先のファイルパスまたはスキーマ参照を記述してください。例: .has-udd/schemas/SkillSchema/v1.json" },
+              "description": { "type": "string", "x-prompt-write": "このリソースが何を提供するかを1文で記述してください。" }
+            }
+          }
+        }
+      }
+    }
+
+  }
+}

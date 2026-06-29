@@ -25,6 +25,21 @@ def _err(code: str, message: str) -> Err:
     return Err(message, [code])
 
 
+_MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs"
+
+
+def _html_document(title: str, body: str) -> str:
+    """HTML 出力を最小ドキュメントに包む。<pre class="mermaid"> を mermaid.js が図に描画する。"""
+    head = (
+        '<!DOCTYPE html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
+        f"<title>{title}</title>\n"
+        f'<script type="module">import mermaid from "{_MERMAID_CDN}";'
+        " mermaid.initialize({ startOnLoad: true });</script>\n"
+        "</head>\n<body>\n"
+    )
+    return head + body + "\n</body>\n</html>\n"
+
+
 class RenderEngine:
     def __init__(
         self,
@@ -62,6 +77,9 @@ class RenderEngine:
         defs = schema.get("$defs", {})
 
         output = self._render_frontmatter(doc, schema) + self._render_body(doc, defs, fmt)
+        if fmt == "html":
+            # HTML は最小ドキュメントに包む（mermaid.js で sequence 図を描画）
+            output = _html_document(doc.get("documentId", ""), output)
 
         canonical = (target.get("path") or "").format(documentId=doc["documentId"])
         deployed: list[str] = []
@@ -76,7 +94,19 @@ class RenderEngine:
                     deployed.append(dp)
             except OSError as e:
                 return _err("WRITE_ERROR", f"書き込みに失敗しました: {e}")
-        return Ok({"path": canonical, "deployed": deployed, "format": fmt, "content": output})
+
+        # 第2フォーマット: feature（x-test-scenario block の Gherkin を .feature へ）
+        feature = _extract_feature(doc, defs) if "feature" in formats else None
+        feature_path = ""
+        if feature and deploy:
+            feature_path = (target.get("featurePath") or "").format(documentId=doc["documentId"])
+            if feature_path:
+                self._documents.write_text(feature_path, feature)
+
+        return Ok({
+            "path": canonical, "deployed": deployed, "format": fmt, "content": output,
+            "feature": feature, "featurePath": feature_path or None,
+        })
         # has-udd:impl-end
 
     def _render_frontmatter(self, doc: dict, schema: dict) -> str:
@@ -112,6 +142,22 @@ class RenderEngine:
             body = render_parts(xr, block, fmt, level + 1).strip()
             parts.append(heading + ("\n\n" + body if body else ""))
         return "\n\n".join(parts) + "\n"
+
+
+def _extract_feature(doc: dict, defs: dict):
+    """x-test-scenario: true の block（TestScenarios/UnitTestScenarios）の Gherkin を返す。
+
+    .feature は仕様内 Gherkin を実行可能形に書き出すだけ（render は内容を作らない・SP-6）。
+    """
+    # has-udd:impl-start
+    for block in doc.get("content", {}).values():
+        if not isinstance(block, dict):
+            continue
+        bdef = defs.get(f"{block.get('blockType')}Block", {})
+        if bdef.get("x-test-scenario") and block.get("gherkin"):
+            return block["gherkin"]
+    return None
+    # has-udd:impl-end
 
 
 def _resolve_path(root: dict, path: str):

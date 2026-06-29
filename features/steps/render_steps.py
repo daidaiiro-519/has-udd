@@ -53,3 +53,9 @@ def step_output_path(context, p):
 @then('deploy 先に "{p}" を含む')
 def step_deployed_contains(context, p):
     assert p in context.result.value["deployed"], context.result.value["deployed"]
+
+
+@then('feature出力に "{s}" を含む')
+def step_feature_contains(context, s):
+    feature = context.result.value.get("feature") or ""
+    assert s in feature, f"feature 出力に {s!r} が無い"

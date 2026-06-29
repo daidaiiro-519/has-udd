@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>uc-query-document</title>
+<script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs"; mermaid.initialize({ startOnLoad: true });</script>
+</head>
+<body>
+<h1>uc-query-document</h1>
+
+<h2>目的</h2>
+
+<p>AI がファイルを直接読まずに、document.json の必要な意味単位（ブロック・フィールド・条件一致・全階層）だけを取得する。</p>
+
+<h2>アクターと意図</h2>
+
+<dl><dt>Actor</dt><dd>Orchestrator（HarnessAgent）</dd><dt>Intent</dt><dd>対象 document から、欲しい意味単位を取得して読み方の指針とともに受け取る</dd></dl>
+
+<h2>事前条件</h2>
+
+<ul><li>対象 document（またはディレクトリ）のパスが要望テキストで与えられている</li></ul>
+
+<h2>主成功フロー</h2>
+
+<pre class="mermaid">
+sequenceDiagram
+    Orchestrator->>query: operation と対象パスを指定して問い合わせる
+    query->>query: 対象の意味単位を取り出す
+    query-->>Orchestrator: { prompt, value } を返す
+</pre>
+
+<h2>事後条件</h2>
+
+<ul><li>要求された意味単位が value として返る</li><li>ブロック/配列取得時は value の読み方の指針が prompt に付く</li></ul>
+
+<h2>受け入れ条件</h2>
+
+<ul><li>When operation と対象パスが与えられたとき、エンジンは結果を { prompt, value } 形式で返す shall。</li><li>When ブロック/配列を取得したとき、prompt に対象ブロックの読み方の指針（x-prompt-query 由来）を含める shall。</li><li>While フィルタ条件に一致する要素が無いとき、エンジンは正常系として空配列 value: [] を返す shall。</li><li>If operation が未知のとき、エンジンは INVALID_OPERATION エラーを返す shall。</li><li>If 対象パスが存在しないとき、エンジンは INVALID_PATH エラーを返す shall。</li></ul>
+
+<h2>失敗モード</h2>
+
+<table><thead><tr><th>条件</th><th>結果</th></tr></thead><tbody><tr><td>operation が定義外</td><td>INVALID_OPERATION エラーを返し、処理しない</td></tr><tr><td>対象パスが存在しない</td><td>INVALID_PATH エラーを返す</td></tr><tr><td>必須パラメータが欠落</td><td>MISSING_PARAM エラーを返す</td></tr></tbody></table>
+
+<h2>テストシナリオ</h2>
+
+<pre><code>Feature: document.json へのセマンティック・クエリ (uc-query-document)
+
+  Scenario: ブロックを丸ごと取得する
+    Given query engine と対象 document
+    When operation get_block を blockKey interface で実行する
+    Then value は対象ブロックであり、prompt に読み方の指針が付く
+
+  Scenario: 条件に一致する配列要素だけを絞り込む
+    Given query engine と対象 document
+    When operation filter_items で required=true を指定する
+    Then value には required な要素だけが含まれる
+
+  Scenario: 一致が無くても正常系で空配列を返す
+    When 一致しないフィルタ条件で filter_items を実行する
+    Then value は空配列で、エラーにはならない
+
+  Scenario: 未知の operation はエラーを返す
+    When 未知の operation を実行する
+    Then INVALID_OPERATION エラーが返る
+</code></pre>
+
+</body>
+</html>

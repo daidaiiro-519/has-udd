@@ -38,6 +38,8 @@ def render_part(part: dict, data: dict, fmt: str, level: int) -> str:
         out.append(_keyvalue(part, data, src, fmt))
     elif kind == "code":
         out.append(_code(src, part.get("lang"), fmt))
+    elif kind == "sequence":
+        out.append(_sequence(src, fmt))
     elif kind == "divider":
         out.append("---" if fmt == "md" else "<hr>")
     elif kind == "section":
@@ -140,3 +142,30 @@ def _code(text, lang, fmt):
     if fmt == "md":
         return "\n\n".join(f"```{lang or ''}\n{t}\n```" for t in items)
     return "".join(f"<pre><code>{_esc(t)}</code></pre>" for t in items)
+
+
+def _seq_token(name: str) -> str:
+    """Mermaid の participant 識別子向けに空白を除く（ドメイン役者名は単語想定）。"""
+    return str(name).replace(" ", "_")
+
+
+def _sequence(steps, fmt):
+    """構造化ステップ（from/to/message/kind）→ Mermaid sequenceDiagram。format 変換は adapter の責務。"""
+    lines = ["sequenceDiagram"]
+    for s in steps:
+        if not isinstance(s, dict):
+            continue
+        frm = _seq_token(s.get("from", ""))
+        to = _seq_token(s.get("to", "") or s.get("from", ""))
+        msg = str(s.get("message", "")).replace("\n", " ")
+        kind = s.get("kind", "command")
+        if kind == "event":
+            lines.append(f"    Note over {frm}: {msg}")
+        elif kind == "return":
+            lines.append(f"    {frm}-->>{to}: {msg}")
+        else:  # command / self
+            lines.append(f"    {frm}->>{to}: {msg}")
+    diagram = "\n".join(lines)
+    if fmt == "md":
+        return f"```mermaid\n{diagram}\n```"
+    return f'<pre class="mermaid">\n{diagram}\n</pre>'

@@ -43,6 +43,27 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
     And 出力フォーマットは "html"
     And 出力に "<h1>" を含む
 
+  # --- SpecSchema（UDD ループ: TestScenarios → .feature） ---
+
+  Scenario: UsecaseSpec は HTML と .feature（TestScenarios の Gherkin）を生成する
+    Given 対象は ".has-udd/documents/specs/uc-query-document.json"
+    When deploy なしでレンダリングする
+    Then 成功する
+    And 出力フォーマットは "html"
+    And 出力に "<h1>uc-query-document</h1>" を含む
+    And 出力に "sequenceDiagram" を含む
+    And 出力に "mermaid" を含む
+    And feature出力に "Feature: document.json へのセマンティック・クエリ" を含む
+    And feature出力に "Scenario: 未知の operation はエラーを返す" を含む
+
+  Scenario: DomainModelSpec は集約の構造を HTML に・不変条件を .feature に出す
+    Given 対象は ".has-udd/documents/specs/dm-document.json"
+    When deploy なしでレンダリングする
+    Then 成功する
+    And 出力に "<h2>コマンド</h2>" を含む
+    And 出力に "DocumentRendered" を含む
+    And feature出力に "Feature: Document 集約の不変条件" を含む
+
   # --- エラー / セキュリティ（頑健化） ---
 
   Scenario: schemaRef を持たない document は MISSING_SCHEMA_REF

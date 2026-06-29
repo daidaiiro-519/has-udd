@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>uc-scaffold-document</title>
+<script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs"; mermaid.initialize({ startOnLoad: true });</script>
+</head>
+<body>
+<h1>uc-scaffold-document</h1>
+
+<h2>目的</h2>
+
+<p>schema から Document の骨格を機械生成し（create）、AI が生成した値を宣言済みフィールドにのみ機械的に書き込む（fill）。AI は構造を触らない。</p>
+
+<h2>アクターと意図</h2>
+
+<dl><dt>Actor</dt><dd>Orchestrator（HarnessAgent）</dd><dt>Intent</dt><dd>新しい Document を schema 通りに起こし、値だけを安全に埋める</dd></dl>
+
+<h2>事前条件</h2>
+
+<ul><li>生成対象の schema と documentId が与えられている</li><li>分岐のある schema では discriminator が与えられている</li></ul>
+
+<h2>主成功フロー</h2>
+
+<pre class="mermaid">
+sequenceDiagram
+    Orchestrator->>Document: create(schemaRef, documentId)
+    Document-->>Orchestrator: 骨格と記入テンプレートを返す
+    Orchestrator->>Orchestrator: 値だけ生成（構造は触らない）
+    Orchestrator->>Document: fill(値)
+    Note over Document: DocumentCreated
+</pre>
+
+<h2>事後条件</h2>
+
+<ul><li>Document が schema の初期 status（enum 先頭）で生成される</li><li>宣言済みの値フィールドにのみ値が書き込まれる</li><li>構造（const / discriminator）は AI に変更されない</li></ul>
+
+<h2>受け入れ条件</h2>
+
+<ul><li>When schemaRef と documentId が与えられたとき、engine は schema に適合する骨格を生成する shall（status=schema の enum 先頭）。</li><li>When fill で値が与えられたとき、engine は宣言済み値フィールドにのみ書き込む shall。</li><li>If 構造を変える値や const / discriminator が与えられたとき、engine は拒否し skipped に記録する shall。</li><li>If 分岐のある schema で discriminator が無いとき、engine は MISSING_DISCRIMINATOR を返し候補を案内する shall。</li></ul>
+
+<h2>失敗モード</h2>
+
+<table><thead><tr><th>条件</th><th>結果</th></tr></thead><tbody><tr><td>分岐のある schema で discriminator が未指定</td><td>MISSING_DISCRIMINATOR を返し候補（enum）を案内する</td></tr><tr><td>未知の schemaRef</td><td>INVALID_SCHEMA_REF を返す</td></tr><tr><td>未知 path / const / discriminator への書き込み</td><td>書き込まず skipped に記録する</td></tr></tbody></table>
+
+<h2>テストシナリオ</h2>
+
+<pre><code>Feature: Document の骨格生成と値書き込み (uc-scaffold-document)
+
+  Scenario: 生成した骨格は自分の schema で valid
+    Given engine 種別の Document（discriminator 指定済み）
+    When create する
+    Then 骨格は schema に適合し、status は schema の初期値である
+
+  Scenario: 構造を変える値は拒否される
+    Given 作成済みの Document
+    When const フィールドへ値を書き込もうとする
+    Then 書き込まれず skipped に記録される
+</code></pre>
+
+</body>
+</html>

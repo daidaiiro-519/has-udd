@@ -1,0 +1,130 @@
+{
+  "documentId": "dm-document",
+  "documentType": "Spec",
+  "schemaRef": "SpecSchema/v1",
+  "specKind": "domain-model",
+  "status": "VALIDATED",
+  "tags": ["context:has-udd-engines"],
+  "content": {
+    "title": { "blockType": "Title", "title": "dm-document" },
+    "purpose": {
+      "blockType": "Purpose",
+      "title": "目的",
+      "text": "Document（構造化された成果物）のライフサイクルと一貫性を表す集約。状態は生成→検証→描画の順にのみ進み、後続版で置換される。"
+    },
+    "aggregateRoot": {
+      "blockType": "AggregateRoot",
+      "title": "集約ルート",
+      "name": "Document",
+      "identifier": "DocumentId",
+      "invariants": [
+        "status は CREATED → VALIDATED → RENDERED → SUPERSEDED の順にのみ進み、逆行しない",
+        "schemaRef は常に存在し、content が schema に適合しない限り VALIDATED へ進めない",
+        "SUPERSEDED は終端状態であり、以後どのコマンドも受け付けない"
+      ]
+    },
+    "valueObjects": {
+      "blockType": "ValueObjects",
+      "title": "値オブジェクト",
+      "items": [
+        {
+          "name": "DocumentId",
+          "attributes": [ { "name": "value", "meaning": "kebab-case の一意な識別子" } ],
+          "equality": "value が等しければ等価"
+        },
+        {
+          "name": "SchemaRef",
+          "attributes": [
+            { "name": "name", "meaning": "schema 名（例: SpecSchema）" },
+            { "name": "version", "meaning": "schema バージョン（例: v1）" }
+          ],
+          "equality": "name と version が共に等しければ等価"
+        },
+        {
+          "name": "Status",
+          "attributes": [ { "name": "value", "meaning": "CREATED / VALIDATED / RENDERED / SUPERSEDED のいずれか" } ],
+          "equality": "value が等しければ等価"
+        }
+      ]
+    },
+    "commands": {
+      "blockType": "Commands",
+      "title": "コマンド",
+      "items": [
+        {
+          "name": "create",
+          "description": "schemaRef と documentId から schema に適合する骨格を生成し、CREATED 状態で作る。",
+          "params": [
+            { "name": "schemaRef", "meaning": "適用する schema" },
+            { "name": "documentId", "meaning": "新しい識別子" }
+          ],
+          "emits": ["DocumentCreated"]
+        },
+        {
+          "name": "validate",
+          "description": "content が schema に適合するか検証する（副作用なし）。適合すれば VALIDATED へ進める。",
+          "params": [],
+          "emits": ["DocumentValidated"]
+        },
+        {
+          "name": "render",
+          "description": "VALIDATED な Document を x-render に従い成果物に描画し、宣言された配置先（各ツール）へ反映して RENDERED にする。",
+          "params": [],
+          "emits": ["DocumentRendered", "DocumentDeployed"]
+        },
+        {
+          "name": "supersede",
+          "description": "後続版に置き換え、SUPERSEDED にする。",
+          "params": [ { "name": "successorId", "meaning": "後継 Document の識別子" } ],
+          "emits": ["DocumentSuperseded"]
+        }
+      ]
+    },
+    "domainEvents": {
+      "blockType": "DomainEvents",
+      "title": "ドメインイベント",
+      "items": [
+        {
+          "name": "DocumentValidated",
+          "raisedBy": "validate コマンドの成功時",
+          "payload": [
+            { "name": "documentId", "meaning": "対象の識別子" },
+            { "name": "schemaRef", "meaning": "適合した schema" }
+          ]
+        },
+        {
+          "name": "DocumentRendered",
+          "raisedBy": "render コマンドの成功時",
+          "payload": [
+            { "name": "documentId", "meaning": "対象の識別子" },
+            { "name": "outputs", "meaning": "生成された成果物のパス一覧" }
+          ]
+        },
+        {
+          "name": "DocumentDeployed",
+          "raisedBy": "render コマンドが deploy 先を持つ Document を描画した時",
+          "payload": [
+            { "name": "documentId", "meaning": "対象の識別子" },
+            { "name": "targets", "meaning": "反映された各ツールの配置先" }
+          ]
+        }
+      ]
+    },
+    "lifecycle": {
+      "blockType": "Lifecycle",
+      "title": "ライフサイクル",
+      "transitions": [
+        { "from": "(なし)",    "trigger": "create",    "to": "CREATED" },
+        { "from": "CREATED",   "trigger": "validate",  "to": "VALIDATED" },
+        { "from": "VALIDATED", "trigger": "render",    "to": "RENDERED" },
+        { "from": "VALIDATED", "trigger": "supersede", "to": "SUPERSEDED" },
+        { "from": "RENDERED",  "trigger": "supersede", "to": "SUPERSEDED" }
+      ]
+    },
+    "unitTestScenarios": {
+      "blockType": "UnitTestScenarios",
+      "title": "ユニットテスト仕様",
+      "gherkin": "Feature: Document 集約の不変条件\n\n  Scenario: status は逆行できない\n    Given RENDERED 状態の Document\n    When validate へ戻そうとする\n    Then 状態遷移は拒否され、状態は RENDERED のままである\n\n  Scenario: 未検証では render できない\n    Given CREATED 状態の Document\n    When render する\n    Then 拒否され、状態は CREATED のままである\n\n  Scenario: SUPERSEDED は終端\n    Given SUPERSEDED 状態の Document\n    When 任意のコマンドを実行する\n    Then 拒否される\n"
+    }
+  }
+}

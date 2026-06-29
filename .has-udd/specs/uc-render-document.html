@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>uc-render-document</title>
+<script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs"; mermaid.initialize({ startOnLoad: true });</script>
+</head>
+<body>
+<h1>uc-render-document</h1>
+
+<h2>目的</h2>
+
+<p>検証済みの Document を、schema の x-render に従って人間可読な成果物（SKILL.md / HTML / .feature）に描画し、配置先へ反映する。</p>
+
+<h2>アクターと意図</h2>
+
+<dl><dt>Actor</dt><dd>Orchestrator（HarnessAgent）</dd><dt>Intent</dt><dd>対象 Document を成果物に描画し、canonical と deploy 先へ反映する</dd></dl>
+
+<h2>事前条件</h2>
+
+<ul><li>対象 Document が存在し、schemaRef を持つ</li></ul>
+
+<h2>主成功フロー</h2>
+
+<pre class="mermaid">
+sequenceDiagram
+    Orchestrator->>Document: render する
+    Document->>Document: x-render から成果物を生成（frontmatter＋部品）
+    Note over Document: DocumentRendered
+    Document-->>Orchestrator: 生成パス一覧を返す
+</pre>
+
+<h2>事後条件</h2>
+
+<ul><li>Document が RENDERED 状態になる</li><li>DocumentRendered が発行される</li><li>成果物が canonical に書かれ、deploy 先へ verbatim コピーされる</li></ul>
+
+<h2>受け入れ条件</h2>
+
+<ul><li>When 対象 Document が与えられたとき、engine は x-render に従い成果物を生成する shall。</li><li>When deploy が有効なとき、engine は canonical と deploy 先の両方へ書き込む shall。</li><li>If schemaRef が無いとき、engine は MISSING_SCHEMA_REF を返し描画しない shall。</li></ul>
+
+<h2>失敗モード</h2>
+
+<table><thead><tr><th>条件</th><th>結果</th></tr></thead><tbody><tr><td>schemaRef が無い</td><td>MISSING_SCHEMA_REF を返し描画しない</td></tr><tr><td>対象パスが存在しない</td><td>INVALID_PATH を返す</td></tr></tbody></table>
+
+<h2>テストシナリオ</h2>
+
+<pre><code>Feature: Document を成果物にレンダリング (uc-render-document)
+
+  Scenario: 検証済み Document を成果物に描画する
+    Given 描画対象の Document
+    When render する
+    Then 成果物が生成され、生成パス一覧が返る
+
+  Scenario: schemaRef を持たない Document は描画しない
+    Given schemaRef の無い Document
+    When render する
+    Then MISSING_SCHEMA_REF エラーが返る
+</code></pre>
+
+</body>
+</html>

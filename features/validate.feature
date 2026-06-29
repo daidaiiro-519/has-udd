@@ -22,6 +22,7 @@ Feature: document を schema 適合検証する (uc-validate-document)
       | .has-udd/documents/coding/python-hexagonal.json     |
       | .has-udd/documents/specs/bc-has-udd-engines.json     |
       | .has-udd/documents/specs/dm-document.json            |
+      | .has-udd/documents/specs/dm-schema.json              |
       | .has-udd/documents/specs/uc-query-document.json      |
       | .has-udd/documents/specs/uc-render-document.json     |
       | .has-udd/documents/specs/uc-validate-document.json   |

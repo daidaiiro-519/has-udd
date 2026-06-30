@@ -1,117 +1,110 @@
-"""部品レンダラ — 宣言的 x-render（RenderPart の配列）を md/html に描画する純ロジック。
+"""部品レンダラ — 宣言的 x-render（RenderPart の配列）を Markdown に描画する純ロジック。
 
-RenderMetaSchema/v1 の部品語彙（paragraph/list/table/section/keyvalue/code/divider）を
-engine 1実装で描画する。table はセルの '|' エスケープ・bool の ✓/- 整形を一律で行うので、
-全 block・全 skill のテーブルが崩れず統一される。`from` 先が空なら部品ごと省略するので、
-条件付きセクション（operations / note 等）は別ロジック不要で消える。
+RenderMetaSchema/v1 の部品語彙（paragraph/list/table/section/keyvalue/code/divider/
+sequence/statediagram/kvtable）を engine 1実装で描画する。table はセルの '|' エスケープ・
+bool の ✓/- 整形を一律で行うので、全 block・全 skill のテーブルが崩れず統一される。
+`from` 先が空なら部品ごと省略するので、条件付きセクション（operations / note 等）は
+別ロジック不要で消える。HTML は viewer 側（クライアントサイド）が担うため、ここは MD 正本に統一する。
 
 @spec:uc-render-parts
 """
 from __future__ import annotations
 
 
-def render_parts(parts: list[dict], data: dict, fmt: str, level: int) -> str:
-    """parts(宣言の配列) を data(block の値) から fmt(md/html) に描画する。level=小見出しの基準レベル。"""
+def render_parts(parts: list[dict], data: dict, level: int) -> str:
+    """parts(宣言の配列) を data(block の値) から Markdown に描画する。level=小見出しの基準レベル。"""
     # has-udd:impl-start
-    return _join(((render_part(p, data, fmt, level)) for p in parts), fmt)
+    return _join((render_part(p, data, level)) for p in parts)
     # has-udd:impl-end
 
 
-def render_part(part: dict, data: dict, fmt: str, level: int) -> str:
+def render_part(part: dict, data: dict, level: int) -> str:
     # has-udd:impl-start
     kind = part["as"]
+    # kvtable は from を取らず現在の data 自身を1行として描く
     src = data.get(part["from"]) if "from" in part else None
     if "from" in part and not src:
         return ""  # データ無し → 見出しごと省略（条件付き部品）
 
     out: list[str] = []
     if part.get("heading"):
-        out.append(_heading(part["heading"], level, fmt))
+        out.append(_heading(part["heading"], level))
 
     if kind == "paragraph":
-        out.append(_para(part.get("text", src), fmt))
+        out.append(_para(part.get("text", src)))
     elif kind == "list":
-        out.append(_list(src, part.get("ordered", False), fmt))
+        out.append(_list(src, part.get("ordered", False)))
     elif kind == "table":
-        out.append(_table(src, part["columns"], fmt))
+        out.append(_table(src, part["columns"]))
+    elif kind == "kvtable":
+        out.append(_table([data], part["columns"]))
     elif kind == "keyvalue":
-        out.append(_keyvalue(part, data, src, fmt))
+        out.append(_keyvalue(part, data, src))
     elif kind == "code":
-        out.append(_code(src, part.get("lang"), fmt))
+        out.append(_code(src, part.get("lang")))
     elif kind == "sequence":
-        out.append(_sequence(src, fmt))
+        out.append(_sequence(src))
+    elif kind == "statediagram":
+        out.append(_statediagram(src))
     elif kind == "divider":
-        out.append("---" if fmt == "md" else "<hr>")
+        out.append("---")
     elif kind == "section":
         for i, item in enumerate(src or [], 1):
             title = item.get(part.get("titleFrom", "title"), "")
             if part.get("itemLabel"):
                 title = f"{part['itemLabel']} {i}: {title}"
-            out.append(_heading(title, level, fmt))
-            body = render_parts(part["each"], item, fmt, level + 1)
+            out.append(_heading(title, level))
+            body = render_parts(part["each"], item, level + 1)
             if body:
                 out.append(body)
 
-    return _join(out, fmt)
+    return _join(out)
     # has-udd:impl-end
 
 
 # --- 整形ヘルパ ---
 
-def _join(chunks, fmt):
-    sep = "\n\n" if fmt == "md" else ""
-    return sep.join(s for s in chunks if s)
+def _join(chunks):
+    return "\n\n".join(s for s in chunks if s)
 
 
 def _fmt(v):
     return ("✓" if v else "-") if isinstance(v, bool) else v
 
 
-def _esc(v):
-    return str(_fmt(v)).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-
-def _mdcell(v, code=False):
+def _mdcell(v, code=False, join=None, sep=" / "):
+    # join 指定: セル値が配列のとき各要素にテンプレを適用し sep で連結
+    if join is not None:
+        items = v if isinstance(v, list) else ([] if v in (None, "") else [v])
+        v = sep.join(join.format(**it) for it in items)
     s = str(_fmt(v)).replace("|", "\\|").replace("\n", " ")
     return f"`{s}`" if code and s else s
 
 
-def _heading(text, level, fmt):
-    return ("#" * level + " " + str(text)) if fmt == "md" else f"<h{level}>{_esc(text)}</h{level}>"
+def _heading(text, level):
+    return "#" * level + " " + str(text)
 
 
-def _para(text, fmt):
-    return str(text) if fmt == "md" else f"<p>{_esc(text)}</p>"
+def _para(text):
+    return str(text)
 
 
-def _list(items, ordered, fmt):
-    if fmt == "md":
-        return "\n".join((f"{i}. " if ordered else "- ") + str(x) for i, x in enumerate(items, 1))
-    tag = "ol" if ordered else "ul"
-    return f"<{tag}>" + "".join(f"<li>{_esc(x)}</li>" for x in items) + f"</{tag}>"
+def _list(items, ordered):
+    return "\n".join((f"{i}. " if ordered else "- ") + str(x) for i, x in enumerate(items, 1))
 
 
-def _table(rows, columns, fmt):
+def _table(rows, columns):
     headers = [c.get("header", c["field"]) for c in columns]
-    if fmt == "md":
-        out = ["| " + " | ".join(headers) + " |", "|" + "|".join("---" for _ in headers) + "|"]
-        for r in rows:
-            out.append("| " + " | ".join(_mdcell(r.get(c["field"], ""), c.get("code")) for c in columns) + " |")
-        return "\n".join(out)
-    th = "".join(f"<th>{_esc(h)}</th>" for h in headers)
-    body = "".join(
-        "<tr>" + "".join(_htmlcell(r.get(c["field"], ""), c.get("code")) for c in columns) + "</tr>"
-        for r in rows
-    )
-    return f"<table><thead><tr>{th}</tr></thead><tbody>{body}</tbody></table>"
+    out = ["| " + " | ".join(headers) + " |", "|" + "|".join("---" for _ in headers) + "|"]
+    for r in rows:
+        out.append("| " + " | ".join(
+            _mdcell(r.get(c["field"], ""), c.get("code"), c.get("join"), c.get("sep", " / "))
+            for c in columns
+        ) + " |")
+    return "\n".join(out)
 
 
-def _htmlcell(v, code=False):
-    inner = f"<code>{_esc(v)}</code>" if code and v not in ("", None) else _esc(v)
-    return f"<td>{inner}</td>"
-
-
-def _keyvalue(part, data, src, fmt):
+def _keyvalue(part, data, src):
     if "pairs" in part:
         pairs = [(p["label"], data.get(p["from"])) for p in part["pairs"]]
         pairs = [(k, v) for k, v in pairs if v not in (None, "", [])]
@@ -123,25 +116,18 @@ def _keyvalue(part, data, src, fmt):
     else:
         pairs = []
     lc, vc = part.get("labelCode"), part.get("valueCode")
-    if fmt == "md":
-        def lab(k):
-            return f"`{k}`" if lc else f"**{k}**"
 
-        def val(v):
-            return f"`{v}`" if vc else str(v)
-        return "\n".join(f"- {lab(k)}: {val(v)}" for k, v in pairs)
-    return "<dl>" + "".join(
-        f"<dt>{f'<code>{_esc(k)}</code>' if lc else _esc(k)}</dt>"
-        f"<dd>{f'<code>{_esc(v)}</code>' if vc else _esc(v)}</dd>"
-        for k, v in pairs
-    ) + "</dl>"
+    def lab(k):
+        return f"`{k}`" if lc else f"**{k}**"
+
+    def val(v):
+        return f"`{v}`" if vc else str(v)
+    return "\n".join(f"- {lab(k)}: {val(v)}" for k, v in pairs)
 
 
-def _code(text, lang, fmt):
+def _code(text, lang):
     items = text if isinstance(text, list) else [text]
-    if fmt == "md":
-        return "\n\n".join(f"```{lang or ''}\n{t}\n```" for t in items)
-    return "".join(f"<pre><code>{_esc(t)}</code></pre>" for t in items)
+    return "\n\n".join(f"```{lang or ''}\n{t}\n```" for t in items)
 
 
 def _seq_token(name: str) -> str:
@@ -149,8 +135,8 @@ def _seq_token(name: str) -> str:
     return str(name).replace(" ", "_")
 
 
-def _sequence(steps, fmt):
-    """構造化ステップ（from/to/message/kind）→ Mermaid sequenceDiagram。format 変換は adapter の責務。"""
+def _sequence(steps):
+    """構造化ステップ（from/to/message/kind）→ Mermaid sequenceDiagram。"""
     lines = ["sequenceDiagram"]
     for s in steps:
         if not isinstance(s, dict):
@@ -166,6 +152,18 @@ def _sequence(steps, fmt):
         else:  # command / self
             lines.append(f"    {frm}->>{to}: {msg}")
     diagram = "\n".join(lines)
-    if fmt == "md":
-        return f"```mermaid\n{diagram}\n```"
-    return f'<pre class="mermaid">\n{diagram}\n</pre>'
+    return f"```mermaid\n{diagram}\n```"
+
+
+def _statediagram(transitions):
+    """状態遷移配列（from/to/command）→ Mermaid stateDiagram-v2。状態名の空白は _ に。"""
+    lines = ["stateDiagram-v2"]
+    for t in transitions:
+        if not isinstance(t, dict):
+            continue
+        frm = _seq_token(t.get("from", ""))
+        to = _seq_token(t.get("to", ""))
+        cmd = str(t.get("command", "")).replace("\n", " ")
+        lines.append(f"    {frm} --> {to}: {cmd}")
+    diagram = "\n".join(lines)
+    return f"```mermaid\n{diagram}\n```"

@@ -20,7 +20,7 @@ def _lint(parts):
 def test_paragraph_and_list_md():
     md = render_parts(
         [{"as": "paragraph", "from": "text"}, {"as": "list", "from": "items"}],
-        {"text": "説明", "items": ["a", "b"]}, "md", 3,
+        {"text": "説明", "items": ["a", "b"]}, 3,
     )
     assert "説明" in md
     assert "- a\n- b" in md
@@ -32,7 +32,7 @@ def test_table_escapes_pipe_and_formats_bool():
     data = {"rows": [
         {"name": "prompt", "type": "string | null", "required": True},
         {"name": "x", "type": "int", "required": False}]}
-    md = render_parts(parts, data, "md", 3)
+    md = render_parts(parts, data, 3)
     lines = md.splitlines()
     # ヘッダ行の列数が崩れない（| が 4 本＝3列）
     assert lines[0].count("|") == 4
@@ -44,17 +44,53 @@ def test_section_nesting_with_item_label():
     parts = [{"as": "section", "from": "items", "titleFrom": "title", "itemLabel": "Step", "each": [
         {"as": "paragraph", "from": "summary"}, {"as": "list", "from": "bullets"}]}]
     data = {"items": [{"title": "選ぶ", "summary": "要点", "bullets": ["x", "y"]}]}
-    md = render_parts(parts, data, "md", 3)
+    md = render_parts(parts, data, 3)
     assert "### Step 1: 選ぶ" in md
     assert "要点" in md
     assert "- x\n- y" in md
 
 
-def test_keyvalue_and_html():
+def test_keyvalue_md():
     parts = [{"as": "keyvalue", "from": "refs", "labelFrom": "path", "valueFrom": "desc"}]
     data = {"refs": [{"path": "a.md", "desc": "説明A"}]}
-    assert "- **a.md**: 説明A" in render_parts(parts, data, "md", 3)
-    assert "<dl>" in render_parts(parts, data, "html", 3)
+    assert "- **a.md**: 説明A" in render_parts(parts, data, 3)
+
+
+def test_statediagram_md():
+    parts = [{"as": "statediagram", "from": "transitions"}]
+    data = {"transitions": [
+        {"from": "A", "to": "B", "command": "cmd"},
+        {"from": "open state", "to": "C", "command": "go"},
+    ]}
+    md = render_parts(parts, data, 3)
+    assert "```mermaid" in md
+    assert "stateDiagram-v2" in md
+    assert "A --> B: cmd" in md
+    # 状態名の空白は _ に
+    assert "open_state --> C: go" in md
+
+
+def test_kvtable_single_row():
+    parts = [{"as": "kvtable", "columns": [
+        {"field": "category", "header": "分類"},
+        {"field": "viewpoint", "header": "観点"}]}]
+    data = {"category": "正常系", "viewpoint": "状態遷移"}
+    md = render_parts(parts, data, 3)
+    lines = [ln for ln in md.splitlines() if ln.strip()]
+    # ヘッダ + 区切り + 1行
+    assert lines[0] == "| 分類 | 観点 |"
+    assert "正常系" in lines[2] and "状態遷移" in lines[2]
+
+
+def test_table_join_column():
+    parts = [{"as": "table", "from": "items", "columns": [
+        {"field": "name", "header": "エンティティ"},
+        {"field": "attributes", "header": "属性", "join": "{name}: {type}"}]}]
+    data = {"items": [{"name": "Order", "attributes": [
+        {"name": "status", "type": "OrderStatus"},
+        {"name": "total", "type": "Money"}]}]}
+    md = render_parts(parts, data, 3)
+    assert "status: OrderStatus / total: Money" in md
 
 
 # --- 検証（RenderMetaSchema・誤設定を弾く） ---
@@ -72,7 +108,7 @@ def test_lint_rejects_missing_required_attr():
     assert _lint([{"as": "table", "from": "rows"}])  # columns 漏れで非空
 
 
-@pytest.mark.parametrize("schema_ref", ["SkillSchema/v1", "CodingSchema/v1", "SpecSchema/v1"])
+@pytest.mark.parametrize("schema_ref", ["SkillSchema/v1", "CodingSchema/v1", "SpecSchema/v1", "SpecSchema/v2"])
 def test_schema_xrender_conforms(schema_ref):
     """全 schema の全 block の x-render が RenderMetaSchema に適合する（誤設定・旧 {md,html} 形式の混入を防ぐ）。"""
     schema = PackageSchemaRepository().load(schema_ref)

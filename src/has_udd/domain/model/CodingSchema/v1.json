@@ -11,8 +11,8 @@
     "note": "全 codingKind 共通の契約定数。コードの DocComment に埋める固定書式。逆引き(ripgrep)はこの固定書式に依存する"
   },
   "x-render-target": {
-    "formats": ["html"],
-    "path": ".has-udd/coding/{documentId}.html"
+    "formats": ["md"],
+    "path": ".has-udd/coding/{documentId}.md"
   },
   "x-source-target": ".has-udd/documents/coding/{documentId}.json",
 

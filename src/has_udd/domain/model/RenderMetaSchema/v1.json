@@ -11,7 +11,7 @@
       "additionalProperties": false,
       "properties": {
         "as": {
-          "enum": ["paragraph", "list", "table", "section", "keyvalue", "code", "divider", "sequence"],
+          "enum": ["paragraph", "list", "table", "section", "keyvalue", "code", "divider", "sequence", "statediagram", "kvtable"],
           "description": "部品の種類（閉じた語彙）"
         },
         "from": {
@@ -32,7 +32,7 @@
         },
         "columns": {
           "type": "array",
-          "description": "table: 列定義",
+          "description": "table / kvtable: 列定義",
           "items": {
             "type": "object",
             "required": ["field"],
@@ -40,7 +40,9 @@
             "properties": {
               "field": { "type": "string", "description": "行オブジェクトのフィールド名" },
               "header": { "type": "string", "description": "列見出し（省略時は field）" },
-              "code": { "type": "boolean", "description": "セル値を code（`...`）表示する" }
+              "code": { "type": "boolean", "description": "セル値を code（`...`）表示する" },
+              "join": { "type": "string", "description": "table: セル値が配列のとき各要素に .format() するテンプレ文字列（例: '{name}: {type}'）。sep で連結" },
+              "sep":  { "type": "string", "description": "table: join した要素の区切り（既定 ' / '）" }
             }
           }
         },
@@ -98,7 +100,9 @@
         { "if": { "properties": { "as": { "const": "section" } } },   "then": { "required": ["from", "each"] } },
         { "if": { "properties": { "as": { "const": "keyvalue" } } },  "then": { "anyOf": [{ "required": ["from"] }, { "required": ["pairs"] }] } },
         { "if": { "properties": { "as": { "const": "code" } } },      "then": { "required": ["from"] } },
-        { "if": { "properties": { "as": { "const": "sequence" } } },  "then": { "required": ["from"] } }
+        { "if": { "properties": { "as": { "const": "sequence" } } },  "then": { "required": ["from"] } },
+        { "if": { "properties": { "as": { "const": "statediagram" } } }, "then": { "required": ["from"] } },
+        { "if": { "properties": { "as": { "const": "kvtable" } } },    "then": { "required": ["columns"] } }
       ]
     },
 

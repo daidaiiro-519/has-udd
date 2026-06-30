@@ -25,47 +25,6 @@ def _err(code: str, message: str) -> Err:
     return Err(message, [code])
 
 
-_MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs"
-
-_HTML_STYLE = """
-:root { color-scheme: light dark; }
-body { font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", Meiryo, sans-serif;
-  line-height: 1.75; max-width: 940px; margin: 2.5rem auto; padding: 0 1.3rem; color: #24292f; }
-h1 { font-size: 1.9rem; border-bottom: 2px solid #d0d7de; padding-bottom: .3em; }
-h2 { font-size: 1.4rem; border-bottom: 1px solid #e1e4e8; padding-bottom: .25em; margin-top: 2.2em; }
-h3 { font-size: 1.12rem; margin-top: 1.6em; color: #1f2328; }
-h4 { font-size: .98rem; margin: 1em 0 .3em; color: #57606a; }
-table { border-collapse: collapse; width: 100%; margin: .7em 0; font-size: .95rem; }
-th, td { border: 1px solid #d0d7de; padding: .45em .7em; text-align: left; vertical-align: top; }
-th { background: #f6f8fa; font-weight: 600; }
-tr:nth-child(even) td { background: #fafbfc; }
-code { background: #eff1f3; padding: .15em .4em; border-radius: 5px; font-size: .88em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-pre { background: #f6f8fa; padding: 1em 1.1em; border-radius: 8px; overflow-x: auto; border: 1px solid #e1e4e8; }
-pre code { background: none; padding: 0; }
-dl { display: grid; grid-template-columns: max-content 1fr; gap: .35em 1.2em; margin: .6em 0; }
-dt { font-weight: 600; color: #57606a; }
-dd { margin: 0; }
-ul { padding-left: 1.5em; }
-li { margin: .2em 0; }
-pre.mermaid { background: #fff; border: 1px solid #e1e4e8; text-align: center; }
-"""
-
-
-def _html_document(title: str, body: str) -> str:
-    """HTML 出力を最小ドキュメントに包む。<pre class="mermaid"> を mermaid.js が図に描画する。"""
-    head = (
-        '<!DOCTYPE html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
-        '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
-        f"<title>{title}</title>\n"
-        f"<style>{_HTML_STYLE}</style>\n"
-        f'<script type="module">import mermaid from "{_MERMAID_CDN}";'
-        " mermaid.initialize({ startOnLoad: true });</script>\n"
-        "</head>\n<body>\n"
-    )
-    return head + body + "\n</body>\n</html>\n"
-
-
 class RenderEngine:
     def __init__(
         self,
@@ -99,13 +58,10 @@ class RenderEngine:
         # 不正な構造の document は best-effort で描画される（Orchestrator が事前 validate する前提）。
         target = schema.get("x-render-target", {})
         formats = target.get("formats") or ["md"]
-        fmt = formats[0]
+        fmt = formats[0]  # MD 正本（HTML は将来 viewer が担うため engine は MD のみ描画）
         defs = schema.get("$defs", {})
 
-        output = self._render_frontmatter(doc, schema) + self._render_body(doc, defs, fmt)
-        if fmt == "html":
-            # HTML は最小ドキュメントに包む（mermaid.js で sequence 図を描画）
-            output = _html_document(doc.get("documentId", ""), output)
+        output = self._render_frontmatter(doc, schema) + self._render_body(doc, defs)
 
         canonical = (target.get("path") or "").format(documentId=doc["documentId"])
         deployed: list[str] = []
@@ -147,7 +103,7 @@ class RenderEngine:
         lines.append("---")
         return "\n".join(lines) + "\n\n"
 
-    def _render_body(self, doc: dict, defs: dict, fmt: str) -> str:
+    def _render_body(self, doc: dict, defs: dict) -> str:
         content = doc.get("content", {})
         ordered = []
         for _key, block in content.items():
@@ -159,13 +115,10 @@ class RenderEngine:
         for _order, bdef, block in ordered:
             level = bdef.get("x-render-level", 2)
             title = block.get("title", "")
-            if fmt == "md":
-                heading = "#" * level + " " + title
-            else:
-                heading = f"<h{level}>{title}</h{level}>"
+            heading = "#" * level + " " + title
             # x-render は宣言的部品配列。小見出しは block 見出し+1 から。
             xr = bdef.get("x-render") or []
-            body = render_parts(xr, block, fmt, level + 1).strip()
+            body = render_parts(xr, block, level + 1).strip()
             parts.append(heading + ("\n\n" + body if body else ""))
         return "\n\n".join(parts) + "\n"
 

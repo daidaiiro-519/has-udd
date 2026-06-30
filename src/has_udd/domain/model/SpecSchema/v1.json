@@ -5,8 +5,8 @@
   "description": "has-udd Spec 集約（UDD の核）。specKind=bounded-context/domain-model/usecase（DDD3層）。content はドメイン語彙のみ（技術スタック/アーキ構成は CodingTemplate の担当・ここには入れない）。集約の振る舞い=Commands、ユースケースの流れ=MainFlow(シーケンス)、整合の契約=TestScenarios(Gherkin)。",
 
   "x-render-target": {
-    "formats": ["html", "feature"],
-    "path": ".has-udd/specs/{documentId}.html",
+    "formats": ["md", "feature"],
+    "path": ".has-udd/specs/{documentId}.md",
     "featurePath": ".has-udd/specs/{documentId}.feature"
   },
   "x-source-target": ".has-udd/documents/specs/{documentId}.json",

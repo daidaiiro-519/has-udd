@@ -34,33 +34,33 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
     And 出力パスは ".has-udd/skills/harness-query-engine/SKILL.md"
     And deploy 先に ".claude/skills/harness-query-engine/SKILL.md" を含む
 
-  # --- CodingSchema → HTML ---
+  # --- CodingSchema → Markdown ---
 
-  Scenario: CodingSchema は HTML として描画できる
+  Scenario: CodingSchema は Markdown として描画できる
     Given 対象は ".has-udd/documents/coding/stack.json"
     When deploy なしでレンダリングする
     Then 成功する
-    And 出力フォーマットは "html"
-    And 出力に "<h1>" を含む
+    And 出力フォーマットは "md"
+    And 出力に "# " を含む
 
   # --- SpecSchema（UDD ループ: TestScenarios → .feature） ---
 
-  Scenario: UsecaseSpec は HTML と .feature（TestScenarios の Gherkin）を生成する
+  Scenario: UsecaseSpec は Markdown と .feature（TestScenarios の Gherkin）を生成する
     Given 対象は ".has-udd/documents/specs/uc-query-document.json"
     When deploy なしでレンダリングする
     Then 成功する
-    And 出力フォーマットは "html"
-    And 出力に "<h1>uc-query-document</h1>" を含む
+    And 出力フォーマットは "md"
+    And 出力に "# uc-query-document" を含む
     And 出力に "sequenceDiagram" を含む
     And 出力に "mermaid" を含む
     And feature出力に "Feature: document.json へのセマンティック・クエリ" を含む
     And feature出力に "Scenario: 未知の operation はエラーを返す" を含む
 
-  Scenario: DomainModelSpec は集約の構造を HTML に・不変条件を .feature に出す
+  Scenario: DomainModelSpec は集約の構造を Markdown に・不変条件を .feature に出す
     Given 対象は ".has-udd/documents/specs/dm-document.json"
     When deploy なしでレンダリングする
     Then 成功する
-    And 出力に "<h2>コマンド</h2>" を含む
+    And 出力に "## コマンド" を含む
     And 出力に "DocumentRendered" を含む
     And feature出力に "Feature: Document 集約の不変条件" を含む
 

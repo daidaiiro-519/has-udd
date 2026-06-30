@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>has-udd × OKF プロトタイプ（frontmatter 駆動・完全自己完結）</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.2/cytoscape.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", sans-serif; color: #1f2328; }
+  header { padding: 10px 14px; background: #0d1117; color: #fff; font-weight: 600; font-size: 15px; }
+  header small { font-weight: 400; color: #9aa4b2; display: block; margin-top: 2px; font-size: 12px; }
+  #app { display: grid; grid-template-columns: 1fr 1fr; height: calc(100vh - 56px); }
+  #graphwrap { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid #d0d7de; }
+  #graph { flex: 1; min-height: 0; background: #f6f8fa; }
+  .legend { padding: 6px 10px; font-size: 12px; color: #57606a; border-top: 1px solid #d0d7de; background: #fff; }
+  .legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 4px 0 10px; vertical-align: middle; }
+  #detail { overflow: auto; padding: 16px 20px; }
+  #detail .hint { color: #8b949e; }
+  .fm { background: #fff8e6; border: 1px solid #f0c674; border-radius: 6px; padding: 10px 12px; margin-bottom: 16px; font-size: 12.5px; }
+  .fm .fmlabel { font-weight: 700; color: #9a6700; font-size: 11px; letter-spacing: .04em; }
+  .fm pre { margin: 6px 0 0; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #4d3b00; background: none; padding: 0; }
+  #detail h1 { font-size: 22px; border-bottom: 2px solid #d0d7de; padding-bottom: 6px; }
+  #detail h2 { font-size: 17px; border-bottom: 1px solid #eaeef2; padding-bottom: 4px; margin-top: 22px; }
+  #detail table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 13px; }
+  #detail th, #detail td { border: 1px solid #d0d7de; padding: 6px 9px; text-align: left; }
+  #detail th { background: #f6f8fa; }
+  #detail tr:nth-child(even) td { background: #fafbfc; }
+  #detail code { background: #eef1f4; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  #detail pre { background: #0d1117; color: #e6edf3; padding: 12px; border-radius: 8px; overflow: auto; }
+  #detail pre code { background: none; color: inherit; padding: 0; }
+  #detail pre.mermaid { background: #fff; border: 1px solid #d0d7de; text-align: center; }
+  #detail a { color: #0969da; }
+  @media (max-width: 760px) {
+    #app { grid-template-columns: 1fr; height: auto; }
+    #graphwrap { height: 46vh; border-right: none; border-bottom: 1px solid #d0d7de; }
+    #detail { height: auto; }
+  }
+</style>
+</head>
+<body>
+<header>has-udd × OKF プロトタイプ <small>左: frontmatter から生成したグラフ（type→色 / relations→エッジ） ／ 右: frontmatter＋本文md（独自CSS＋mermaid図）・CDN不要</small></header>
+<div id="app">
+  <div id="graphwrap">
+    <div id="graph"></div>
+    <div class="legend"><span class="dot" style="background:#4c8bf5"></span>bounded-context<span class="dot" style="background:#34a853"></span>domain-model<span class="dot" style="background:#fb8c00"></span>usecase</div>
+  </div>
+  <div id="detail"><p class="hint">← グラフのノードをタップすると、ここに frontmatter（黄枠）＋本文（独自CSS／mermaid 図）が出ます。グラフの形は frontmatter の type / relations から生成しています。</p></div>
+</div>
+
+<script>
+// ===== 素材＝OKF 互換の markdown（frontmatter 付き）。グラフはこの frontmatter から生成する =====
+// 実運用では render が .has-udd/documents/specs/*.json → これらの .md を emit する想定。
+const DOCS = {
+"bc-has-udd-engines": `---
+type: bounded-context
+title: bc-has-udd-engines
+description: has-udd のコアエンジン群の文脈（中核サブドメイン）。
+tags: [context:has-udd-engines]
+relations:
+  - { type: contains, to: dm-document }
+  - { type: contains, to: dm-schema }
+---
+# bc-has-udd-engines
+has-udd のコアエンジン群の境界づけられたコンテキスト（中核サブドメイン）。
+
+## ユビキタス言語
+| 用語 | 定義 |
+|---|---|
+| Document | schema で構造定義された JSON の成果物単位 |
+| Harness原則 | AI は値だけ・engine が構造を担う |
+`,
+
+"dm-document": `---
+type: domain-model
+title: dm-document
+description: Document 集約。status は CREATED→VALIDATED→RENDERED→SUPERSEDED。
+tags: [context:has-udd-engines]
+---
+# dm-document
+Document 集約（has-udd のコア集約）。
+
+## ライフサイクル
+\`\`\`mermaid
+stateDiagram-v2
+  [*] --> CREATED
+  CREATED --> VALIDATED: validate
+  VALIDATED --> RENDERED: render
+  RENDERED --> SUPERSEDED: supersede
+  SUPERSEDED --> [*]
+\`\`\`
+
+## コマンド
+| コマンド | 内容 |
+|---|---|
+| create | schema から骨格生成 |
+| validate | schema 適合を検証 |
+| render | 成果物に描画し配置 |
+| supersede | 旧版を終端化 |
+`,
+
+"dm-schema": `---
+type: domain-model
+title: dm-schema
+description: Schema 集約。型定義・版進化。
+tags: [context:has-udd-engines]
+---
+# dm-schema
+Schema 集約（型定義・版の進化）。
+
+## 不変条件
+- 値フィールドに \`oneOf\` を持たない（scaffold 可能）
+- 公開済みの版は後方互換を壊さない
+`,
+
+"uc-query-document": `---
+type: usecase
+title: uc-query-document
+description: AI がファイルを直接読まず意味単位だけ取得する。
+tags: [context:has-udd-engines]
+relations:
+  - { type: aggregateRef, to: dm-document }
+---
+# uc-query-document
+AI がファイルを直接読まず、意味単位だけを取得する。
+
+対象集約: [dm-document](/dm-document.md)
+`,
+
+"uc-render-document": `---
+type: usecase
+title: uc-render-document
+description: 検証済み Document を成果物に描画し配置先へ反映する。
+tags: [context:has-udd-engines]
+relations:
+  - { type: aggregateRef, to: dm-document }
+---
+# uc-render-document
+検証済み Document を成果物（SKILL.md / HTML / .feature）に描画し、配置先へ反映する。
+
+## 主成功フロー
+\`\`\`mermaid
+sequenceDiagram
+  participant O as Orchestrator
+  participant D as Document
+  participant S as Schema
+  O->>D: render を要求
+  D->>S: x-render を解決
+  S-->>D: 描画メタ
+  D->>D: 部品ごとに md/html 生成
+  D-->>O: 成果物パス
+\`\`\`
+
+対象集約: [dm-document](/dm-document.md)
+`,
+
+"uc-validate-document": `---
+type: usecase
+title: uc-validate-document
+description: Document の schema 適合を検証する（副作用なし）。
+tags: [context:has-udd-engines]
+relations:
+  - { type: aggregateRef, to: dm-document }
+---
+# uc-validate-document
+Document の schema 適合を検証する（副作用なし）。
+
+対象集約: [dm-document](/dm-document.md)
+`,
+
+"uc-scaffold-document": `---
+type: usecase
+title: uc-scaffold-document
+description: schema から骨格生成＋値書き込み。
+tags: [context:has-udd-engines]
+relations:
+  - { type: aggregateRef, to: dm-document }
+---
+# uc-scaffold-document
+schema から骨格を生成し、値を書き込む。
+
+対象集約: [dm-document](/dm-document.md)
+`
+};
+
+// ===== frontmatter パーサ（最小集合: type/title/description/tags/relations）=====
+function parseDoc(md) {
+  const m = md.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+  if (!m) return { meta: { relations: [] }, fm: "", body: md };
+  const fmText = m[1], body = m[2];
+  const meta = { relations: [] };
+  let inRel = false;
+  fmText.split("\n").forEach(line => {
+    if (/^relations:\s*$/.test(line)) { inRel = true; return; }
+    if (inRel && /^\s*-/.test(line)) {
+      const r = line.match(/type:\s*([\w-]+).*?to:\s*([\w./-]+)/);
+      if (r) meta.relations.push({ type: r[1], to: r[2].replace(/^\//, "").replace(/\.md$/, "") });
+      return;
+    }
+    inRel = false;
+    const kv = line.match(/^(\w+):\s*(.*)$/);
+    if (!kv) return;
+    const k = kv[1], v = kv[2].trim();
+    if (k === "tags") meta.tags = v.replace(/[\[\]]/g, "").split(",").map(s => s.trim()).filter(Boolean);
+    else if (k !== "relations") meta[k] = v;
+  });
+  return { meta, fm: fmText, body };
+}
+
+const PARSED = {};
+Object.keys(DOCS).forEach(id => { PARSED[id] = parseDoc(DOCS[id]); });
+
+const COLOR = { "bounded-context": "#4c8bf5", "domain-model": "#34a853", "usecase": "#fb8c00" };
+
+const nodes = Object.keys(PARSED).map(id => ({
+  data: { id, label: PARSED[id].meta.title || id, type: PARSED[id].meta.type }
+}));
+// 固定座標（type ごとに段組み）= 物理レイアウト/アニメーション不要で確実に描画
+const ROW = { "bounded-context": 0, "domain-model": 1, "usecase": 2 };
+const byType = {};
+nodes.forEach(n => { const t = n.data.type; (byType[t] = byType[t] || []).push(n); });
+Object.keys(byType).forEach(t => {
+  const row = byType[t];
+  row.forEach((n, i) => {
+    n.position = { x: 90 + i * 160, y: 70 + (ROW[t] || 0) * 150 };
+  });
+});
+const edges = [];
+Object.keys(PARSED).forEach(id => {
+  (PARSED[id].meta.relations || []).forEach(rel => {
+    if (PARSED[rel.to]) edges.push({ data: { source: id, target: rel.to, rel: rel.type } });
+  });
+});
+
+// ===== グラフ（Cytoscape = generic lib）=====
+const cy = cytoscape({
+  container: document.getElementById("graph"),
+  elements: [...nodes, ...edges],
+  style: [
+    { selector: "node", style: {
+      "background-color": ele => COLOR[ele.data("type")] || "#888",
+      "label": "data(label)", "font-size": "10px", "color": "#1f2328",
+      "text-valign": "bottom", "text-margin-y": "4px", "width": "26px", "height": "26px"
+    }},
+    { selector: "edge", style: {
+      "width": 1.5, "line-color": "#b1bac4", "target-arrow-color": "#b1bac4",
+      "target-arrow-shape": "triangle", "curve-style": "bezier",
+      "label": "data(rel)", "font-size": "8px", "color": "#8b949e", "text-rotation": "autorotate"
+    }}
+  ],
+  layout: { name: "preset", padding: 30, fit: true },
+  minZoom: 0.2, maxZoom: 2.5
+});
+
+// ===== mermaid 初期化 =====
+let mermaidReady = false;
+if (window.mermaid) { mermaid.initialize({ startOnLoad: false }); mermaidReady = true; }
+
+// ===== 詳細（frontmatter 黄枠 ＋ 本文md→marked→独自CSS＋mermaid）=====
+let mermaidSeq = 0;
+async function showDetail(id) {
+  const p = PARSED[id];
+  const el = document.getElementById("detail");
+  const fmBox = '<div class="fm"><span class="fmlabel">FRONTMATTER（← この type / relations からグラフを生成）</span><pre>' +
+    p.fm.replace(/&/g, "&amp;").replace(/</g, "&lt;") + '</pre></div>';
+  el.innerHTML = fmBox + marked.parse(p.body || "");
+  // ```mermaid を <pre class="mermaid"> に変換して描画
+  const blocks = el.querySelectorAll("code.language-mermaid");
+  blocks.forEach(code => {
+    const pre = document.createElement("pre");
+    pre.className = "mermaid";
+    pre.id = "mmd-" + (mermaidSeq++);
+    pre.textContent = code.textContent;
+    code.closest("pre").replaceWith(pre);
+  });
+  if (mermaidReady) {
+    try { await mermaid.run({ nodes: el.querySelectorAll("pre.mermaid") }); } catch (e) {}
+  }
+}
+cy.on("tap", "node", evt => showDetail(evt.target.id()));
+
+// コンテナ確定サイズで再フィット
+function refit() { cy.resize(); cy.fit(undefined, 30); }
+window.addEventListener("load", () => setTimeout(refit, 100));
+window.addEventListener("resize", refit);
+setTimeout(refit, 250);
+</script>
+</body>
+</html>

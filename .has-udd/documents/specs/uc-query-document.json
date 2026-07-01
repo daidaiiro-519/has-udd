@@ -1,36 +1,37 @@
 {
   "documentId": "uc-query-document",
   "documentType": "Spec",
-  "schemaRef": "SpecSchema/v1",
+  "schemaRef": "SpecSchema/v2",
   "specKind": "usecase",
-  "status": "VALIDATED",
-  "aggregateRef": "dm-document",
+  "status": "CREATED",
+  "subdomainRef": "sd-harness-core",
+  "aggregateRef": "agg-document",
   "tags": ["context:has-udd-engines"],
   "content": {
     "title": { "blockType": "Title", "title": "uc-query-document" },
-    "purpose": {
-      "blockType": "Purpose",
-      "title": "目的",
-      "text": "AI がファイルを直接読まずに、document.json の必要な意味単位（ブロック・フィールド・条件一致・全階層）だけを取得する。"
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
+      "text": "AI がファイルを直接読まずに、Document の必要な意味単位（ブロック・フィールド・条件一致・全階層）だけを取得する。"
     },
     "actorIntent": {
       "blockType": "ActorIntent",
-      "title": "アクターと意図",
+      "title": "主アクターと意図",
       "actor": "Orchestrator（HarnessAgent）",
-      "intent": "対象 document から、欲しい意味単位を取得して読み方の指針とともに受け取る"
+      "intent": "対象 Document から欲しい意味単位を取得し、読み方の指針とともに受け取る"
     },
     "preconditions": {
       "blockType": "Preconditions",
       "title": "事前条件",
-      "items": ["対象 document（またはディレクトリ）のパスが要望テキストで与えられている"]
+      "items": ["対象 Document（またはディレクトリ）のパスが要望テキストで与えられている"]
     },
     "mainFlow": {
       "blockType": "MainFlow",
-      "title": "主成功フロー",
+      "title": "基本フロー",
       "steps": [
-        { "from": "Orchestrator", "to": "query", "message": "operation と対象パスを指定して問い合わせる", "kind": "command" },
-        { "from": "query", "to": "query", "message": "対象の意味単位を取り出す", "kind": "self" },
-        { "from": "query", "to": "Orchestrator", "message": "{ prompt, value } を返す", "kind": "return" }
+        { "from": "Orchestrator", "to": "Document", "message": "operation と対象パスを指定して問い合わせる", "kind": "command" },
+        { "from": "Document", "to": "Document", "message": "対象の意味単位を取り出す", "kind": "self" },
+        { "from": "Document", "to": "Orchestrator", "message": "{ prompt, value } を返す", "kind": "return" }
       ]
     },
     "postconditions": {
@@ -43,7 +44,7 @@
     },
     "acceptanceCriteria": {
       "blockType": "AcceptanceCriteria",
-      "title": "受け入れ条件",
+      "title": "受け入れ基準",
       "items": [
         "When operation と対象パスが与えられたとき、エンジンは結果を { prompt, value } 形式で返す shall。",
         "When ブロック/配列を取得したとき、prompt に対象ブロックの読み方の指針（x-prompt-query 由来）を含める shall。",
@@ -54,17 +55,47 @@
     },
     "errors": {
       "blockType": "Errors",
-      "title": "失敗モード",
+      "title": "エラー",
       "items": [
-        { "condition": "operation が定義外", "outcome": "INVALID_OPERATION エラーを返し、処理しない" },
-        { "condition": "対象パスが存在しない", "outcome": "INVALID_PATH エラーを返す" },
-        { "condition": "必須パラメータが欠落", "outcome": "MISSING_PARAM エラーを返す" }
+        { "code": "INVALID_OPERATION", "condition": "operation が定義外" },
+        { "code": "INVALID_PATH", "condition": "対象パスが存在しない" },
+        { "code": "MISSING_PARAM", "condition": "必須パラメータが欠落" }
       ]
     },
     "testScenarios": {
       "blockType": "TestScenarios",
       "title": "テストシナリオ",
-      "gherkin": "Feature: document.json へのセマンティック・クエリ (uc-query-document)\n\n  Scenario: ブロックを丸ごと取得する\n    Given query engine と対象 document\n    When operation get_block を blockKey interface で実行する\n    Then value は対象ブロックであり、prompt に読み方の指針が付く\n\n  Scenario: 条件に一致する配列要素だけを絞り込む\n    Given query engine と対象 document\n    When operation filter_items で required=true を指定する\n    Then value には required な要素だけが含まれる\n\n  Scenario: 一致が無くても正常系で空配列を返す\n    When 一致しないフィルタ条件で filter_items を実行する\n    Then value は空配列で、エラーにはならない\n\n  Scenario: 未知の operation はエラーを返す\n    When 未知の operation を実行する\n    Then INVALID_OPERATION エラーが返る\n"
+      "background": "",
+      "scenarios": [
+        {
+          "name": "ブロックを丸ごと取得する",
+          "category": "正常系",
+          "viewpoint": "意味単位取得：ブロック取得で読み方の指針が付く",
+          "gherkin": "Scenario: ブロックを丸ごと取得する\n  Given query engine と対象 Document\n  When operation get_block を blockKey interface で実行する\n  Then value は対象ブロックであり、prompt に読み方の指針が付く",
+          "covers": "受け入れ基準: prompt に読み方の指針"
+        },
+        {
+          "name": "条件に一致する配列要素だけを絞り込む",
+          "category": "正常系",
+          "viewpoint": "意味単位取得：フィルタで条件一致だけを返す",
+          "gherkin": "Scenario: 条件に一致する配列要素だけを絞り込む\n  Given query engine と対象 Document\n  When operation filter_items で required=true を指定する\n  Then value には required な要素だけが含まれる",
+          "covers": "受け入れ基準: 意味単位を value で返す"
+        },
+        {
+          "name": "一致が無くても正常系で空配列を返す",
+          "category": "境界値",
+          "viewpoint": "空一致：一致ゼロは正常系（エラーにしない）",
+          "gherkin": "Scenario: 一致が無くても正常系で空配列を返す\n  When 一致しないフィルタ条件で filter_items を実行する\n  Then value は空配列で、エラーにはならない",
+          "covers": "受け入れ基準: 空一致は空配列"
+        },
+        {
+          "name": "未知の operation はエラーを返す",
+          "category": "異常系",
+          "viewpoint": "エラー：未知 operation は INVALID_OPERATION",
+          "gherkin": "Scenario: 未知の operation はエラーを返す\n  When 未知の operation を実行する\n  Then INVALID_OPERATION エラーが返る",
+          "covers": "エラー: INVALID_OPERATION"
+        }
+      ]
     }
   }
 }

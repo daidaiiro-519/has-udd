@@ -1,21 +1,22 @@
 {
   "documentId": "uc-validate-document",
   "documentType": "Spec",
-  "schemaRef": "SpecSchema/v1",
+  "schemaRef": "SpecSchema/v2",
   "specKind": "usecase",
-  "status": "VALIDATED",
-  "aggregateRef": "dm-document",
+  "status": "CREATED",
+  "subdomainRef": "sd-validation",
+  "aggregateRef": "agg-document",
   "tags": ["context:has-udd-engines"],
   "content": {
     "title": { "blockType": "Title", "title": "uc-validate-document" },
-    "purpose": {
-      "blockType": "Purpose",
-      "title": "目的",
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
       "text": "Document の content が schema に適合するかを検証し、適合可否と違反詳細を返す（副作用なし）。"
     },
     "actorIntent": {
       "blockType": "ActorIntent",
-      "title": "アクターと意図",
+      "title": "主アクターと意図",
       "actor": "Orchestrator（HarnessAgent）",
       "intent": "対象 Document が schema に適合するかを判定し、進められるか確かめる"
     },
@@ -26,7 +27,7 @@
     },
     "mainFlow": {
       "blockType": "MainFlow",
-      "title": "主成功フロー",
+      "title": "基本フロー",
       "steps": [
         { "from": "Orchestrator", "to": "Document", "message": "validate する", "kind": "command" },
         { "from": "Document", "to": "Document", "message": "content を schema と照合", "kind": "self" },
@@ -45,7 +46,7 @@
     },
     "acceptanceCriteria": {
       "blockType": "AcceptanceCriteria",
-      "title": "受け入れ条件",
+      "title": "受け入れ基準",
       "items": [
         "When 適合する Document が与えられたとき、engine は VALIDATED 判定を返す shall。",
         "When 不適合のとき、engine は違反詳細つきで失敗を返す shall。",
@@ -55,16 +56,32 @@
     },
     "errors": {
       "blockType": "Errors",
-      "title": "失敗モード",
+      "title": "エラー",
       "items": [
-        { "condition": "schema に不適合", "outcome": "違反詳細つきで失敗を返す（status は変えない）" },
-        { "condition": "schemaRef が無い", "outcome": "MISSING_SCHEMA_REF を返す" }
+        { "code": "VALIDATION_FAILED", "condition": "schema に不適合（違反詳細つきで失敗・status は変えない）" },
+        { "code": "MISSING_SCHEMA_REF", "condition": "schemaRef が無い" }
       ]
     },
     "testScenarios": {
       "blockType": "TestScenarios",
       "title": "テストシナリオ",
-      "gherkin": "Feature: Document を schema 適合検証 (uc-validate-document)\n\n  Scenario: 適合する Document は VALIDATED 判定になる\n    Given schema に適合する Document\n    When validate する\n    Then VALIDATED 判定が返る\n\n  Scenario: 不適合は違反詳細つきで失敗する\n    Given schema に適合しない Document\n    When validate する\n    Then 違反詳細つきで失敗する\n"
+      "background": "",
+      "scenarios": [
+        {
+          "name": "適合する Document は VALIDATED 判定になる",
+          "category": "正常系",
+          "viewpoint": "適合判定：適合する Document は VALIDATED",
+          "gherkin": "Scenario: 適合する Document は VALIDATED 判定になる\n  Given schema に適合する Document\n  When validate する\n  Then VALIDATED 判定が返る",
+          "covers": "受け入れ基準: 適合は VALIDATED 判定"
+        },
+        {
+          "name": "不適合は違反詳細つきで失敗する",
+          "category": "異常系",
+          "viewpoint": "適合判定：不適合は違反詳細つきで失敗",
+          "gherkin": "Scenario: 不適合は違反詳細つきで失敗する\n  Given schema に適合しない Document\n  When validate する\n  Then 違反詳細つきで失敗する",
+          "covers": "受け入れ基準: 不適合は違反詳細つきで失敗"
+        }
+      ]
     }
   }
 }

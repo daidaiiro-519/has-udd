@@ -1,4 +1,4 @@
-Feature: Document を成果物にレンダリング (uc-render-document)
+Feature: uc-render-document
 
   Scenario: 検証済み Document を成果物に描画する
     Given 描画対象の Document

@@ -1,21 +1,22 @@
 {
   "documentId": "uc-scaffold-document",
   "documentType": "Spec",
-  "schemaRef": "SpecSchema/v1",
+  "schemaRef": "SpecSchema/v2",
   "specKind": "usecase",
-  "status": "VALIDATED",
-  "aggregateRef": "dm-document",
+  "status": "CREATED",
+  "subdomainRef": "sd-harness-core",
+  "aggregateRef": "agg-document",
   "tags": ["context:has-udd-engines"],
   "content": {
     "title": { "blockType": "Title", "title": "uc-scaffold-document" },
-    "purpose": {
-      "blockType": "Purpose",
-      "title": "目的",
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
       "text": "schema から Document の骨格を機械生成し（create）、AI が生成した値を宣言済みフィールドにのみ機械的に書き込む（fill）。AI は構造を触らない。"
     },
     "actorIntent": {
       "blockType": "ActorIntent",
-      "title": "アクターと意図",
+      "title": "主アクターと意図",
       "actor": "Orchestrator（HarnessAgent）",
       "intent": "新しい Document を schema 通りに起こし、値だけを安全に埋める"
     },
@@ -26,7 +27,7 @@
     },
     "mainFlow": {
       "blockType": "MainFlow",
-      "title": "主成功フロー",
+      "title": "基本フロー",
       "steps": [
         { "from": "Orchestrator", "to": "Document", "message": "create(schemaRef, documentId)", "kind": "command" },
         { "from": "Document", "to": "Orchestrator", "message": "骨格と記入テンプレートを返す", "kind": "return" },
@@ -46,7 +47,7 @@
     },
     "acceptanceCriteria": {
       "blockType": "AcceptanceCriteria",
-      "title": "受け入れ条件",
+      "title": "受け入れ基準",
       "items": [
         "When schemaRef と documentId が与えられたとき、engine は schema に適合する骨格を生成する shall（status=schema の enum 先頭）。",
         "When fill で値が与えられたとき、engine は宣言済み値フィールドにのみ書き込む shall。",
@@ -56,17 +57,33 @@
     },
     "errors": {
       "blockType": "Errors",
-      "title": "失敗モード",
+      "title": "エラー",
       "items": [
-        { "condition": "分岐のある schema で discriminator が未指定", "outcome": "MISSING_DISCRIMINATOR を返し候補（enum）を案内する" },
-        { "condition": "未知の schemaRef", "outcome": "INVALID_SCHEMA_REF を返す" },
-        { "condition": "未知 path / const / discriminator への書き込み", "outcome": "書き込まず skipped に記録する" }
+        { "code": "MISSING_DISCRIMINATOR", "condition": "分岐のある schema で discriminator が未指定（候補 enum を案内）" },
+        { "code": "INVALID_SCHEMA_REF", "condition": "未知の schemaRef" },
+        { "code": "SKIPPED", "condition": "未知 path / const / discriminator への書き込み（書き込まず skipped に記録）" }
       ]
     },
     "testScenarios": {
       "blockType": "TestScenarios",
       "title": "テストシナリオ",
-      "gherkin": "Feature: Document の骨格生成と値書き込み (uc-scaffold-document)\n\n  Scenario: 生成した骨格は自分の schema で valid\n    Given engine 種別の Document（discriminator 指定済み）\n    When create する\n    Then 骨格は schema に適合し、status は schema の初期値である\n\n  Scenario: 構造を変える値は拒否される\n    Given 作成済みの Document\n    When const フィールドへ値を書き込もうとする\n    Then 書き込まれず skipped に記録される\n"
+      "background": "",
+      "scenarios": [
+        {
+          "name": "生成した骨格は自分の schema で valid",
+          "category": "正常系",
+          "viewpoint": "骨格生成：生成骨格は schema 適合・status は初期値",
+          "gherkin": "Scenario: 生成した骨格は自分の schema で valid\n  Given engine 種別の Document（discriminator 指定済み）\n  When create する\n  Then 骨格は schema に適合し、status は schema の初期値である",
+          "covers": "受け入れ基準: 骨格は schema に適合"
+        },
+        {
+          "name": "構造を変える値は拒否される",
+          "category": "異常系",
+          "viewpoint": "構造保護：const フィールドへの書き込みは skipped",
+          "gherkin": "Scenario: 構造を変える値は拒否される\n  Given 作成済みの Document\n  When const フィールドへ値を書き込もうとする\n  Then 書き込まれず skipped に記録される",
+          "covers": "受け入れ基準: 構造を変える値は拒否"
+        }
+      ]
     }
   }
 }

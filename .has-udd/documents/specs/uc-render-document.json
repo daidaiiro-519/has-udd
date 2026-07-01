@@ -1,21 +1,22 @@
 {
   "documentId": "uc-render-document",
   "documentType": "Spec",
-  "schemaRef": "SpecSchema/v1",
+  "schemaRef": "SpecSchema/v2",
   "specKind": "usecase",
-  "status": "VALIDATED",
-  "aggregateRef": "dm-document",
+  "status": "CREATED",
+  "subdomainRef": "sd-rendering",
+  "aggregateRef": "agg-document",
   "tags": ["context:has-udd-engines"],
   "content": {
     "title": { "blockType": "Title", "title": "uc-render-document" },
-    "purpose": {
-      "blockType": "Purpose",
-      "title": "目的",
-      "text": "検証済みの Document を、schema の x-render に従って人間可読な成果物（SKILL.md / HTML / .feature）に描画し、配置先へ反映する。"
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
+      "text": "検証済みの Document を schema の x-render に従って人間可読な成果物（SKILL.md / HTML / .feature）に描画し、配置先へ反映する。"
     },
     "actorIntent": {
       "blockType": "ActorIntent",
-      "title": "アクターと意図",
+      "title": "主アクターと意図",
       "actor": "Orchestrator（HarnessAgent）",
       "intent": "対象 Document を成果物に描画し、canonical と deploy 先へ反映する"
     },
@@ -26,7 +27,7 @@
     },
     "mainFlow": {
       "blockType": "MainFlow",
-      "title": "主成功フロー",
+      "title": "基本フロー",
       "steps": [
         { "from": "Orchestrator", "to": "Document", "message": "render する", "kind": "command" },
         { "from": "Document", "to": "Document", "message": "x-render から成果物を生成（frontmatter＋部品）", "kind": "self" },
@@ -45,7 +46,7 @@
     },
     "acceptanceCriteria": {
       "blockType": "AcceptanceCriteria",
-      "title": "受け入れ条件",
+      "title": "受け入れ基準",
       "items": [
         "When 対象 Document が与えられたとき、engine は x-render に従い成果物を生成する shall。",
         "When deploy が有効なとき、engine は canonical と deploy 先の両方へ書き込む shall。",
@@ -54,16 +55,32 @@
     },
     "errors": {
       "blockType": "Errors",
-      "title": "失敗モード",
+      "title": "エラー",
       "items": [
-        { "condition": "schemaRef が無い", "outcome": "MISSING_SCHEMA_REF を返し描画しない" },
-        { "condition": "対象パスが存在しない", "outcome": "INVALID_PATH を返す" }
+        { "code": "MISSING_SCHEMA_REF", "condition": "schemaRef が無い（描画しない）" },
+        { "code": "INVALID_PATH", "condition": "対象パスが存在しない" }
       ]
     },
     "testScenarios": {
       "blockType": "TestScenarios",
       "title": "テストシナリオ",
-      "gherkin": "Feature: Document を成果物にレンダリング (uc-render-document)\n\n  Scenario: 検証済み Document を成果物に描画する\n    Given 描画対象の Document\n    When render する\n    Then 成果物が生成され、生成パス一覧が返る\n\n  Scenario: schemaRef を持たない Document は描画しない\n    Given schemaRef の無い Document\n    When render する\n    Then MISSING_SCHEMA_REF エラーが返る\n"
+      "background": "",
+      "scenarios": [
+        {
+          "name": "検証済み Document を成果物に描画する",
+          "category": "正常系",
+          "viewpoint": "描画：x-render に従い成果物と生成パスを返す",
+          "gherkin": "Scenario: 検証済み Document を成果物に描画する\n  Given 描画対象の Document\n  When render する\n  Then 成果物が生成され、生成パス一覧が返る",
+          "covers": "受け入れ基準: x-render に従い成果物を生成"
+        },
+        {
+          "name": "schemaRef を持たない Document は描画しない",
+          "category": "異常系",
+          "viewpoint": "エラー：schemaRef 欠如は MISSING_SCHEMA_REF",
+          "gherkin": "Scenario: schemaRef を持たない Document は描画しない\n  Given schemaRef の無い Document\n  When render する\n  Then MISSING_SCHEMA_REF エラーが返る",
+          "covers": "エラー: MISSING_SCHEMA_REF"
+        }
+      ]
     }
   }
 }

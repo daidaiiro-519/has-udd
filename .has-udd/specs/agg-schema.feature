@@ -1,4 +1,4 @@
-Feature: Schema 集約の不変条件
+Feature: agg-schema
 
   Scenario: 値フィールドに oneOf を持てない
     Given 値フィールドに oneOf を含む Schema

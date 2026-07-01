@@ -5,9 +5,11 @@ bootstrap（手作り）で書くコードに先置きする `@spec:` placeholde
 
 | コード成果物 | @spec placeholder | 将来の Spec（usecase） | Skill 文書 | 状態 |
 |---|---|---|---|---|
-| render engine | `@spec:uc-render-document` | document.json → 成果物を描画する | `.has-udd/skills/harness-render-engine.json` | 未着手 |
-| validate engine | `@spec:uc-validate-document` | document.json を schema 検証する | （要 Skill 文書） | 未着手 |
-| scaffold engine | `@spec:uc-scaffold-document` | schema から空 document を生成し充填する | `.has-udd/skills/harness-scaffold-engine.json` | 未着手 |
-| query engine | `@spec:uc-query-document` | document を読み _index を動的計算する | `.has-udd/skills/harness-query-engine.json` | 未着手 |
+| render engine | `@spec:uc-render-document` | document.json → 成果物を描画する（aggregateRef=agg-document） | `.has-udd/skills/harness-render-engine.json` | 未着手 |
+| validate engine | `@spec:uc-validate-document` | document.json を schema 検証する（aggregateRef=agg-document） | （要 Skill 文書） | 未着手 |
+| scaffold engine | `@spec:uc-scaffold-document` | schema から空 document を生成し充填する（aggregateRef=agg-document） | `.has-udd/skills/harness-scaffold-engine.json` | 未着手 |
+| query engine | `@spec:uc-query-document` | document を読み _index を動的計算する（aggregateRef=agg-document） | `.has-udd/skills/harness-query-engine.json` | 未着手 |
+
+> aggregate は `agg-document`（Document 集約）/ `agg-schema`（Schema 集約）。旧 `dm-document` / `dm-schema` は SpecSchema/v2 移行で `agg-*` に置換済み。
 
 > 更新ルール: コードに `@spec:` を先置きしたら必ずこの表に1行足す。Sprint 4 で「将来の Spec」を実際に作成したら状態を更新。

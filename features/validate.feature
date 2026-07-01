@@ -21,8 +21,11 @@ Feature: document を schema 適合検証する (uc-validate-document)
       | .has-udd/documents/coding/stack.json                |
       | .has-udd/documents/coding/python-hexagonal.json     |
       | .has-udd/documents/specs/bc-has-udd-engines.json     |
-      | .has-udd/documents/specs/dm-document.json            |
-      | .has-udd/documents/specs/dm-schema.json              |
+      | .has-udd/documents/specs/sd-harness-core.json        |
+      | .has-udd/documents/specs/sd-validation.json          |
+      | .has-udd/documents/specs/sd-rendering.json           |
+      | .has-udd/documents/specs/agg-document.json           |
+      | .has-udd/documents/specs/agg-schema.json             |
       | .has-udd/documents/specs/uc-query-document.json      |
       | .has-udd/documents/specs/uc-render-document.json     |
       | .has-udd/documents/specs/uc-validate-document.json   |

@@ -134,8 +134,25 @@ def _extract_feature(doc: dict, defs: dict):
         if not isinstance(block, dict):
             continue
         bdef = defs.get(f"{block.get('blockType')}Block", {})
-        if bdef.get("x-test-scenario") and block.get("gherkin"):
+        if not bdef.get("x-test-scenario"):
+            continue
+        # 旧形式: block 直下の gherkin 文字列
+        if block.get("gherkin"):
             return block["gherkin"]
+        # 構造化形式: scenarios[{gherkin}] を Feature にまとめる
+        scenarios = block.get("scenarios")
+        if scenarios:
+            lines = [f"Feature: {doc.get('documentId', 'spec')}"]
+            bg = (block.get("background") or "").strip()
+            if bg:
+                lines.append(f"  # 背景: {bg}")
+            for s in scenarios:
+                g = (s.get("gherkin") or "").strip()
+                if not g:
+                    continue
+                lines.append("")
+                lines.extend("  " + ln for ln in g.splitlines())
+            return "\n".join(lines) + "\n"
     return None
     # has-udd:impl-end
 

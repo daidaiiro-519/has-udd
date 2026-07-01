@@ -45,7 +45,7 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
 
   # --- SpecSchema（UDD ループ: TestScenarios → .feature） ---
 
-  Scenario: UsecaseSpec は Markdown と .feature（TestScenarios の Gherkin）を生成する
+  Scenario: usecase Spec は基本フローをシーケンス図に・TestScenarios を Markdown に出す
     Given 対象は ".has-udd/documents/specs/uc-query-document.json"
     When deploy なしでレンダリングする
     Then 成功する
@@ -53,16 +53,18 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
     And 出力に "# uc-query-document" を含む
     And 出力に "sequenceDiagram" を含む
     And 出力に "mermaid" を含む
-    And feature出力に "Feature: document.json へのセマンティック・クエリ" を含む
+    And 出力に "## テストシナリオ" を含む
+    And 出力に "Scenario: 未知の operation はエラーを返す" を含む
+    And feature出力に "Feature: uc-query-document" を含む
     And feature出力に "Scenario: 未知の operation はエラーを返す" を含む
 
-  Scenario: DomainModelSpec は集約の構造を Markdown に・不変条件を .feature に出す
-    Given 対象は ".has-udd/documents/specs/dm-document.json"
+  Scenario: aggregate Spec は集約の構造とライフサイクルを Markdown に出す
+    Given 対象は ".has-udd/documents/specs/agg-document.json"
     When deploy なしでレンダリングする
     Then 成功する
     And 出力に "## コマンド" を含む
     And 出力に "DocumentRendered" を含む
-    And feature出力に "Feature: Document 集約の不変条件" を含む
+    And 出力に "stateDiagram-v2" を含む
 
   # --- エラー / セキュリティ（頑健化） ---
 

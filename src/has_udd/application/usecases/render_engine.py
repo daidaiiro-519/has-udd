@@ -136,10 +136,7 @@ def _extract_feature(doc: dict, defs: dict):
         bdef = defs.get(f"{block.get('blockType')}Block", {})
         if not bdef.get("x-test-scenario"):
             continue
-        # 旧形式: block 直下の gherkin 文字列
-        if block.get("gherkin"):
-            return block["gherkin"]
-        # 構造化形式: scenarios[{gherkin}] を Feature にまとめる
+        # TestScenariosBlock の scenarios[{gherkin}] を Feature にまとめる
         scenarios = block.get("scenarios")
         if scenarios:
             lines = [f"Feature: {doc.get('documentId', 'spec')}"]

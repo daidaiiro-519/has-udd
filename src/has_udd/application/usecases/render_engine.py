@@ -120,7 +120,8 @@ class RenderEngine:
             xr = bdef.get("x-render") or []
             body = render_parts(xr, block, level + 1).strip()
             parts.append(heading + ("\n\n" + body if body else ""))
-        return "\n\n".join(parts) + "\n"
+        # トップレベルのセクション間に区切り線を入れて境界を明確にする
+        return "\n\n---\n\n".join(parts) + "\n"
 
 
 def _extract_feature(doc: dict, defs: dict):

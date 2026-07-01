@@ -22,6 +22,16 @@
           "type": "string",
           "description": "paragraph: 静的テキスト（from の代わり。markdown インライン記法可）"
         },
+        "badge": {
+          "type": "object",
+          "description": "section: item の見出しに条件付きで（text）を付ける。from が真のときのみ",
+          "required": ["from", "text"],
+          "additionalProperties": false,
+          "properties": {
+            "from": { "type": "string", "description": "真偽を判定する item フィールド（例: isRoot）" },
+            "text": { "type": "string", "description": "付与する語（例: 集約ルート）" }
+          }
+        },
         "heading": {
           "type": "string",
           "description": "この部品の直前に出す小見出し（任意）。例: 入力 / 出力"
@@ -42,7 +52,9 @@
               "header": { "type": "string", "description": "列見出し（省略時は field）" },
               "code": { "type": "boolean", "description": "セル値を code（`...`）表示する" },
               "join": { "type": "string", "description": "table: セル値が配列のとき各要素に .format() するテンプレ文字列（例: '{name}: {type}'）。sep で連結" },
-              "sep":  { "type": "string", "description": "table: join した要素の区切り（既定 ' / '）" }
+              "sep":  { "type": "string", "description": "table: join した要素の区切り（既定 ' / '）" },
+              "markField":  { "type": "string", "description": "table: 行のこのフィールドが真ならセルを太字＋markSuffix（例: 識別子の強調）" },
+              "markSuffix": { "type": "string", "description": "table: markField が真のとき末尾に付ける語（例: '（識別子）'）" }
             }
           }
         },

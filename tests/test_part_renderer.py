@@ -56,6 +56,29 @@ def test_keyvalue_md():
     assert "- **a.md**: 説明A" in render_parts(parts, data, 3)
 
 
+def test_section_badge_marks_root():
+    parts = [{"as": "section", "from": "items", "titleFrom": "name",
+              "badge": {"from": "isRoot", "text": "集約ルート"}, "each": [
+                  {"as": "paragraph", "from": "role"}]}]
+    data = {"items": [{"name": "Document", "role": "一貫性単位", "isRoot": True},
+                      {"name": "Line", "role": "明細", "isRoot": False}]}
+    md = render_parts(parts, data, 3)
+    assert "### Document（集約ルート）" in md   # ルートに badge
+    assert "### Line\n" in md                   # 子は badge なし
+    assert "一貫性単位" in md
+
+
+def test_table_mark_field_bolds_identifier():
+    parts = [{"as": "table", "from": "attrs", "columns": [
+        {"field": "name", "header": "属性", "markField": "isId", "markSuffix": "（識別子）"},
+        {"field": "type", "header": "型"}]}]
+    data = {"attrs": [{"name": "documentId", "type": "DocumentId", "isId": True},
+                      {"name": "status", "type": "Status"}]}
+    md = render_parts(parts, data, 3)
+    assert "| **documentId**（識別子） | DocumentId |" in md
+    assert "| status | Status |" in md
+
+
 def test_statediagram_md():
     parts = [{"as": "statediagram", "from": "transitions"}]
     data = {"transitions": [

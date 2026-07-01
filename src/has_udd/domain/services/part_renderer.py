@@ -53,6 +53,9 @@ def render_part(part: dict, data: dict, level: int) -> str:
             title = item.get(part.get("titleFrom", "title"), "")
             if part.get("itemLabel"):
                 title = f"{part['itemLabel']} {i}: {title}"
+            badge = part.get("badge")
+            if badge and item.get(badge.get("from")):
+                title = f"{title}（{badge.get('text', '')}）"
             out.append(_heading(title, level))
             body = render_parts(part["each"], item, level + 1)
             if body:
@@ -73,10 +76,9 @@ def _fmt(v):
 
 
 def _mdcell(v, code=False, join=None, sep=" / "):
-    # join 指定: セル値が配列のとき各要素にテンプレを適用し sep で連結
-    if join is not None:
-        items = v if isinstance(v, list) else ([] if v in (None, "") else [v])
-        v = sep.join(join.format(**it) for it in items)
+    # セル値が配列なら畳む。dict 要素は join テンプレ（あれば）/ 文字列要素は str。sep で連結
+    if isinstance(v, list):
+        v = sep.join((join.format(**it) if (join and isinstance(it, dict)) else str(it)) for it in v)
     s = str(_fmt(v)).replace("|", "\\|").replace("\n", " ")
     return f"`{s}`" if code and s else s
 
@@ -97,11 +99,15 @@ def _table(rows, columns):
     headers = [c.get("header", c["field"]) for c in columns]
     out = ["| " + " | ".join(headers) + " |", "|" + "|".join("---" for _ in headers) + "|"]
     for r in rows:
-        out.append("| " + " | ".join(
-            _mdcell(r.get(c["field"], ""), c.get("code"), c.get("join"), c.get("sep", " / "))
-            for c in columns
-        ) + " |")
+        out.append("| " + " | ".join(_cell(r, c) for c in columns) + " |")
     return "\n".join(out)
+
+
+def _cell(r, c):
+    v = _mdcell(r.get(c["field"], ""), c.get("code"), c.get("join"), c.get("sep", " / "))
+    if c.get("markField") and r.get(c["markField"]):
+        v = f"**{v}**{c.get('markSuffix', '')}"
+    return v
 
 
 def _keyvalue(part, data, src):

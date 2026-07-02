@@ -1,6 +1,6 @@
 # アーキテクチャ — nanodyn
 
-技術方式＝**ポートとアダプター（ヘキサゴナル）**。ストレージ（redb）・移行元（SQLite）・ワイヤ（HTTP）を外側の交換可能なアダプターにし、DB のドメイン（データモデル・式・索引・トランザクション意味論）を内側に隔離する。
+技術方式＝**ポートとアダプター（ヘキサゴナル）**。ストレージ（redb）・ワイヤ（HTTP）・CLI を外側の交換可能なアダプターにし、DB のドメイン（データモデル・式・索引・トランザクション意味論）を内側に隔離する。結合など読取専用の拡張は query 層に載せる。
 
 ## 1. レイヤーと依存方向
 
@@ -9,7 +9,7 @@
 | domain | データモデル・属性値・キーエンコード・式 AST/評価・索引意味論・エラー | なし（最内） |
 | application | 各操作（PutItem/Query/…）のユースケース調整・トランザクション境界 | domain・ports |
 | ports | `StorageEngine` / `Clock` などの抽象 | domain 型のみ |
-| adapters | redb 実装・sqlite 移行・ワイヤ・CLI | application・ports |
+| adapters | redb 実装・ワイヤ・CLI | application・ports |
 
 **規則:** 依存は内向きのみ。domain は redb / serde / HTTP を知らない。
 
@@ -23,13 +23,14 @@ nanodyn/
 │  │   ├─ application/     #   usecases: put_item, get_item, update_item, query, scan, transact_write, ...
 │  │   └─ ports/           #   StorageEngine, Clock
 │  ├─ nanodyn-redb/        # outbound adapter: StorageEngine を redb で実装
+│  ├─ nanodyn-query/       # 任意（feature "join"）: 結合/集計など読取専用クエリ層（index-nested-loop join）
 │  ├─ nanodyn-wire/        # inbound adapter（任意・feature "wire"）: DynamoDB JSON プロトコル
-│  ├─ nanodyn-cli/         # inbound adapter（任意）: 端末操作
-│  └─ nanodyn-migrate/     # 別バイナリ: SQLite → redb 移行（rusqlite はここだけ）
+│  └─ nanodyn-cli/         # inbound adapter（任意）: 端末操作
 └─ Cargo.toml (workspace)
 ```
 
-- **gateway への最小配布** = `nanodyn-core` + `nanodyn-redb` のみ。wire/cli/migrate は必要時。
+- **gateway への最小配布** = `nanodyn-core` + `nanodyn-redb` のみ。query/wire/cli は必要時。
+- **JOIN（nanodyn 拡張）は `nanodyn-query` に隔離** = 読取専用・application を叩く薄い層。要らない構成では除外しコア常駐サイズに影響させない。
 
 ## 3. ポート（抽象）
 
@@ -62,6 +63,7 @@ pub trait Clock { fn now_epoch(&self) -> i64; }
 | aggregate 相当 | 明示クラスは作らない。整合は txn ＋索引維持サービスで担保 | — |
 | inbound-adapter | `nanodyn-wire` / `nanodyn-cli` | 変換のみ・ロジック持たない |
 | outbound-adapter | `nanodyn-redb`（StorageEngine 実装） | redb 依存はここに閉じ込め |
+| query 層（拡張） | `nanodyn-query`（`join::inner` / `join::left`） | 読取専用・複数 read を 1 スナップショットで調停 |
 
 ## 5. 主要ドメイン型（骨子）
 
@@ -93,4 +95,4 @@ wire/cli/直接呼出
 
 - **StorageEngine port** により、redb の成熟度が懸念になれば LMDB/libmdbx へ差替可能（domain/application は無改修）。
 - **inbound の複数化**：ライブラリ直呼び／ワイヤ／CLI は同じ application を叩く薄いアダプター。
-- **移行の隔離**：SQLite 依存は `nanodyn-migrate` にのみ存在し、常駐 DB のサイズ・依存に影響しない。
+- **拡張の隔離**：JOIN 等の読取専用拡張は `nanodyn-query`（feature `join`）にのみ存在し、常駐 DB のサイズ・依存に影響しない。要らない gateway には配布しない。

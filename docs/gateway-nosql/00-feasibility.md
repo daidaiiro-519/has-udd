@@ -11,7 +11,7 @@ DB で最も難しく最もバグりやすいのは**クラッシュ安全な AC
 | 候補 | 言語/依存 | ACID | サイズ | DynamoDB 適合 | 判定 |
 |---|---|---|---|---|---|
 | **redb** | pure Rust・C 依存なし | ✓（MVCC・単一ファイル） | 小（バイナリ内包） | ◎ 順序付き KV＝(pk,sk) に素直 | **採用** |
-| SQLite | C（~1MB） | ✓ | 小 | ○ だが JSON を SQL に押し込む | 移行元としてのみ使用 |
+| SQLite | C（~1MB） | ✓ | 小 | ○ だが JSON を SQL に押し込む | 非採用（構造不一致・C依存） |
 | LMDB/libmdbx | C（極小 ~64KB） | ✓ | 最小 | ◎ | 次点（C 依存・mmap 制約） |
 | sled | pure Rust | ✓ | 中 | ◎ | 非採用（保守停滞・肥大） |
 | 自作storage | — | 要自作 | 最小可能 | — | **却下**（クラッシュ安全性の再発明＝高リスク） |
@@ -25,8 +25,8 @@ DB で最も難しく最もバグりやすいのは**クラッシュ安全な AC
 | **極小サイズ** | redb を静的リンク。重い依存を持たない（式パーサは自作）。`opt-level="z"` + LTO + strip + `panic=abort`。目標バイナリ数百 KB〜1MB 台 |
 | **トランザクション** | redb の write transaction（1 write txn／複数 read txn の MVCC）。`TransactWriteItems` = 1 write txn 内の複数変更で all-or-nothing |
 | **ロールバック** | write txn を commit しなければ破棄＝ロールバック。redb がクラッシュ回復も担保 |
-| **SQLite からのシームレス移行** | SQLite を**移行元**として rusqlite で読み、redb へ一度だけ import するツールを同梱。スキーマ推論＋マッピング規則を提供 |
 | **DynamoDB 機能** | データモデル＋式言語をレイヤで実装（§5） |
+| **JOIN（差別化）** | 任意 query 層（`nanodyn-query`）で index-nested-loop join を実装。読取専用・ローカル特権で inner/left を提供（spec §10） |
 
 ## 4. データモデルの KV マッピング
 
@@ -77,11 +77,11 @@ GSI/LSI（索引ごとに redb の別テーブル）:
 | **式言語（Condition/Update/KeyCondition/Filter/Projection）の実装量**＝最大の作り込み | 文法は有界。手書き再帰下降パーサ＋AST 評価器。property test で網羅（§test-standard） |
 | redb の成熟度・障害回復の信頼性 | 電源断シミュレーション試験・fsync 方針の検証。最悪 LMDB へ差し替え可能なよう **StorageEngine port で抽象化**（架構で疎結合） |
 | 順序保存エンコードの正しさ（特に N 型範囲） | エンコード単体テスト＋property test（round-trip・順序単調性） |
-| SQLite 移行のスキーマ多様性 | 「行→item」マッピング規則を明示・PK/SK 指定を移行設定で受ける |
+| **JOIN の性能（索引なし結合が scan フォールバック）** | 結合キーへの索引を推奨・未索引時は警告。v1 は 2 テーブル・inner/left に限定し複雑度を抑制 |
 
 ## 8. 実装可能性の総評
 
 - 「ストレージは redb 再利用・DynamoDB 層は自作」で、**新規に書く難所は式評価器と索引維持と KV マッピングに限定**され、いずれも有界。
 - ACID・ロールバック・クラッシュ安全は redb が担保＝**最大の技術リスクを外注**。
-- サイズ・移行・トランザクションの NFR は方式選択の時点でほぼ満たされる。
+- サイズ・トランザクションの NFR は方式選択の時点でほぼ満たされる。JOIN は読取専用・任意層ゆえコアサイズに影響しない。
 - → **実装を起こせる。** 次ページ以降に spec / tech-stack / architecture / coding-standard / test-standard。

@@ -7,7 +7,7 @@
 | 層 | 対象 | フレームワーク |
 |---|---|---|
 | 単体 | key_codec・式パーサ/評価・index 差分・属性型変換 | `cargo test` |
-| プロパティ | 順序保存の単調性・式評価の性質・txn 原子性・移行 round-trip | `proptest` |
+| プロパティ | 順序保存の単調性・式評価の性質・txn 原子性・JOIN 結果の正しさ | `proptest` |
 | 結合 | 操作 API を一時 redb ファイル上で（tempfile） | `cargo test` ＋ `tempfile` |
 | 適合（conformance） | DynamoDB 挙動のサブセット一致（条件付き書込・Query 範囲・GSI 強整合） | 表駆動テスト |
 | 障害 | write txn 中断→ロールバック確認・電源断シミュレーション | 専用ハーネス |
@@ -19,7 +19,7 @@
 - **UpdateExpression**: 適用後の item が式のセマンティクスを満たす（SET/ADD/REMOVE/DELETE）。二重適用の非冪等/冪等性を明示。
 - **トランザクション原子性**: `transact_write` の途中で1操作を失敗させると、**どの項目も索引も変更されていない**。
 - **索引一貫性**: 任意の書込列の後、全 GSI/LSI が主データから導出した内容と一致。
-- **移行 round-trip**: SQLite → 移行 → query で、元行と項目が一対一で一致。
+- **JOIN の正しさ**: 参照実装（素朴な二重ループ結合）と `nanodyn-query` の結果が一致。INNER は右マッチ 0 件の左行を出さない・LEFT は必ず左行を出し右属性が欠落、を満たす。索引あり経路と scan フォールバック経路で同一結果。
 
 ## 障害・ロールバック試験
 

@@ -1,7 +1,7 @@
 # コーディング規約 — nanodyn
 
 ## 技術方式
-ポートとアダプター（ヘキサゴナル）。domain は外部クレート（redb/serde/http/sqlite）を知らない。
+ポートとアダプター（ヘキサゴナル）。domain は外部クレート（redb/serde/http）を知らない。
 
 ## レイヤーと依存方向
 
@@ -10,7 +10,8 @@
 | domain | データモデル・キーエンコード・式・索引・エラー | なし |
 | application | 各操作・トランザクション境界 | domain・ports |
 | ports | StorageEngine・Clock | domain 型のみ |
-| adapters | redb・sqlite・wire・cli | application・ports |
+| adapters | redb・wire・cli | application・ports |
+| query（拡張） | 結合など読取専用クエリ（`nanodyn-query`） | application・ports |
 
 **規則**
 - 依存は内向きのみ。`nanodyn-core/domain` は `redb`/`serde`/`hyper` を import しない。

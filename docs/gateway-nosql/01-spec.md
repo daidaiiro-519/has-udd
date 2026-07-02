@@ -8,10 +8,12 @@
 
 - 容量制約のあるゲートウェイ端末で動く**埋め込み KV/ドキュメント DB**。
 - DynamoDB のデータモデルと操作を**可能な限り**再現。ローカル単一端末前提（分散機能は範囲外）。
-- ACID トランザクション・ロールバック・SQLite からの移行を提供。
+- ACID トランザクション・ロールバックを提供。
+- **DynamoDB との差別化＝JOIN（結合）**。ローカル特権を活かし、DynamoDB に無い結合クエリを任意 query 層で提供（§10）。
 
-**v1 スコープ:** CRUD / Query / Scan / トランザクション / ロールバック / 式言語 / 条件付き・原子更新 / GSI・LSI / TTL / 楽観ロック / SQLite 移行ツール。
-**v1 範囲外（後続）:** Streams、PartiQL、ワイヤ完全互換の全 API。
+**v1 スコープ:** CRUD / Query / Scan / トランザクション / ロールバック / 式言語 / 条件付き・原子更新 / GSI・LSI / TTL / 楽観ロック / **JOIN（inner・left outer）**。
+**設計原則:** ローカル単一端末の特権として、DynamoDB の**分散由来の制約は撤廃**する（バッチ操作数の上限なし・GSI も常に強整合 等）。
+**v1 範囲外（後続）:** Streams、PartiQL、SQL クエリ言語、3テーブル以上の多段 JOIN、SQLite 等からの移行、ワイヤ完全互換の全 API。
 
 ---
 
@@ -85,6 +87,7 @@
 - `batch_write(puts, deletes) -> ...`（非トランザクション・冪等ループ）
 - `transact_write(ops) -> ()` — Put/Update/Delete/ConditionCheck を**1 txn で all-or-nothing**。
 - `transact_get(keys) -> Vec<Option<Item>>` — 一貫スナップショット読取。
+- **操作数の上限なし**（DynamoDB の 25/100 件制限は分散由来ゆえ撤廃・§11）。トレードオフ: 巨大 `transact_write` は 1 個の大きな write txn となり、commit まで単一ライタを占有しメモリを保持する（ローカル用途では許容）。
 
 ---
 
@@ -172,14 +175,56 @@ DELETE path :set                  （集合差）
 
 ---
 
-## 10. SQLite からの移行
+## 10. 結合（JOIN）— nanodyn 拡張
 
-- **移行ツール**（別バイナリ `nanodyn-migrate`）:
-  1. rusqlite で既存 `.db` を読取専用オープン。
-  2. 移行設定（テーブルごとに: どの列を pk/sk にするか・除外列・型マッピング）を受ける。
-  3. 各行を item に変換（列→属性、SQLite 型→DynamoDB 型: INTEGER/REAL→N, TEXT→S, BLOB→B, NULL→NULL）。
-  4. redb へ txn バッチで書込（索引も構築）。
-- **シームレス性**: 移行は一度きり・冪等（再実行で同一結果）。移行後は redb 単独で動作。SQLite ランタイム依存は移行ツールにのみ存在し、コア DB には持ち込まない。
+DynamoDB に無い機能で、**本 DB の差別化の核**。ローカル単一端末なので、分散環境では高コストな結合を現実的に提供できる。**読み取り専用**であり、書込パス・トランザクション意味論には一切影響しない。
+
+- **配置**: 任意 query 層（別 crate `nanodyn-query`・feature `join`）。要らない構成では丸ごと除外でき、コア常駐サイズに影響しない。
+
+### 10.1 対応範囲（v1）
+- **結合種別**: `INNER` と `LEFT OUTER`。
+- **対象**: **2 テーブル間**（左＝outer / 右＝inner）。3 テーブル以上の多段は v1 範囲外（後続）。
+- **結合条件**: 等値結合（equi-join）。`left.attrA = right.attrB` 形式。
+
+### 10.2 アルゴリズム（index-nested-loop join）
+```
+左テーブルを query/scan で走査（左の key_condition/filter を先に適用＝プッシュダウン）
+  各 左item について:
+    結合キー値 v = left.attrA を取り出す
+    右テーブルを v で参照:
+      - 右の attrB に索引あり → 索引を点/範囲引き（高速）
+      - 索引なし          → scan フォールバック（低速・警告を出す）
+    右マッチが複数なら 左item × 各右item を出力（1対多を展開）
+    INNER: 右マッチ 0 件なら当該左行は出力しない
+    LEFT : 右マッチ 0 件でも左行を出力し、右由来の属性は欠落（射影で NULL 相当）
+  結合後 filter（post-join filter）を適用
+```
+- **指針**: 結合キー（右 `attrB`）に**索引を貼ることを推奨**。無ければ動くが scan フォールバックで遅い。この指針は「後付け索引」の設計方針と噛み合う。
+
+### 10.3 一貫性
+- 結合全体を**単一 redb read txn 内**で実行 → 両テーブルを**同一 MVCC スナップショット**で読む。走査途中の他書込に汚されない一貫した結果を返す。
+
+### 10.4 インターフェース（2 形態・同一 `JoinPlan` に落とす）
+- **A: 型付きビルダー API**（コア利用者向け・依存ゼロ）
+  ```
+  join(left_table)
+    .inner(right_table).on(left="attrA", right="attrB")   // or .left(...)
+    .left_where(key_condition?, filter?)
+    .right_index(name?)                                    // 明示指定可
+    .filter(post_join_cond?)
+    .select([ "L.x", "R.y", ... ])
+    .page(limit?, exclusive_start_key?)
+    -> JoinPage
+  ```
+- **B: 宣言的 `JoinSpec`**（構造体/JSON・ワイヤ層から投入可）。A と同じ内部表現へ変換。
+- **SQL 文字列（C）は採用しない**（サイズ・工数が跳ね、フル SQL への入口になるため）。
+
+### 10.5 射影と名前衝突
+- 出力属性は**別名接頭辞**で区別（既定: 左=`L.`, 右=`R.`、テーブル別名指定も可）。
+- LEFT で右が未マッチの行は、右由来属性を**欠落**（`attribute_exists` は偽・射影上は NULL 相当）。
+
+### 10.6 ページング
+- 左テーブルの走査位置を `last_evaluated_key` として返し、ストリーミングにページ分割。1 ページは §11 の上限（1MB or limit 件）に従う。
 
 ---
 
@@ -190,7 +235,7 @@ DELETE path :set                  （集合差）
 | 最大項目サイズ | 400 KB |
 | 最大キー長（pk/sk 各） | 2 KB |
 | Query/Scan 1 ページ最大 | 1 MB or limit 件 |
-| transact_write 最大操作数 | 無制限（ローカル・メモリ次第） |
+| transact_write / batch_write 最大操作数 | 無制限（ローカル・メモリ次第。DynamoDB の 25/100 件制限は撤廃） |
 
 ---
 
@@ -198,4 +243,5 @@ DELETE path :set                  （集合差）
 
 - HTTP エンドポイント1つ。`X-Amz-Target: DynamoDB_20120810.{Op}` を見て JSON を型付き API に橋渡し。
 - v1 対応 Op（サブセット）: PutItem/GetItem/UpdateItem/DeleteItem/Query/Scan/BatchWriteItem/BatchGetItem/TransactWriteItems/TransactGetItems/CreateTable/DeleteTable/DescribeTable。
+- **JOIN は nanodyn 固有の拡張 Op**（DynamoDB プロトコルには存在しない）。ワイヤで公開する場合は独自ターゲット名で `JoinSpec`（§10.4 B）を受ける。既存 AWS SDK からは呼べない前提。
 - サイズが要らない構成では丸ごと除外可能（feature flag）。

@@ -24,6 +24,7 @@ loom/
 │  │   └─ ports/           #   StorageEngine, Clock
 │  ├─ loom-redb/        # outbound adapter: StorageEngine を redb で実装
 │  ├─ loom-query/       # 任意（feature "join"）: 結合/集計など読取専用クエリ層（index-nested-loop join）
+│  ├─ loom-bridge/      # inbound adapter 共通部: JSON API ブリッジ（node/py/wire が共有・素の JSON ↔ item）
 │  ├─ loom-wire/        # inbound adapter（任意・feature "wire"）: DynamoDB JSON プロトコル
 │  ├─ loom-node/        # inbound adapter（任意）: Node.js バインディング（napi-rs・DocumentClient 風）
 │  ├─ loom-py/          # inbound adapter（任意）: Python バインディング（PyO3・boto3 風）

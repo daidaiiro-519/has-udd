@@ -34,7 +34,10 @@ JOIN で差別化する。詳細は README.md と docs/00〜05 を参照。
 
 1. ~~JOIN 実行器~~ ✅ 完了（多段 left-deep・pk/索引 probe・scan フォールバック warnings・
    参照実装比較 property 済み。v1 範囲: root 全走査・ページング§10.7 は後続）
-2. `loom-node`（napi-rs → npm "loomdb"）← 次。**backend 差替可能な設計にすること**
+1.5. ~~loom-bridge~~ ✅ 完了 — node/py/wire が共有する JSON API ブリッジ（pure Rust・
+   素の JSON ↔ item・数値精度規則・values/names 共有・全操作＋JOIN）。
+   **言語シェルはこの Bridge の薄い皮として作る**（環境に node v22 あり・検証可能）
+2. `loom-node`（napi-rs シェル → npm "loomdb"）← 次。**backend 差替可能な設計にすること**
 3. `loom-py`（PyO3 → PyPI "loomdb"）
 4. ワイヤ層（任意・drop-in 互換の入口）
 5. コア残タスク: transact_write/batch・TTL・集合型 SS/NS/BS・Projection・

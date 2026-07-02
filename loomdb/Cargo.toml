@@ -4,6 +4,7 @@ members = [
     "crates/loom-core",
     "crates/loom-redb",
     "crates/loom-query",
+    "crates/loom-bridge",
     "crates/loom-cli",
     "crates/loom-testkit",
 ]
@@ -18,6 +19,7 @@ repository = "https://github.com/daidaiiro-519/loomdb"
 # 中核（tech-stack §2）
 redb = "2"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 rmp-serde = "1"
 thiserror = "1"
 # テスト専用（dev-dependencies でのみ使用・配布サイズに影響しない）
@@ -27,6 +29,7 @@ tempfile = "3"
 loom-core = { path = "crates/loom-core" }
 loom-redb = { path = "crates/loom-redb" }
 loom-query = { path = "crates/loom-query" }
+loom-bridge = { path = "crates/loom-bridge" }
 loom-testkit = { path = "crates/loom-testkit" }
 
 # サイズ最優先（tech-stack §5）

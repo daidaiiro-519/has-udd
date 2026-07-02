@@ -1,0 +1,83 @@
+<!-- architecture codingKind の「レンダリング後イメージ」= プロダクト非依存の python-hexagonal スタックプロファイル。コード作成前に書ける決定のみ。実ファイル例を持たず walking skeleton を前方参照。has-udd 固有（schema駆動aggregate等）は含めない。 -->
+
+# python-hexagonal — アーキテクチャ規約
+
+Python でヘキサゴナル（ポートとアダプター）を実装するための規約。
+**本書は実装前に定める決定ルールのみ。正確なコード形（署名・ポートの書き方など）は、規約制定後に最初に実装する walking skeleton（`examples/`）を手本とする。**
+`{package}` は各プロジェクトのトップパッケージ名に読み替える。
+
+---
+
+## レイヤーと依存方向
+
+| レイヤー | 責務 | 依存してよい先 |
+|---|---|---|
+| domain | ドメインモデル・不変条件・値 | なし（最内） |
+| application | usecase の調整・トランザクション境界 | domain / ports |
+| ports | application が要求する抽象（driven interface） | domain |
+| inbound adapter | 外部からの入口（driving：API・CLI 等） | application |
+| outbound adapter | 外部への出口（driven：DB・外部サービス） | ports |
+
+---
+
+## ディレクトリ構成
+
+パスの正典はこのツリー（概念の配置はここを参照する）。
+
+```
+src/{package}/
+  domain/
+    model/          value-object, entity, aggregate
+    services/       domain-service
+  application/
+    usecases/       1 usecase = 1 module
+    ports/          driven interface の定義
+  adapters/
+    inbound/        driving（api, cli, ...）
+    outbound/       driven（db, external, ...）
+  shared/           共通（エラー・結果型 等）
+```
+
+合成ルート（結線・DI）：inbound adapter の起動点にのみ置く。
+
+---
+
+## 概念 → 実現形
+
+「どのレイヤーに・どう作るか」の決定のみ。配置はツリーへの参照、正確なコード形は walking skeleton を手本にする。
+
+| 概念 | 配置 | 形（決定レベル） |
+|---|---|---|
+| usecase | application/usecases | application service・エントリメソッド1つ・ドメインは port 経由で呼ぶ |
+| aggregate | domain/model | 整合性境界を持つクラス・不変条件をメソッド内で強制・コマンドはメソッド |
+| entity | domain/model | 同一性は id・集約の内側でのみ可変 |
+| value-object | domain/model | 不変（frozen dataclass）・値等価 |
+| domain-service | domain/services | ステートレス・複数集約を跨る計算 |
+| port | application/ports | application が要求する driven インターフェース（ABC / Protocol） |
+| inbound-adapter | adapters/inbound | 外部入力を application 呼び出しへ変換・ロジックを持たない |
+| outbound-adapter | adapters/outbound | port を実装・外部ライブラリをここに閉じ込める |
+
+---
+
+## 規約（守るべきルール）
+
+| 種別 | 規約 |
+|---|---|
+| 必須 | 依存は内向きのみ（application→domain/ports・adapter→application/ports の向きを守る） |
+| 必須 | 外部 I/O・外部ライブラリは outbound adapter（port 実装）に閉じ込める |
+| 必須 | 合成ルート（結線・DI）は inbound adapter の起動点にのみ置く |
+| 禁止 | domain / application が外部ライブラリ（DB・HTTP 等）を直接 import する |
+| 禁止 | domain 層での副作用（I/O・グローバル可変状態） |
+| 推奨 | 例外は握り潰さず、ドメイン例外に写像して境界で扱う |
+
+---
+
+## サブドメイン別の厚み
+
+作り込み度は subdomain 仕様の Category に従う（ここに値は複製しない）。
+
+| Category | 実装の厚み |
+|---|---|
+| 中核 | 厚い設計（明示的なドメインモデル） |
+| 一般 | ライブラリを adapter で薄く包む |
+| 補完 | 最小のトランザクションスクリプト |

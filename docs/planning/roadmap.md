@@ -42,22 +42,36 @@
 
 ---
 
-## Stage S — SpecSchema/v2 再構成 🟠 設計中（Spec 層・Stage B の前提）
+## Stage S — SpecSchema/v2 再構成 ✅ 完了
 
-> `brainstorm-coding-schema-redefine`（Re-1〜5）で確定/議論中。Spec 層の関心事＝CodingSchema/Stage B とは別ステージ。
+> `brainstorm-coding-schema-redefine`(Re-1〜5) ＋ `design-spec-schema-v2`。has-udd 全10 Spec を v2 移行済み・v1 撤去・全緑（pytest15/behave66）。commit 5db48cc。
 
-| 項目 | 状態 | メモ |
-|---|---|---|
-| 集約の realize＝宣言的（schema が不変条件・engine は executor） | ✅ 合意（Re-1） | コードに imperative 集約クラス不要＝bootstrap 正しい。OQ-3 は欠陥でない |
-| specKind 階層 A案＝`bounded-context / subdomain / aggregate / usecase` | ✅ 合意（Re-5） | domain-model→aggregate リネーム＋subdomain 追加 |
-| subdomain 分類（中核/一般/補完） | ✅ advisor 確定（Re-5） | harness-core=中核 / validation=一般 / rendering=補完 |
-| ValueObjects の置き場＝aggregate 内 | ✅ 合意（Re-5） | 独立 kind にしない・VO は集約の構成要素・不変条件は宣言的 schema |
-| status 遷移の宣言（遷移表）＋ spec への明示 | 🟠 議論中（Re-2/Re-4） | 値=VO(schema)／遷移=集約不変条件(guard) |
-| SpecSchema/v2 実装（discriminator 改訂・dm-*→agg-*・sd-* 追加） | ⚪ 未着手 | scaffold/validate は schema 駆動なので新コード最小 |
+| 項目 | 状態 |
+|---|---|
+| specKind 階層 `bounded-context / subdomain / aggregate / usecase`＋discriminator | ✅ 実装 |
+| 集約=宣言的不変条件(schema)＋status遷移(guard宣言)・VO は aggregate 内・Entities(isId) | ✅ |
+| subdomain 分類（harness-core=中核 / validation=一般 / rendering=補完） | ✅ |
+| render=MD 正本（HTML 撤去）＋描画整備（区切り/状態図/B4a/コマンド・イベント整形/守り方） | ✅ |
+| has-udd 全 Spec 移行（bc / sd×3 / agg×2 / uc×4）・v1 撤去・.feature(UDDループ)維持 | ✅ |
 
 ---
 
-## Stage B — HOW品質を守る層 🟠 設計止まり（最優先の穴）
+## Stage K — CodingSchema 確定（code-template＋サンプル＋効果測定）🟠 ブレスト（★Stage B の前提）
+
+> Stage S を先に完走したため**未着手**。reconcile/ゲート（Stage B）は「**conformant とは何か＝CodingSchema 規約＋動くサンプル**」が確定して初めて作れる。順序＝K→B。
+
+| 項目 | 状態 | メモ |
+|---|---|---|
+| code-template 規約の確定（Re-1/Re-2 結論を反映） | 🟠 | 宣言的realize=imperative集約クラス不要／status遷移 guard の置き場／subdomainRichness 接続 |
+| 動く最小サンプル（examples/・Spec→コード→緑テスト1本） | ⚪ | 配布 example・規約の手本 |
+| 効果測定（規約が意図した品質を生むか） | ⚪ | 合格基準: .feature緑 / lint通過 / 別AIで規約収束 / 違反検出 |
+| CodingSchema の content 構造・描画（Spec 同様の見直し） | ⚪ | 根拠=`design-coding-schema`・`brainstorm-coding-schema` |
+
+> 決定済み（Stage S 副産物）: 宣言的realize・subdomain分類。未決＝上記。ブレスト=`brainstorm-coding-schema`（本ステージで実施）。
+
+---
+
+## Stage B — HOW品質を守る層 🟠 設計止まり（Stage K の後）
 
 > コードが「.feature は通るが悪いモデル」になるのを防ぐ多層。今日の議論の中心。
 

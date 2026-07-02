@@ -5,7 +5,7 @@
 
 use loom_core::domain::{AttributeValue, KeySchema, Number, TableDef};
 use loom_core::{
-    application::usecases::{get_item, put_item},
+    application::usecases::{create_table, get_item, list_tables, put_item},
     Item,
 };
 use loom_query::{InputRef, JoinEq, JoinKind, JoinQuery, JoinStep};
@@ -20,31 +20,35 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let engine = RedbStorage::create(&path)?;
 
-    // テーブル定義: pk=userId, sk=orderId
-    let def = TableDef {
-        name: "orders".into(),
-        key: KeySchema {
-            pk: "userId".into(),
-            sk: Some("orderId".into()),
+    // DynamoDB 同様、まずテーブルを作成する（pk=userId, sk=orderId）。
+    create_table(
+        &engine,
+        &TableDef {
+            name: "orders".into(),
+            key: KeySchema {
+                pk: "userId".into(),
+                sk: Some("orderId".into()),
+            },
+            indexes: vec![],
+            ttl_attr: None,
         },
-        indexes: vec![],
-        ttl_attr: None,
-    };
+    )?;
+    println!("create: orders (tables = {:?})", list_tables(&engine)?);
 
-    // 2 件書き込む。
+    // 以降はテーブル名で参照する。2 件書き込む。
     for (uid, oid, amount) in [("u1", "o100", "1200"), ("u1", "o101", "3400")] {
         let mut item: Item = Item::new();
         item.insert("userId".into(), AttributeValue::S(uid.into()));
         item.insert("orderId".into(), AttributeValue::S(oid.into()));
         item.insert("amount".into(), AttributeValue::N(Number(amount.into())));
-        put_item(&engine, &def, &item)?;
+        put_item(&engine, "orders", &item)?;
         println!("put   : {uid}/{oid} amount={amount}");
     }
 
     // 主キーで 1 件取得。
     let got = get_item(
         &engine,
-        &def,
+        "orders",
         &AttributeValue::S("u1".into()),
         Some(&AttributeValue::S("o100".into())),
     )?;

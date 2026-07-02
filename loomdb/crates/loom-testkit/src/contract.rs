@@ -19,8 +19,23 @@ where
     overwrite_last_wins(&new_engine);
     delete_removes_and_missing_delete_is_ok(&new_engine);
     scan_prefix_filters_and_sorts(&new_engine);
+    write_txn_scan_sees_own_writes(&new_engine);
     tables_are_isolated(&new_engine);
     read_snapshot_is_stable(&new_engine);
+}
+
+fn write_txn_scan_sees_own_writes<E: StorageEngine>(f: &impl Fn() -> E) {
+    let e = f();
+    let mut w = e.begin_write().expect("begin_write");
+    w.put("t", b"b", b"2").expect("put");
+    w.put("t", b"a", b"1").expect("put");
+    let hits = w.scan_prefix("t", b"").expect("scan_prefix");
+    let keys: Vec<&[u8]> = hits.iter().map(|(k, _)| k.as_slice()).collect();
+    assert_eq!(
+        keys,
+        vec![b"a".as_slice(), b"b"],
+        "contract[write_scan]: write txn 内の走査は未 commit の自分の書込を昇順で見る"
+    );
 }
 
 fn get_missing_returns_none<E: StorageEngine>(f: &impl Fn() -> E) {

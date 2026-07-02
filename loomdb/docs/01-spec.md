@@ -178,6 +178,7 @@ DELETE path :set                  （集合差）
 | `ValidationError` | 式構文誤り・型不正・キー欠落 |
 | `TransactionCanceled` | transact_write のいずれか失敗（理由コード配列） |
 | `ResourceNotFound` | テーブル/索引なし |
+| `ResourceInUse` | `create_table` で同名テーブルが既に存在 |
 | `ItemSizeLimitExceeded` | 項目サイズ上限超過（設定可能・既定 400KB） |
 
 ---
@@ -268,6 +269,7 @@ root を query/scan で走査（root の key_condition/filter を先に適用＝
 | N の有効桁・指数範囲 | 38 桁・1E-130〜9.9E+125（DynamoDB 準拠） |
 | 空文字列・空バイナリ | 非キー属性で許容（現行 DynamoDB 準拠） |
 | 空集合（SS/NS/BS） | 不可＝ `ValidationError`（DynamoDB 準拠） |
+| テーブル名 | 3〜255 文字・`[a-zA-Z0-9_.-]`（DynamoDB 準拠。`:` を含む名前は内部予約） |
 
 ---
 

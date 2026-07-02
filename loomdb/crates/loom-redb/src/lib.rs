@@ -79,6 +79,11 @@ impl WriteTxn for RedbWrite {
         Ok(())
     }
 
+    fn scan_prefix(&self, table: &str, prefix: &[u8]) -> Result<KvEntries, DbError> {
+        let t = store(self.txn.open_table(MAIN))?;
+        scan_table(&t, table, prefix)
+    }
+
     fn commit(self: Box<Self>) -> Result<(), DbError> {
         store(self.txn.commit())
     }
@@ -98,17 +103,26 @@ impl ReadTxn for RedbRead {
 
     fn scan_prefix(&self, table: &str, prefix: &[u8]) -> Result<KvEntries, DbError> {
         let t = store(self.txn.open_table(MAIN))?;
-        let start = phys_key(table, prefix);
-        let strip = table.len() + 1; // 物理キーから "table\0" を剥がす長さ
-        let mut out = Vec::new();
-        for entry in store(t.range(start.as_slice()..))? {
-            let (k, v) = store(entry)?;
-            let kb = k.value();
-            if !kb.starts_with(&start) {
-                break; // prefix 範囲を抜けたら終了
-            }
-            out.push((kb[strip..].to_vec(), v.value().to_vec()));
-        }
-        Ok(out)
+        scan_table(&t, table, prefix)
     }
+}
+
+/// read/write 両 txn 共通の prefix 走査（キーは物理→論理へ剥がして返す）。
+fn scan_table(
+    t: &impl ReadableTable<&'static [u8], &'static [u8]>,
+    table: &str,
+    prefix: &[u8],
+) -> Result<KvEntries, DbError> {
+    let start = phys_key(table, prefix);
+    let strip = table.len() + 1; // 物理キーから "table\0" を剥がす長さ
+    let mut out = Vec::new();
+    for entry in store(t.range(start.as_slice()..))? {
+        let (k, v) = store(entry)?;
+        let kb = k.value();
+        if !kb.starts_with(&start) {
+            break; // prefix 範囲を抜けたら終了
+        }
+        out.push((kb[strip..].to_vec(), v.value().to_vec()));
+    }
+    Ok(out)
 }

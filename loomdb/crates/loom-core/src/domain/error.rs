@@ -10,6 +10,9 @@ pub enum DbError {
     #[error("resource not found: {0}")]
     ResourceNotFound(String),
 
+    #[error("resource in use: {0}")]
+    ResourceInUse(String),
+
     #[error("validation error: {0}")]
     Validation(String),
 

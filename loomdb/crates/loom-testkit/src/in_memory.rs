@@ -58,6 +58,10 @@ impl WriteTxn for MemWrite<'_> {
         Ok(())
     }
 
+    fn scan_prefix(&self, table: &str, prefix: &[u8]) -> Result<KvEntries, DbError> {
+        Ok(scan(&self.view, table, prefix))
+    }
+
     fn commit(self: Box<Self>) -> Result<(), DbError> {
         *self.store.inner.lock().expect("testkit: lock poisoned") = self.view;
         Ok(())
@@ -77,11 +81,14 @@ impl ReadTxn for MemRead {
     }
 
     fn scan_prefix(&self, table: &str, prefix: &[u8]) -> Result<KvEntries, DbError> {
-        Ok(self
-            .snapshot
-            .iter()
-            .filter(|((t, k), _)| t == table && k.starts_with(prefix))
-            .map(|((_, k), v)| (k.clone(), v.clone()))
-            .collect())
+        Ok(scan(&self.snapshot, table, prefix))
     }
+}
+
+/// BTreeMap は (String, Vec<u8>) 順に整列済みなので、フィルタ結果もキー昇順になる。
+fn scan(map: &Map, table: &str, prefix: &[u8]) -> KvEntries {
+    map.iter()
+        .filter(|((t, k), _)| t == table && k.starts_with(prefix))
+        .map(|((_, k), v)| (k.clone(), v.clone()))
+        .collect()
 }

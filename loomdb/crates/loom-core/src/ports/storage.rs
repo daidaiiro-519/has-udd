@@ -20,6 +20,8 @@ pub trait WriteTxn {
     fn get(&self, table: &str, key: &[u8]) -> Result<Option<Vec<u8>>, DbError>;
     fn put(&mut self, table: &str, key: &[u8], value: &[u8]) -> Result<(), DbError>;
     fn delete(&mut self, table: &str, key: &[u8]) -> Result<(), DbError>;
+    /// 未 commit の自分の書込を含む prefix 走査（delete_table・索引バックフィルの基盤）。
+    fn scan_prefix(&self, table: &str, prefix: &[u8]) -> Result<KvEntries, DbError>;
     fn commit(self: Box<Self>) -> Result<(), DbError>;
 }
 

@@ -1,0 +1,13 @@
+[package]
+name = "loom-core"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "LoomDB core: domain model, ports, and application use-cases (hexagonal inner layers)."
+
+[dependencies]
+serde.workspace = true
+rmp-serde.workspace = true
+thiserror.workspace = true

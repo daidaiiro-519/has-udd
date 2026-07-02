@@ -1,0 +1,12 @@
+[package]
+name = "loom-redb"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "LoomDB storage adapter: StorageEngine implemented on redb (outbound adapter)."
+
+[dependencies]
+loom-core.workspace = true
+redb.workspace = true

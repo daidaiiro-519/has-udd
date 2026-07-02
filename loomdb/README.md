@@ -39,8 +39,37 @@
 | 04 | [coding-standard](docs/04-coding-standard.md) | コーディング規約 |
 | 05 | [test-standard](docs/05-test-standard.md) | テスト規約（property test・サイズ回帰） |
 
+## ワークスペース構成（サンプル雛形）
+
+採用アーキテクチャ（ヘキサゴナル）と技術スタック（redb / serde+rmp-serde / thiserror）を
+体現する、**ビルド可能な雛形**を同梱している。
+
+```
+loomdb/
+├─ Cargo.toml              # workspace（サイズ最優先の release profile 込み）
+└─ crates/
+   ├─ loom-core/           # ドメイン + application + ports（外部依存を持たない内側）
+   │   ├─ domain/          #   attribute, key, table, key_codec, error
+   │   ├─ ports/           #   StorageEngine / ReadTxn / WriteTxn / Clock
+   │   └─ application/     #   usecases: put_item, get_item
+   ├─ loom-redb/           # outbound adapter: StorageEngine を redb で実装
+   ├─ loom-query/          # 任意: N テーブル JOIN のデータ構造（実行器は骨子）
+   └─ loom-cli/            # デモ: core+redb を通す put/get の end-to-end 疎通
+```
+
+### 動かす
+
+```bash
+cd loomdb
+cargo run -p loom-cli
+# put   : u1/o100 amount=1200
+# get   : u1/o100 -> Some({"amount": N(Number("1200")), ...})
+```
+
 ## ステータス
 
-設計フェーズ。実装（`loom-core` ワークスペース）はこれから。
+設計フェーズ＋雛形。`put_item` / `get_item` は redb を通して実際に round-trip する。
+式言語（spec §5）・二次索引維持（§7）・JOIN 実行器（§10.3）・完全な順序保存 N エンコード
+（§2.3）は骨子または TODO で、これから実装する。
 
-<!-- TODO: LICENSE を選定して追加する（未定） -->
+<!-- TODO: LICENSE を選定して追加する（未定・現状は workspace で MIT を仮置き） -->

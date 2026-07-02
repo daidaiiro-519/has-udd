@@ -1,0 +1,34 @@
+//! ストレージ抽象（architecture §3）。redb / LMDB を差し替え可能にする port。
+//!
+//! 注: architecture のスケッチは GAT（`type Txn<'a>`）で書かれているが、本サンプルでは
+//! trait object で扱いやすいよう `Box<dyn ..>` に簡素化している。範囲スキャンも eager に
+//! `Vec` 返しにしている（本実装ではストリーミングにする）。
+
+use crate::domain::error::DbError;
+
+/// 順序付き KV の ACID ストレージ。`table` は論理テーブル名、物理配置はアダプタの責務。
+pub trait StorageEngine {
+    fn begin_write(&self) -> Result<Box<dyn WriteTxn + '_>, DbError>;
+    fn begin_read(&self) -> Result<Box<dyn ReadTxn + '_>, DbError>;
+}
+
+/// 書込トランザクション。`commit` しなければ drop = ロールバック（architecture §3）。
+pub trait WriteTxn {
+    fn get(&self, table: &str, key: &[u8]) -> Result<Option<Vec<u8>>, DbError>;
+    fn put(&mut self, table: &str, key: &[u8], value: &[u8]) -> Result<(), DbError>;
+    fn delete(&mut self, table: &str, key: &[u8]) -> Result<(), DbError>;
+    fn commit(self: Box<Self>) -> Result<(), DbError>;
+}
+
+/// 読取トランザクション（MVCC スナップショット）。
+pub trait ReadTxn {
+    fn get(&self, table: &str, key: &[u8]) -> Result<Option<Vec<u8>>, DbError>;
+    /// 論理キーが `prefix` で始まる項目を昇順で返す（Query/Scan/JOIN の基盤）。
+    fn scan_prefix(&self, table: &str, prefix: &[u8])
+        -> Result<Vec<(Vec<u8>, Vec<u8>)>, DbError>;
+}
+
+/// 時刻源（TTL 判定など）。テストで固定時刻に差し替える（tech-stack §6）。
+pub trait Clock {
+    fn now_epoch(&self) -> i64;
+}

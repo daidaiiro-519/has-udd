@@ -1,0 +1,12 @@
+[package]
+name = "loom-query"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "LoomDB read-only query layer: N-table JOIN (inner/left, index-nested-loop)."
+
+[dependencies]
+loom-core.workspace = true
+serde.workspace = true

@@ -1,4 +1,4 @@
-# 仕様書 — nanodyn（ゲートウェイ向け軽量ローカル DynamoDB 風 NoSQL）
+# 仕様書 — LoomDB（ゲートウェイ向け軽量ローカル DynamoDB 風 NoSQL）
 
 対象読者: 実装者。この文書だけで v1 を起こせる粒度を目指す。
 
@@ -175,11 +175,11 @@ DELETE path :set                  （集合差）
 
 ---
 
-## 10. 結合（JOIN）— nanodyn 拡張
+## 10. 結合（JOIN）— LoomDB 拡張
 
 DynamoDB に無い機能で、**本 DB の差別化の核**。ローカル単一端末なので、分散環境では高コストな結合を現実的に提供できる。**読み取り専用**であり、書込パス・トランザクション意味論には一切影響しない。
 
-- **配置**: 任意 query 層（別 crate `nanodyn-query`・feature `join`）。要らない構成では丸ごと除外でき、コア常駐サイズに影響しない。
+- **配置**: 任意 query 層（別 crate `loom-query`・feature `join`）。要らない構成では丸ごと除外でき、コア常駐サイズに影響しない。
 
 ### 10.1 対応範囲（v1）
 - **結合種別**: `INNER` と `LEFT OUTER`（結合エッジごとに指定可）。
@@ -262,5 +262,5 @@ root を query/scan で走査（root の key_condition/filter を先に適用＝
 
 - HTTP エンドポイント1つ。`X-Amz-Target: DynamoDB_20120810.{Op}` を見て JSON を型付き API に橋渡し。
 - v1 対応 Op（サブセット）: PutItem/GetItem/UpdateItem/DeleteItem/Query/Scan/BatchWriteItem/BatchGetItem/TransactWriteItems/TransactGetItems/CreateTable/DeleteTable/DescribeTable。
-- **JOIN は nanodyn 固有の拡張 Op**（DynamoDB プロトコルには存在しない）。ワイヤで公開する場合は独自ターゲット名で `JoinSpec`（§10.4 B）を受ける。既存 AWS SDK からは呼べない前提。
+- **JOIN は LoomDB 固有の拡張 Op**（DynamoDB プロトコルには存在しない）。ワイヤで公開する場合は独自ターゲット名で `JoinSpec`（§10.4 B）を受ける。既存 AWS SDK からは呼べない前提。
 - サイズが要らない構成では丸ごと除外可能（feature flag）。

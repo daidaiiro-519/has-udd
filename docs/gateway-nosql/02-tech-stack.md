@@ -1,4 +1,4 @@
-# 技術スタック — nanodyn
+# 技術スタック — LoomDB
 
 「限りなく小さい」を最優先に、依存を厳選する。
 
@@ -31,7 +31,7 @@
 | 層 | クレート | flag |
 |---|---|---|
 | ワイヤ互換サーバ | 極小 HTTP（`tiny_http` 等・要評価） | `wire` |
-| 結合クエリ層（JOIN） | 追加依存なし（core の API・索引・read txn を利用） | 別 crate `nanodyn-query`・feature `join`・コアに非混入 |
+| 結合クエリ層（JOIN） | 追加依存なし（core の API・索引・read txn を利用） | 別 crate `loom-query`・feature `join`・コアに非混入 |
 | CLI | 最小引数解析（`clap` は重いので `pico-args` 等を検討） | `cli` |
 
 > **原則: コア（ライブラリ）にはワイヤ/CLI/query の依存を持ち込まない。** これらは別 crate か feature。gateway には必要な物だけ配布。
@@ -57,7 +57,7 @@ strip = true
 | serialization | rmp-serde | item value |
 | clock（TTL 判定） | `std::time` を port `Clock` で抽象化 | テストで固定時刻に差替 |
 | logging | 最小（feature `log`・既定オフ） | サイズ優先で既定は無効 |
-| join（結合） | 追加依存なし（別 crate `nanodyn-query`） | 読取専用・コア非混入 |
+| join（結合） | 追加依存なし（別 crate `loom-query`） | 読取専用・コア非混入 |
 
 ## 7. 依存を足す前のルール
 

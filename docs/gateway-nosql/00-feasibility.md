@@ -1,4 +1,4 @@
-# 実現可能性検討 — ゲートウェイ向け軽量ローカル NoSQL（仮称 nanodyn）
+# 実現可能性検討 — ゲートウェイ向け軽量ローカル NoSQL（LoomDB）
 
 ## 1. 結論
 
@@ -26,7 +26,7 @@ DB で最も難しく最もバグりやすいのは**クラッシュ安全な AC
 | **トランザクション** | redb の write transaction（1 write txn／複数 read txn の MVCC）。`TransactWriteItems` = 1 write txn 内の複数変更で all-or-nothing |
 | **ロールバック** | write txn を commit しなければ破棄＝ロールバック。redb がクラッシュ回復も担保 |
 | **DynamoDB 機能** | データモデル＋式言語をレイヤで実装（§5） |
-| **JOIN（差別化）** | 任意 query 層（`nanodyn-query`）で index-nested-loop join を実装。読取専用・ローカル特権で inner/left・N テーブル多段（left-deep）を提供（spec §10） |
+| **JOIN（差別化）** | 任意 query 層（`loom-query`）で index-nested-loop join を実装。読取専用・ローカル特権で inner/left・N テーブル多段（left-deep）を提供（spec §10） |
 
 ## 4. データモデルの KV マッピング
 

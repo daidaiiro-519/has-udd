@@ -1,4 +1,4 @@
-# コーディング規約 — nanodyn
+# コーディング規約 — LoomDB
 
 ## 技術方式
 ポートとアダプター（ヘキサゴナル）。domain は外部クレート（redb/serde/http）を知らない。
@@ -11,11 +11,11 @@
 | application | 各操作・トランザクション境界 | domain・ports |
 | ports | StorageEngine・Clock | domain 型のみ |
 | adapters | redb・wire・cli | application・ports |
-| query（拡張） | 結合など読取専用クエリ（`nanodyn-query`） | application・ports |
+| query（拡張） | 結合など読取専用クエリ（`loom-query`） | application・ports |
 
 **規則**
-- 依存は内向きのみ。`nanodyn-core/domain` は `redb`/`serde`/`hyper` を import しない。
-- 外部ライブラリはアダプター（`nanodyn-redb` 等）に閉じ込める。
+- 依存は内向きのみ。`loom-core/domain` は `redb`/`serde`/`hyper` を import しない。
+- 外部ライブラリはアダプター（`loom-redb` 等）に閉じ込める。
 - `println!`/`eprintln!` をライブラリに書かない（logging capability・既定オフ）。
 
 ## 概念 → 実現形
@@ -25,7 +25,7 @@
 | value-object | `domain/` に不変 `struct`/`enum`。`Clone` は許容、内部可変は禁止 |
 | domain-service | `domain/` にステートレス純関数（`key_codec`, `expr::eval`, `index::maintain`） |
 | usecase | `application/usecases/{op}.rs`・入口は1関数・txn を張るのはここだけ |
-| outbound-adapter | `StorageEngine` 実装は `nanodyn-redb` のみ。redb 型を外に漏らさない |
+| outbound-adapter | `StorageEngine` 実装は `loom-redb` のみ。redb 型を外に漏らさない |
 
 ## エラー・結果
 
@@ -48,7 +48,7 @@
 
 - 各 usecase の docstring 先頭に **`@spec 01-spec.md#4.2`** の形で仕様節を指す（探索・重複防止のため）。
 - 式評価は `@spec 01-spec.md#5` を指す。
-- 実装本体は再生成保護のため境界コメントで囲う: `// nanodyn:impl-start` / `// nanodyn:impl-end`。
+- 実装本体は再生成保護のため境界コメントで囲う: `// loom:impl-start` / `// loom:impl-end`。
 
 ## サイズ規律
 

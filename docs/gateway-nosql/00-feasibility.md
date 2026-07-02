@@ -26,7 +26,7 @@ DB で最も難しく最もバグりやすいのは**クラッシュ安全な AC
 | **トランザクション** | redb の write transaction（1 write txn／複数 read txn の MVCC）。`TransactWriteItems` = 1 write txn 内の複数変更で all-or-nothing |
 | **ロールバック** | write txn を commit しなければ破棄＝ロールバック。redb がクラッシュ回復も担保 |
 | **DynamoDB 機能** | データモデル＋式言語をレイヤで実装（§5） |
-| **JOIN（差別化）** | 任意 query 層（`nanodyn-query`）で index-nested-loop join を実装。読取専用・ローカル特権で inner/left を提供（spec §10） |
+| **JOIN（差別化）** | 任意 query 層（`nanodyn-query`）で index-nested-loop join を実装。読取専用・ローカル特権で inner/left・N テーブル多段（left-deep）を提供（spec §10） |
 
 ## 4. データモデルの KV マッピング
 
@@ -77,7 +77,7 @@ GSI/LSI（索引ごとに redb の別テーブル）:
 | **式言語（Condition/Update/KeyCondition/Filter/Projection）の実装量**＝最大の作り込み | 文法は有界。手書き再帰下降パーサ＋AST 評価器。property test で網羅（§test-standard） |
 | redb の成熟度・障害回復の信頼性 | 電源断シミュレーション試験・fsync 方針の検証。最悪 LMDB へ差し替え可能なよう **StorageEngine port で抽象化**（架構で疎結合） |
 | 順序保存エンコードの正しさ（特に N 型範囲） | エンコード単体テスト＋property test（round-trip・順序単調性） |
-| **JOIN の性能（索引なし結合が scan フォールバック）** | 結合キーへの索引を推奨・未索引時は警告。v1 は 2 テーブル・inner/left に限定し複雑度を抑制 |
+| **JOIN の性能（索引なし結合が scan フォールバック・多段で累積）** | 結合キーへの索引を推奨・未索引時は警告。v1 は left-deep（宣言順）＝利用者が結合順を制御し、コストベース最適化は後続に回して複雑度を抑制 |
 
 ## 8. 実装可能性の総評
 

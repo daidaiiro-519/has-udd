@@ -11,9 +11,9 @@
 - ACID トランザクション・ロールバックを提供。
 - **DynamoDB との差別化＝JOIN（結合）**。ローカル特権を活かし、DynamoDB に無い結合クエリを任意 query 層で提供（§10）。
 
-**v1 スコープ:** CRUD / Query / Scan / トランザクション / ロールバック / 式言語 / 条件付き・原子更新 / GSI・LSI / TTL / 楽観ロック / **JOIN（inner・left outer）**。
+**v1 スコープ:** CRUD / Query / Scan / トランザクション / ロールバック / 式言語 / 条件付き・原子更新 / GSI・LSI / TTL / 楽観ロック / **JOIN（inner・left outer・N テーブル多段）**。
 **設計原則:** ローカル単一端末の特権として、DynamoDB の**分散由来の制約は撤廃**する（バッチ操作数の上限なし・GSI も常に強整合 等）。
-**v1 範囲外（後続）:** Streams、PartiQL、SQL クエリ言語、3テーブル以上の多段 JOIN、SQLite 等からの移行、ワイヤ完全互換の全 API。
+**v1 範囲外（後続）:** Streams、PartiQL、SQL クエリ言語、JOIN のコストベース最適化（v1 は宣言順 left-deep）、SQLite 等からの移行、ワイヤ完全互換の全 API。
 
 ---
 
@@ -182,49 +182,68 @@ DynamoDB に無い機能で、**本 DB の差別化の核**。ローカル単一
 - **配置**: 任意 query 層（別 crate `nanodyn-query`・feature `join`）。要らない構成では丸ごと除外でき、コア常駐サイズに影響しない。
 
 ### 10.1 対応範囲（v1）
-- **結合種別**: `INNER` と `LEFT OUTER`。
-- **対象**: **2 テーブル間**（左＝outer / 右＝inner）。3 テーブル以上の多段は v1 範囲外（後続）。
-- **結合条件**: 等値結合（equi-join）。`left.attrA = right.attrB` 形式。
+- **結合種別**: `INNER` と `LEFT OUTER`（結合エッジごとに指定可）。
+- **対象**: **N テーブル**の多段結合。構造は最初から複数テーブルを前提とする（`JoinStep` の順序付きリスト＝**left-deep join tree**）。
+- **結合条件**: 等値結合（equi-join）。各ステップは `<既出のいずれかの入力>.attrX = <新テーブル>.attrY` 形式。
+- **別名（alias）必須**: 同一テーブルの自己結合や属性名衝突に対応するため、各入力にエイリアスを付ける。
 
-### 10.2 アルゴリズム（index-nested-loop join）
+### 10.2 データ構造（複数テーブル前提）
 ```
-左テーブルを query/scan で走査（左の key_condition/filter を先に適用＝プッシュダウン）
-  各 左item について:
-    結合キー値 v = left.attrA を取り出す
-    右テーブルを v で参照:
-      - 右の attrB に索引あり → 索引を点/範囲引き（高速）
-      - 索引なし          → scan フォールバック（低速・警告を出す）
-    右マッチが複数なら 左item × 各右item を出力（1対多を展開）
-    INNER: 右マッチ 0 件なら当該左行は出力しない
-    LEFT : 右マッチ 0 件でも左行を出力し、右由来の属性は欠落（射影で NULL 相当）
-  結合後 filter（post-join filter）を適用
+JoinQuery {
+  root:   InputRef { table, alias, key_condition?, filter?, index? }   // 駆動表（最外）
+  steps:  [ JoinStep, ... ]        // 適用順＝left-deep。0 個なら単表クエリと等価
+  filter: post_join_cond?          // 結合後フィルタ（全入力の属性を参照可）
+  select: [ projection_path, ... ] // "alias.attr" 形式
+  page:   { limit?, exclusive_start_key? }
+}
+JoinStep {
+  input:   InputRef { table, alias, filter?, index? }   // 追加する表
+  kind:    INNER | LEFT
+  on:      [ Eq { left: "existingAlias.attrX", right: "newAlias.attrY" }, ... ]  // 複合キー可（AND）
+}
 ```
-- **指針**: 結合キー（右 `attrB`）に**索引を貼ることを推奨**。無ければ動くが scan フォールバックで遅い。この指針は「後付け索引」の設計方針と噛み合う。
+- `steps` を増やすだけで 2, 3, 4… テーブルへ自然に拡張。v1 で件数上限は設けない（§11・実用上はプラン深さで自律制御）。
 
-### 10.3 一貫性
-- 結合全体を**単一 redb read txn 内**で実行 → 両テーブルを**同一 MVCC スナップショット**で読む。走査途中の他書込に汚されない一貫した結果を返す。
+### 10.3 アルゴリズム（index-nested-loop・多段）
+```
+root を query/scan で走査（root の key_condition/filter を先に適用＝プッシュダウン）
+  各 中間タプル t（それまでに結合済みの全入力の束）について、steps を順に適用:
+    step.on の left 側を t から評価 → 結合キー値 v
+    step.input を v で参照:
+      - input.attrY に索引あり → 索引を点/範囲引き（高速）
+      - 索引なし              → scan フォールバック（低速・警告を出す）
+    マッチ複数 → t × 各マッチ を展開（1対多）
+    INNER: マッチ 0 件なら当該タプルを捨てる（以降の step に進めない）
+    LEFT : マッチ 0 件でも t を残し、当該 input 由来の属性は欠落（NULL 相当）
+  全 step 通過後、post-join filter を適用 → select で射影
+```
+- **指針**: 各ステップの結合キー（`input.attrY`）に**索引を貼ることを推奨**。無ければ動くが scan フォールバックで遅い（多段では効きが累積するので特に）。
+- **プラン順序**: v1 は宣言順（left-deep）をそのまま実行＝**利用者が結合順を制御**。コストベース最適化は後続（範囲外）。
 
-### 10.4 インターフェース（2 形態・同一 `JoinPlan` に落とす）
-- **A: 型付きビルダー API**（コア利用者向け・依存ゼロ）
+### 10.4 一貫性
+- 結合全体を**単一 redb read txn 内**で実行 → 参加する全テーブルを**同一 MVCC スナップショット**で読む。走査途中の他書込に汚されない一貫結果を返す。
+
+### 10.5 インターフェース（2 形態・同一 `JoinQuery` に落とす）
+- **A: 型付きビルダー API**（コア利用者向け・依存ゼロ・`.join()` を鎖状に重ねて N テーブル）
   ```
-  join(left_table)
-    .inner(right_table).on(left="attrA", right="attrB")   // or .left(...)
-    .left_where(key_condition?, filter?)
-    .right_index(name?)                                    // 明示指定可
+  join(root_table).as("o").where(key_condition?, filter?)
+    .inner("users").as("u").on("o.userId", "u.id")
+    .left("addresses").as("a").on("u.id", "a.userId").index("byUser")
+    .inner("plans").as("p").on("u.planId", "p.id")
     .filter(post_join_cond?)
-    .select([ "L.x", "R.y", ... ])
+    .select([ "o.id", "u.name", "a.city", "p.tier" ])
     .page(limit?, exclusive_start_key?)
     -> JoinPage
   ```
-- **B: 宣言的 `JoinSpec`**（構造体/JSON・ワイヤ層から投入可）。A と同じ内部表現へ変換。
+- **B: 宣言的 `JoinQuery`**（§10.2 の構造体/JSON・ワイヤ層から投入可）。A と同じ内部表現へ変換。
 - **SQL 文字列（C）は採用しない**（サイズ・工数が跳ね、フル SQL への入口になるため）。
 
-### 10.5 射影と名前衝突
-- 出力属性は**別名接頭辞**で区別（既定: 左=`L.`, 右=`R.`、テーブル別名指定も可）。
-- LEFT で右が未マッチの行は、右由来属性を**欠落**（`attribute_exists` は偽・射影上は NULL 相当）。
+### 10.6 射影と名前衝突
+- 出力属性は**エイリアス接頭辞**で一意化（`"o.id"` / `"u.name"`）。エイリアス必須ゆえ自己結合・同名属性も衝突しない。
+- LEFT で未マッチの入力は、その入力由来属性を**欠落**（`attribute_exists` は偽・射影上は NULL 相当）。
 
-### 10.6 ページング
-- 左テーブルの走査位置を `last_evaluated_key` として返し、ストリーミングにページ分割。1 ページは §11 の上限（1MB or limit 件）に従う。
+### 10.7 ページング
+- **root（駆動表）の走査位置**を `last_evaluated_key` として返し、ストリーミングにページ分割。1 ページは §11 の上限（1MB or limit 件）に従う。1 タプル展開の途中でページ境界に当たった場合の再開位置も root キー＋展開オフセットで表現。
 
 ---
 

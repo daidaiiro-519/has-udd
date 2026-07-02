@@ -68,9 +68,13 @@ cargo run -p loom-cli
 
 ## ステータス
 
-設計フェーズ＋雛形。`put_item` / `get_item` は redb を通して実際に round-trip する。
-式言語（spec §5）・二次索引維持（§7）・JOIN 実行器（§10.3）は TODO。
-**ここからは TDD（テスト先行・Red→Green→Refactor）で肉付けする**（docs/05-test-standard.md）。
+**TDD（テスト先行・Red→Green→Refactor）で実装中**（docs/05-test-standard.md）。
+
+| 部位 | 状態 |
+|---|---|
+| 順序保存キーエンコード（spec §2.3・S/N/B・複合キー） | ✅ 実装済み＋property test（順序単調性・round-trip・0x00/0xFF 耐性） |
+| `put_item` / `get_item`（redb 経由の end-to-end） | ✅ 動作（condition は未対応） |
+| 式言語（§5）・二次索引維持（§7）・JOIN 実行器（§10.3） | ⏳ 次の TDD サイクル |
 
 ## ライセンス
 

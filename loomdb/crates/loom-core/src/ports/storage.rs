@@ -6,6 +6,9 @@
 
 use crate::domain::error::DbError;
 
+/// 範囲スキャンの結果（論理キー, 値）の列。
+pub type KvEntries = Vec<(Vec<u8>, Vec<u8>)>;
+
 /// 順序付き KV の ACID ストレージ。`table` は論理テーブル名、物理配置はアダプタの責務。
 pub trait StorageEngine {
     fn begin_write(&self) -> Result<Box<dyn WriteTxn + '_>, DbError>;
@@ -24,8 +27,7 @@ pub trait WriteTxn {
 pub trait ReadTxn {
     fn get(&self, table: &str, key: &[u8]) -> Result<Option<Vec<u8>>, DbError>;
     /// 論理キーが `prefix` で始まる項目を昇順で返す（Query/Scan/JOIN の基盤）。
-    fn scan_prefix(&self, table: &str, prefix: &[u8])
-        -> Result<Vec<(Vec<u8>, Vec<u8>)>, DbError>;
+    fn scan_prefix(&self, table: &str, prefix: &[u8]) -> Result<KvEntries, DbError>;
 }
 
 /// 時刻源（TTL 判定など）。テストで固定時刻に差し替える（tech-stack §6）。

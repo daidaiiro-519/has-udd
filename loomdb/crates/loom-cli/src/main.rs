@@ -71,7 +71,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }],
         select: vec!["o.orderId".into(), "u.name".into()],
     };
-    println!("join  : {} 段のプラン（実行器は未実装・骨子）", join.steps.len());
+    println!(
+        "join  : {} 段のプラン（実行器は未実装・骨子）",
+        join.steps.len()
+    );
 
     Ok(())
 }

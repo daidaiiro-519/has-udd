@@ -5,7 +5,7 @@
 //! この crate に閉じ込め、上位（core）へ型を漏らさない（coding-standard）。
 
 use loom_core::domain::error::DbError;
-use loom_core::ports::{ReadTxn, StorageEngine, WriteTxn};
+use loom_core::ports::{KvEntries, ReadTxn, StorageEngine, WriteTxn};
 use redb::{Database, ReadableTable, TableDefinition};
 use std::path::Path;
 
@@ -96,11 +96,7 @@ impl ReadTxn for RedbRead {
         Ok(val)
     }
 
-    fn scan_prefix(
-        &self,
-        table: &str,
-        prefix: &[u8],
-    ) -> Result<Vec<(Vec<u8>, Vec<u8>)>, DbError> {
+    fn scan_prefix(&self, table: &str, prefix: &[u8]) -> Result<KvEntries, DbError> {
         let t = store(self.txn.open_table(MAIN))?;
         let start = phys_key(table, prefix);
         let strip = table.len() + 1; // 物理キーから "table\0" を剥がす長さ

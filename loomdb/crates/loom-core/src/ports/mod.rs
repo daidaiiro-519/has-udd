@@ -2,4 +2,4 @@
 
 pub mod storage;
 
-pub use storage::{Clock, ReadTxn, StorageEngine, WriteTxn};
+pub use storage::{Clock, KvEntries, ReadTxn, StorageEngine, WriteTxn};

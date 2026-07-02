@@ -10,6 +10,7 @@ pub mod put_item;
 pub mod query;
 pub mod scan;
 pub mod update_item;
+pub mod update_table;
 
 pub use create_table::create_table;
 pub use delete_item::delete_item;
@@ -21,6 +22,7 @@ pub use put_item::put_item;
 pub use query::query;
 pub use scan::scan;
 pub use update_item::update_item;
+pub use update_table::update_table;
 
 use crate::domain::expr::{eval, parse_condition, ExprContext};
 use crate::domain::{AttributeValue, DbError, Item};
@@ -49,9 +51,11 @@ pub struct Page {
     pub last_evaluated_key: Option<Vec<u8>>,
 }
 
-/// query のオプション（spec §4.3。index は二次索引サイクルで追加）。
+/// query のオプション（spec §4.3）。
 #[derive(Debug, Clone)]
 pub struct QueryOptions {
+    /// GSI/LSI 名。指定時は KeyCondition の属性名は索引のキースキーマを参照する。
+    pub index: Option<String>,
     pub filter: Option<ConditionInput>,
     /// true = sk 昇順（既定）・false = 降順
     pub scan_forward: bool,
@@ -62,6 +66,7 @@ pub struct QueryOptions {
 impl Default for QueryOptions {
     fn default() -> Self {
         Self {
+            index: None,
             filter: None,
             scan_forward: true,
             limit: None,
@@ -119,4 +124,37 @@ pub(crate) fn decode_item_or_empty(bytes: Option<&[u8]>) -> Result<Item, DbError
         Some(b) => rmp_serde::from_slice(b).map_err(|e| DbError::Serialization(e.to_string())),
         None => Ok(Item::new()),
     }
+}
+
+/// 主データの変化（old → new）に合わせ、全 GSI/LSI を**同一 write txn** で差分更新する
+/// （coding-standard の不変: 主データと索引は必ず同一 txn）。
+pub(crate) fn update_index_entries(
+    txn: &mut (impl crate::ports::WriteTxn + ?Sized),
+    def: &crate::domain::TableDef,
+    main_key: &[u8],
+    old: Option<&Item>,
+    new: Option<&Item>,
+) -> Result<(), DbError> {
+    use crate::domain::index::{index_entry_key, index_table_name};
+    for idx in &def.indexes {
+        let idx_table = index_table_name(&def.name, &idx.name);
+        let old_key = match old {
+            Some(item) => index_entry_key(idx, item, main_key)?,
+            None => None,
+        };
+        let new_key = match new {
+            Some(item) => index_entry_key(idx, item, main_key)?,
+            None => None,
+        };
+        if old_key == new_key {
+            continue; // 索引キーが不変なら触らない（値は KEYS_ONLY で空）
+        }
+        if let Some(k) = old_key {
+            txn.delete(&idx_table, &k)?;
+        }
+        if let Some(k) = new_key {
+            txn.put(&idx_table, &k, &[])?;
+        }
+    }
+    Ok(())
 }

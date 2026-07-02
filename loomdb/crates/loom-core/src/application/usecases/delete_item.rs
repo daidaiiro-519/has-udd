@@ -29,6 +29,7 @@ pub fn delete_item<E: StorageEngine>(
         Some(bytes) => {
             let old: Item =
                 rmp_serde::from_slice(&bytes).map_err(|e| DbError::Serialization(e.to_string()))?;
+            super::update_index_entries(&mut *txn, &def, &key, Some(&old), None)?;
             txn.delete(&def.name, &key)?;
             txn.commit()?;
             Ok(Some(old))

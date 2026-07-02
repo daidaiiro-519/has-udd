@@ -3,6 +3,7 @@
 pub mod attribute;
 pub mod error;
 pub mod expr;
+pub mod index;
 pub mod key;
 pub mod key_codec;
 pub mod number;

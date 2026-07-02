@@ -58,6 +58,12 @@ pub fn update_item<E: StorageEngine>(
     }
 
     let new_item = expr::apply_update(&ast, &base, &ctx)?;
+    let old_item = if existing.is_some() {
+        Some(&base)
+    } else {
+        None
+    };
+    super::update_index_entries(&mut *txn, &def, &key, old_item, Some(&new_item))?;
     let bytes = rmp_serde::to_vec(&new_item).map_err(|e| DbError::Serialization(e.to_string()))?;
     txn.put(&def.name, &key, &bytes)?;
     txn.commit()?;

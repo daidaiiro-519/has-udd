@@ -105,7 +105,8 @@ let o: Option<Order> = db.get_typed("orders", ("u1", "o100"))?;
 | UpdateExpression（§5.3）＋ `update_item` | ✅ SET（+/-・if_not_exists・list_append）・REMOVE・ADD（原子カウンタ・10進厳密演算）・upsert・ALL_NEW・キー属性変更の禁止 |
 | `get_item` | ✅ fake での単体テスト＋redb 経由 e2e |
 | KeyCondition（§5.1）＋ Query/Scan（§4.3） | ✅ sk 範囲条件・N 型 sk の数値順・昇降順・limit+LEK ページング・**Limit は Filter 適用前**（DynamoDB 準拠） |
-| 二次索引 GSI/LSI（§7・query の index 指定・update_table バックフィル）・JOIN 実行器（§10.3）・集合型 SS/NS/BS・Projection（§5.4）・facade 第1弾 | ⏳ 次の TDD サイクル |
+| 二次索引 GSI（§7） | ✅ 同一 txn 維持（常に強整合）・sparse・index 指定 query（全属性返却）・**update_table での後付け追加＋バックフィル**（差別化） |
+| facade 第1弾（書き味）・JOIN 実行器（§10.3）・集合型 SS/NS/BS・Projection（§5.4）・TTL（§8） | ⏳ 次の TDD サイクル |
 
 ## ライセンス
 

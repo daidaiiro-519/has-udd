@@ -4,7 +4,7 @@
 //! **現行 item**（未存在なら空）に対して同一 txn 内で評価し、不成立なら
 //! `ConditionalCheckFailed` でロールバックする。
 
-use super::{check_condition, decode_item_or_empty, ConditionInput};
+use super::{check_condition, decode_item_or_empty, update_index_entries, ConditionInput};
 use crate::application::meta;
 use crate::domain::{key_codec, AttributeValue, DbError, Item, TableDef};
 use crate::ports::StorageEngine;
@@ -19,10 +19,25 @@ pub fn put_item<E: StorageEngine>(
     let def = meta::load_def_write(&*txn, table)?;
     let key = encode_item_key(&def, item)?;
 
+    // condition 評価と索引の差分更新のどちらにも現行 item が要る
+    let existing = if condition.is_some() || !def.indexes.is_empty() {
+        txn.get(&def.name, &key)?
+    } else {
+        None
+    };
     if let Some(cond) = condition {
-        let current = decode_item_or_empty(txn.get(&def.name, &key)?.as_deref())?;
+        let current = decode_item_or_empty(existing.as_deref())?;
         check_condition(cond, &current)?; // 不成立 → txn drop = ロールバック
     }
+
+    let old_item = match &existing {
+        Some(bytes) => Some(
+            rmp_serde::from_slice::<Item>(bytes)
+                .map_err(|e| DbError::Serialization(e.to_string()))?,
+        ),
+        None => None,
+    };
+    update_index_entries(&mut *txn, &def, &key, old_item.as_ref(), Some(item))?;
 
     let value = rmp_serde::to_vec(item).map_err(|e| DbError::Serialization(e.to_string()))?;
     txn.put(&def.name, &key, &value)?;

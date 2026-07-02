@@ -66,6 +66,31 @@ cargo run -p loom-cli
 # get   : u1/o100 -> Some({"amount": N(Number("1200")), ...})
 ```
 
+## 使いやすさロードマップ（API ergonomics）
+
+現状の API は意図的に「素の usecase 関数」の段階（コアの意味論を TDD で固める工事中の足場）。
+**最終的には次の書き味を目標にする**（ヘキサゴナル構成のため、コア無改修の薄い facade で実現できる）:
+
+```rust
+let db = Db::open("data.redb")?;
+db.put("orders")
+  .item(item! { "userId": "u1", "orderId": "o100", "amount": 1200 })
+  .condition("attribute_not_exists(userId)")
+  .exec()?;
+db.update("orders").key(("u1", "o100"))
+  .expr("SET qty = qty - :n").condition("qty >= :n").value(":n", 1)
+  .exec()?;
+// serde 連携（任意 feature）
+let o: Option<Order> = db.get_typed("orders", ("u1", "o100"))?;
+```
+
+段階計画:
+1. **facade 第1弾**（Query/Scan 実装後）: `Db` ハンドル・`From<&str>/From<i64>` 等・`item!` マクロ・`.value(":n", 1)` ビルダー
+2. **facade 第2弾**（JOIN 実装後）: クエリ/JOIN ビルダー（spec §10.5-A）・serde ブリッジ（structs ↔ Item、任意 feature）
+
+> 注: crates.io には既に `loom`（並行性テスタ）が存在するため、公開時の crate 名は
+> `loomdb-core` / `loomdb-query` 等にリネームする（製品名 LoomDB は不変）。
+
 ## ステータス
 
 **TDD（テスト先行・Red→Green→Refactor）で実装中**（docs/05-test-standard.md）。
@@ -79,7 +104,8 @@ cargo run -p loom-cli
 | 条件付き書込 — `put_item(condition)` / `delete_item(condition)` | ✅ attribute_not_exists イディオム・楽観ロック・失敗時ロールバックをテストで保証 |
 | UpdateExpression（§5.3）＋ `update_item` | ✅ SET（+/-・if_not_exists・list_append）・REMOVE・ADD（原子カウンタ・10進厳密演算）・upsert・ALL_NEW・キー属性変更の禁止 |
 | `get_item` | ✅ fake での単体テスト＋redb 経由 e2e |
-| KeyCondition（§5.1）・Query/Scan・二次索引維持（§7）・JOIN 実行器（§10.3）・集合型 SS/NS/BS（ADD 集合和・DELETE） | ⏳ 次の TDD サイクル |
+| KeyCondition（§5.1）＋ Query/Scan（§4.3） | ✅ sk 範囲条件・N 型 sk の数値順・昇降順・limit+LEK ページング・**Limit は Filter 適用前**（DynamoDB 準拠） |
+| 二次索引 GSI/LSI（§7・query の index 指定・update_table バックフィル）・JOIN 実行器（§10.3）・集合型 SS/NS/BS・Projection（§5.4）・facade 第1弾 | ⏳ 次の TDD サイクル |
 
 ## ライセンス
 

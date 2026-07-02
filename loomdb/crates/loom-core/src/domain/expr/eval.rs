@@ -210,7 +210,7 @@ fn cmp_values(op: CmpOp, l: &AttributeValue, r: &AttributeValue) -> Result<bool,
 }
 
 /// 順序比較（S=バイト順・N=数値・B=バイト順）。それ以外の組合せは None。
-fn try_ord(a: &AttributeValue, b: &AttributeValue) -> Result<Option<Ordering>, DbError> {
+pub(super) fn try_ord(a: &AttributeValue, b: &AttributeValue) -> Result<Option<Ordering>, DbError> {
     Ok(match (a, b) {
         (AttributeValue::S(x), AttributeValue::S(y)) => Some(x.cmp(y)),
         (AttributeValue::B(x), AttributeValue::B(y)) => Some(x.cmp(y)),
@@ -220,7 +220,7 @@ fn try_ord(a: &AttributeValue, b: &AttributeValue) -> Result<Option<Ordering>, D
 }
 
 /// 等価（N は数値等価・L/M は再帰・その他は構造等価）。
-fn values_equal(a: &AttributeValue, b: &AttributeValue) -> Result<bool, DbError> {
+pub(super) fn values_equal(a: &AttributeValue, b: &AttributeValue) -> Result<bool, DbError> {
     match (a, b) {
         (AttributeValue::N(x), AttributeValue::N(y)) => {
             Ok(number::compare(x, y)? == Ordering::Equal)

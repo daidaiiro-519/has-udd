@@ -5,7 +5,9 @@
 
 use loom_core::domain::{AttributeValue, KeySchema, Number, TableDef};
 use loom_core::{
-    application::usecases::{create_table, get_item, list_tables, put_item},
+    application::usecases::{
+        create_table, get_item, list_tables, put_item, query, KeyConditionInput, QueryOptions,
+    },
     Item,
 };
 use loom_query::{InputRef, JoinEq, JoinKind, JoinQuery, JoinStep};
@@ -53,6 +55,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(&AttributeValue::S("o100".into())),
     )?;
     println!("get   : u1/o100 -> {got:?}");
+
+    // Query: u1 の注文を sk（orderId）昇順で。
+    let page = query(
+        &engine,
+        "orders",
+        &KeyConditionInput {
+            expression: "userId = :u".into(),
+            names: Default::default(),
+            values: [(":u".to_string(), AttributeValue::S("u1".into()))].into(),
+        },
+        &QueryOptions::default(),
+    )?;
+    println!(
+        "query : userId = u1 -> {} 件 (orderId 昇順)",
+        page.items.len()
+    );
 
     // JOIN はデータ構造まで（実行器は骨子）。ここでは構造の組み立てだけ示す。
     let join = JoinQuery {

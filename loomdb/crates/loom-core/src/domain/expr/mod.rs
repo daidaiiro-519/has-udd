@@ -5,10 +5,13 @@
 
 pub mod ast;
 pub mod eval;
+pub mod key;
 pub mod parser;
 pub mod update;
 
-pub use ast::{CmpOp, Expr, Operand, Path, PathSeg, SetOperand, SetValue, UpdateExpr};
+pub use ast::{
+    CmpOp, Expr, KeyCondition, Operand, Path, PathSeg, SetOperand, SetValue, SkCond, UpdateExpr,
+};
 pub use eval::{eval, ExprContext};
-pub use parser::{parse_condition, parse_update};
+pub use parser::{parse_condition, parse_key_condition, parse_update};
 pub use update::{apply_update, touched_roots};

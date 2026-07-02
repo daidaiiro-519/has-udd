@@ -4,8 +4,40 @@
 //! 大文字小文字非区別・予約（属性名に使うなら `#name` を使う）。関数名は小文字固定
 //! （DynamoDB 準拠）。構文誤りは `ValidationError`。
 
-use super::ast::{CmpOp, Expr, Operand, Path, PathSeg, SetOperand, SetValue, UpdateExpr};
+use super::ast::{
+    CmpOp, Expr, KeyCondition, Operand, Path, PathSeg, SetOperand, SetValue, SkCond, UpdateExpr,
+};
 use crate::domain::error::DbError;
+
+/// KeyConditionExpression（spec §5.1）:
+/// `pk = :v [AND (sk cmp :v | sk BETWEEN :a AND :b | begins_with(sk, :p))]`
+pub fn parse_key_condition(input: &str) -> Result<KeyCondition, DbError> {
+    let toks = lex(input)?;
+    let mut p = Parser { toks, pos: 0 };
+    let pk_name = p.parse_path_head()?;
+    match p.next() {
+        Some(Tok::Cmp(CmpOp::Eq)) => {}
+        Some(Tok::Cmp(_)) => return Err(p.err("partition key supports '=' only")),
+        _ => return Err(p.err("expected '=' after partition key")),
+    }
+    let pk_value = match p.next() {
+        Some(Tok::ValPh(v)) => v,
+        _ => return Err(p.err("expected a :value placeholder for partition key")),
+    };
+    let sk = if p.eat_kw("AND") {
+        Some(p.parse_sk_condition()?)
+    } else {
+        None
+    };
+    if p.pos != p.toks.len() {
+        return Err(p.err("unexpected trailing tokens"));
+    }
+    Ok(KeyCondition {
+        pk_name,
+        pk_value,
+        sk,
+    })
+}
 
 pub fn parse_condition(input: &str) -> Result<Expr, DbError> {
     let toks = lex(input)?;
@@ -259,6 +291,52 @@ impl Parser {
             Some(ref t) if t == want => Ok(()),
             _ => Err(self.err(&format!("expected {what}"))),
         }
+    }
+
+    /// sk 条件: `sk cmp :v` | `sk BETWEEN :a AND :b` | `begins_with(sk, :p)`
+    fn parse_sk_condition(&mut self) -> Result<(PathSeg, SkCond), DbError> {
+        if let Some(Tok::Ident(name)) = self.peek() {
+            if name == "begins_with" && self.toks.get(self.pos + 1) == Some(&Tok::LParen) {
+                self.pos += 1;
+                self.expect(&Tok::LParen, "'('")?;
+                let sk_name = self.parse_path_head()?;
+                self.expect(&Tok::Comma, "','")?;
+                let ph = match self.next() {
+                    Some(Tok::ValPh(v)) => v,
+                    _ => return Err(self.err("begins_with expects a :value placeholder")),
+                };
+                self.expect(&Tok::RParen, "')'")?;
+                return Ok((sk_name, SkCond::BeginsWith(ph)));
+            }
+        }
+        let sk_name = self.parse_path_head()?;
+        if let Some(Tok::Cmp(op)) = self.peek() {
+            let op = *op;
+            if op == CmpOp::Ne {
+                return Err(self.err("sort key condition does not support '<>'"));
+            }
+            self.pos += 1;
+            let ph = match self.next() {
+                Some(Tok::ValPh(v)) => v,
+                _ => return Err(self.err("expected a :value placeholder for sort key")),
+            };
+            return Ok((sk_name, SkCond::Cmp(op, ph)));
+        }
+        if self.eat_kw("BETWEEN") {
+            let a = match self.next() {
+                Some(Tok::ValPh(v)) => v,
+                _ => return Err(self.err("BETWEEN expects :value placeholders")),
+            };
+            if !self.eat_kw("AND") {
+                return Err(self.err("expected AND in BETWEEN"));
+            }
+            let b = match self.next() {
+                Some(Tok::ValPh(v)) => v,
+                _ => return Err(self.err("BETWEEN expects :value placeholders")),
+            };
+            return Ok((sk_name, SkCond::Between(a, b)));
+        }
+        Err(self.err("expected comparator, BETWEEN or begins_with for sort key"))
     }
 
     fn eat_comma(&mut self) -> bool {

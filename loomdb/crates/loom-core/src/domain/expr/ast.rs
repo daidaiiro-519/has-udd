@@ -35,6 +35,24 @@ pub enum CmpOp {
     Ge,
 }
 
+/// KeyConditionExpression（spec §5.1）。pk は等価のみ・sk は範囲条件。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct KeyCondition {
+    /// pk 属性名（Name または #Placeholder）
+    pub pk_name: PathSeg,
+    /// pk の値プレースホルダ（`:v` → "v"）
+    pub pk_value: String,
+    pub sk: Option<(PathSeg, SkCond)>,
+}
+
+/// sk 条件（spec §5.1。`<>` は不可）。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SkCond {
+    Cmp(CmpOp, String),
+    Between(String, String),
+    BeginsWith(String),
+}
+
 /// UpdateExpression（spec §5.3）。句ごとのアクション列。
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct UpdateExpr {

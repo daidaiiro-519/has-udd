@@ -9,11 +9,12 @@
 //!   なので、エスケープ済み 0x00（= 00 FF）との比較で順序が壊れない
 //!   （FoundationDB tuple layer と同方式）。
 //! - **N**: タグ + 符号クラス（負 < ゼロ < 正）+ 指数 + 仮数。値 = 0.d1d2… × 10^E に
-//!   正規化し、負数は指数・仮数・終端をビット反転相当で反転して順序を逆転させる。
-//!   38 有効桁・E ∈ [-129, 126]（= 1E-130〜9.9…E+125、spec §2.2/§11）。
+//!   正規化（`domain::number`）し、負数は指数・仮数・終端をビット反転相当で反転して
+//!   順序を逆転させる。38 有効桁・E ∈ [-129, 126]（spec §2.2/§11）。
 
 use super::attribute::{AttributeValue, Number};
 use super::error::DbError;
+use super::number::{format_decimal, parse_decimal};
 
 // 型タグ。すべて 0xFF 未満であることが順序保存の前提（モジュール冒頭コメント参照）。
 const TAG_N: u8 = 0x08;
@@ -28,12 +29,8 @@ const CLASS_NEG: u8 = 0x01;
 const CLASS_ZERO: u8 = 0x02;
 const CLASS_POS: u8 = 0x03;
 
-// 正規化指数 E ∈ [EXP_MIN, EXP_MAX] を 1 バイトへ（bias 後 0x00..=0xFF）
-const EXP_MIN: i64 = -129;
-const EXP_MAX: i64 = 126;
+// 正規化指数（number::parse_decimal が [-129, 126] を保証）を 1 バイトへ
 const EXP_BIAS: i64 = 129;
-
-const MAX_SIGNIFICANT_DIGITS: usize = 38;
 
 /// pk (+ sk) を 1 本の順序保存キーに結合する。
 pub fn encode_key(pk: &AttributeValue, sk: Option<&AttributeValue>) -> Result<Vec<u8>, DbError> {
@@ -129,15 +126,8 @@ fn decode_bytes(bytes: &[u8]) -> Result<(Vec<u8>, usize), DbError> {
 }
 
 // ---------------------------------------------------------------------------
-// N（10進・順序保存）
+// N（10進・順序保存）— 正規化・整形は domain::number に委譲
 // ---------------------------------------------------------------------------
-
-/// 正規化済み 10 進数: 値 = 0.digits × 10^exp（digits 先頭・末尾に 0 なし、空 = ゼロ）。
-struct Decimal {
-    neg: bool,
-    digits: Vec<u8>,
-    exp: i64,
-}
 
 fn encode_number(n: &Number) -> Result<Vec<u8>, DbError> {
     let d = parse_decimal(&n.0)?;
@@ -208,130 +198,4 @@ fn decode_number(bytes: &[u8]) -> Result<(AttributeValue, usize), DbError> {
         }
         _ => Err(err()),
     }
-}
-
-/// 10 進文字列（平叙形＋指数表記）を正規形へ。38 桁・指数範囲は spec §2.2/§11 で検証。
-fn parse_decimal(s: &str) -> Result<Decimal, DbError> {
-    let err = |msg: &str| DbError::Validation(format!("invalid number {s:?}: {msg}"));
-    let bytes = s.as_bytes();
-    let mut i = 0;
-
-    let mut neg = false;
-    if let Some(&c) = bytes.first() {
-        if c == b'+' || c == b'-' {
-            neg = c == b'-';
-            i = 1;
-        }
-    }
-
-    let mut digits: Vec<u8> = Vec::new();
-    let mut int_len: i64 = 0;
-    let mut seen_dot = false;
-    let mut seen_digit = false;
-    while i < bytes.len() {
-        match bytes[i] {
-            c @ b'0'..=b'9' => {
-                digits.push(c - b'0');
-                if !seen_dot {
-                    int_len += 1;
-                }
-                seen_digit = true;
-                i += 1;
-            }
-            b'.' if !seen_dot => {
-                seen_dot = true;
-                i += 1;
-            }
-            b'e' | b'E' => break,
-            _ => return Err(err("unexpected character")),
-        }
-    }
-    if !seen_digit {
-        return Err(err("no digits"));
-    }
-
-    // 指数部（任意）
-    let mut exp_shift: i64 = 0;
-    if i < bytes.len() {
-        i += 1; // 'e' / 'E'
-        let mut exp_neg = false;
-        if let Some(&c) = bytes.get(i) {
-            if c == b'+' || c == b'-' {
-                exp_neg = c == b'-';
-                i += 1;
-            }
-        }
-        let start = i;
-        while i < bytes.len() && bytes[i].is_ascii_digit() {
-            // 指数の絶対値は高々 3 桁で足りる（範囲検証で弾く）。桁数だけ先に制限。
-            if i - start >= 6 {
-                return Err(err("exponent out of range"));
-            }
-            exp_shift = exp_shift * 10 + i64::from(bytes[i] - b'0');
-            i += 1;
-        }
-        if i == start || i != bytes.len() {
-            return Err(err("malformed exponent"));
-        }
-        if exp_neg {
-            exp_shift = -exp_shift;
-        }
-    }
-
-    // 正規化: 値 = 0.digits × 10^exp
-    let mut exp = int_len + exp_shift;
-    let lead = digits.iter().take_while(|&&d| d == 0).count();
-    digits.drain(..lead);
-    exp -= lead as i64;
-    while digits.last() == Some(&0) {
-        digits.pop();
-    }
-    if digits.is_empty() {
-        return Ok(Decimal {
-            neg: false,
-            digits,
-            exp: 0,
-        });
-    }
-    if digits.len() > MAX_SIGNIFICANT_DIGITS {
-        return Err(err("exceeds 38 significant digits"));
-    }
-    if !(EXP_MIN..=EXP_MAX).contains(&exp) {
-        return Err(err("magnitude out of range (1E-130..9.9E+125)"));
-    }
-    Ok(Decimal { neg, digits, exp })
-}
-
-/// 正規形 → canonical な平叙 10 進文字列（"0"・"1.23"・"-0.005"・"12300" 等）。
-fn format_decimal(neg: bool, digits: &[u8], exp: i64) -> String {
-    if digits.is_empty() {
-        return "0".into();
-    }
-    let mut s = String::new();
-    if neg {
-        s.push('-');
-    }
-    let n = digits.len() as i64;
-    let push = |s: &mut String, ds: &[u8]| {
-        for &d in ds {
-            s.push((b'0' + d) as char);
-        }
-    };
-    if exp >= n {
-        push(&mut s, digits);
-        for _ in 0..(exp - n) {
-            s.push('0');
-        }
-    } else if exp >= 1 {
-        push(&mut s, &digits[..exp as usize]);
-        s.push('.');
-        push(&mut s, &digits[exp as usize..]);
-    } else {
-        s.push_str("0.");
-        for _ in 0..(-exp) {
-            s.push('0');
-        }
-        push(&mut s, digits);
-    }
-    s
 }

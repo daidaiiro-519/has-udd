@@ -41,7 +41,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         item.insert("userId".into(), AttributeValue::S(uid.into()));
         item.insert("orderId".into(), AttributeValue::S(oid.into()));
         item.insert("amount".into(), AttributeValue::N(Number(amount.into())));
-        put_item(&engine, "orders", &item)?;
+        put_item(&engine, "orders", &item, None)?;
         println!("put   : {uid}/{oid} amount={amount}");
     }
 

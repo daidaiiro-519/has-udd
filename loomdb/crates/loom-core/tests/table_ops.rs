@@ -72,7 +72,7 @@ fn list_tables_returns_sorted_names() {
 fn delete_table_removes_definition_and_items() {
     let engine = InMemoryStorage::new();
     create_table(&engine, &def("orders")).expect("create");
-    put_item(&engine, "orders", &item("a")).expect("put");
+    put_item(&engine, "orders", &item("a"), None).expect("put");
 
     delete_table(&engine, "orders").expect("delete_table");
     assert!(matches!(
@@ -117,7 +117,7 @@ fn invalid_table_names_are_rejected() {
 fn item_ops_on_missing_table_are_resource_not_found() {
     let engine = InMemoryStorage::new();
     assert!(matches!(
-        put_item(&engine, "ghost", &item("a")),
+        put_item(&engine, "ghost", &item("a"), None),
         Err(DbError::ResourceNotFound(_))
     ));
     assert!(matches!(

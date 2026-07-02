@@ -75,8 +75,10 @@ cargo run -p loom-cli
 | 順序保存キーエンコード（spec §2.3・S/N/B・複合キー） | ✅ 実装済み＋property test（順序単調性・round-trip・0x00/0xFF 耐性） |
 | StorageEngine 契約スイート（rollback・MVCC スナップショット・走査） | ✅ `loom-testkit` — in-memory fake と redb アダプタの**双方に同一適用** |
 | テーブル操作（§4.1 create/describe/list/delete・meta 永続化・名前検証） | ✅ DynamoDB 同様「作成してから名前で参照」する API 形 |
-| `put_item` / `get_item` | ✅ fake での単体テスト＋redb 経由 e2e（condition は未対応） |
-| 式言語（§5）・二次索引維持（§7）・JOIN 実行器（§10.3）・update_table | ⏳ 次の TDD サイクル |
+| 式言語 — Condition/Filter（§5.2/§5.5・手書き再帰下降＋純関数評価器） | ✅ 比較(S/N/B)・BETWEEN/IN・AND/OR/NOT・入れ子パス・#/:プレースホルダ・全関数 |
+| 条件付き書込 — `put_item(condition)` / `delete_item(condition)` | ✅ attribute_not_exists イディオム・楽観ロック・失敗時ロールバックをテストで保証 |
+| `get_item` | ✅ fake での単体テスト＋redb 経由 e2e |
+| UpdateExpression（§5.3）・KeyCondition（§5.1）・二次索引維持（§7）・Query/Scan・JOIN 実行器（§10.3） | ⏳ 次の TDD サイクル |
 
 ## ライセンス
 

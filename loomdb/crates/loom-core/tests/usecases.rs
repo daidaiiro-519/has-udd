@@ -40,7 +40,7 @@ fn put_then_get_round_trips() {
     let engine = engine_with_orders();
     let item = order_item("u1", "o100", "1200");
 
-    put_item(&engine, "orders", &item).expect("put_item");
+    put_item(&engine, "orders", &item, None).expect("put_item");
     let got = get_item(&engine, "orders", &s("u1"), Some(&s("o100"))).expect("get_item");
     assert_eq!(got, Some(item));
 }
@@ -55,8 +55,8 @@ fn get_missing_returns_none() {
 #[test]
 fn different_sk_are_different_items() {
     let engine = engine_with_orders();
-    put_item(&engine, "orders", &order_item("u1", "o100", "1")).expect("put");
-    put_item(&engine, "orders", &order_item("u1", "o101", "2")).expect("put");
+    put_item(&engine, "orders", &order_item("u1", "o100", "1"), None).expect("put");
+    put_item(&engine, "orders", &order_item("u1", "o101", "2"), None).expect("put");
 
     let a = get_item(&engine, "orders", &s("u1"), Some(&s("o100"))).expect("get");
     let b = get_item(&engine, "orders", &s("u1"), Some(&s("o101"))).expect("get");
@@ -70,7 +70,7 @@ fn put_without_key_attribute_is_validation_error() {
     let mut item = Item::new();
     item.insert("userId".into(), s("u1")); // orderId (sk) が無い
 
-    let err = put_item(&engine, "orders", &item).expect_err("must fail");
+    let err = put_item(&engine, "orders", &item, None).expect_err("must fail");
     assert!(
         matches!(err, DbError::Validation(_)),
         "expected Validation, got {err:?}"

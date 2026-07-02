@@ -73,7 +73,8 @@ cargo run -p loom-cli
 | 部位 | 状態 |
 |---|---|
 | 順序保存キーエンコード（spec §2.3・S/N/B・複合キー） | ✅ 実装済み＋property test（順序単調性・round-trip・0x00/0xFF 耐性） |
-| `put_item` / `get_item`（redb 経由の end-to-end） | ✅ 動作（condition は未対応） |
+| StorageEngine 契約スイート（rollback・MVCC スナップショット・走査） | ✅ `loom-testkit` — in-memory fake と redb アダプタの**双方に同一適用** |
+| `put_item` / `get_item` | ✅ fake での単体テスト＋redb 経由 e2e（condition は未対応） |
 | 式言語（§5）・二次索引維持（§7）・JOIN 実行器（§10.3） | ⏳ 次の TDD サイクル |
 
 ## ライセンス

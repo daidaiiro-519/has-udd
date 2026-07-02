@@ -10,3 +10,7 @@ description = "LoomDB storage adapter: StorageEngine implemented on redb (outbou
 [dependencies]
 loom-core.workspace = true
 redb.workspace = true
+
+[dev-dependencies]
+loom-testkit.workspace = true
+tempfile.workspace = true

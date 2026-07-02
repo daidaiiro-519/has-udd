@@ -5,6 +5,7 @@ members = [
     "crates/loom-redb",
     "crates/loom-query",
     "crates/loom-cli",
+    "crates/loom-testkit",
 ]
 
 [workspace.package]
@@ -21,10 +22,12 @@ rmp-serde = "1"
 thiserror = "1"
 # テスト専用（dev-dependencies でのみ使用・配布サイズに影響しない）
 proptest = "1"
+tempfile = "3"
 # ワークスペース内 crate
 loom-core = { path = "crates/loom-core" }
 loom-redb = { path = "crates/loom-redb" }
 loom-query = { path = "crates/loom-query" }
+loom-testkit = { path = "crates/loom-testkit" }
 
 # サイズ最優先（tech-stack §5）
 [profile.release]

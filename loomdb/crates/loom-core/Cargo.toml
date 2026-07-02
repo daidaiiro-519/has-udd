@@ -14,3 +14,4 @@ thiserror.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
+loom-testkit.workspace = true

@@ -1,0 +1,12 @@
+[package]
+name = "loom-testkit"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+description = "LoomDB test support: in-memory StorageEngine fake + port contract test suite (dev-only)."
+
+[dependencies]
+loom-core.workspace = true

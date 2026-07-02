@@ -118,7 +118,8 @@ db.put("orders", {"userId": "u1", "orderId": "o100", "amount": 1200})
 | `get_item` | ✅ fake での単体テスト＋redb 経由 e2e |
 | KeyCondition（§5.1）＋ Query/Scan（§4.3） | ✅ sk 範囲条件・N 型 sk の数値順・昇降順・limit+LEK ページング・**Limit は Filter 適用前**（DynamoDB 準拠） |
 | 二次索引 GSI（§7） | ✅ 同一 txn 維持（常に強整合）・sparse・index 指定 query（全属性返却）・**update_table での後付け追加＋バックフィル**（差別化） |
-| facade 第1弾（書き味）・JOIN 実行器（§10.3）・集合型 SS/NS/BS・Projection（§5.4）・TTL（§8） | ⏳ 次の TDD サイクル |
+| **JOIN 実行器（§10.3・差別化の本丸）** | ✅ N テーブル多段 left-deep・inner/left・自己結合・複合 on・単一スナップショット・pk/索引 probe・scan フォールバック warnings・alias 修飾 filter・select 射影。**参照実装との property 比較で検証** |
+| loom-node / loom-py（npm / PyPI の "loomdb"）・バッチ/Transact・TTL（§8）・集合型 SS/NS/BS・Projection（§5.4）・JOIN ページング（§10.7） | ⏳ 次の TDD サイクル |
 
 ## ライセンス
 

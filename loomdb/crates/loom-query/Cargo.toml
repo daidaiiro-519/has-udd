@@ -9,4 +9,9 @@ description = "LoomDB read-only query layer: N-table JOIN (inner/left, index-nes
 
 [dependencies]
 loom-core.workspace = true
+rmp-serde.workspace = true
 serde.workspace = true
+
+[dev-dependencies]
+loom-testkit.workspace = true
+proptest.workspace = true

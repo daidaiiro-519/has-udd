@@ -10,7 +10,7 @@ use loom_core::{
     },
     Item,
 };
-use loom_query::{InputRef, JoinEq, JoinKind, JoinQuery, JoinStep};
+use loom_query::{execute, InputRef, JoinEq, JoinKind, JoinQuery, JoinStep};
 use loom_redb::RedbStorage;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -72,7 +72,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         page.items.len()
     );
 
-    // JOIN はデータ構造まで（実行器は骨子）。ここでは構造の組み立てだけ示す。
+    // JOIN（LoomDB の差別化）: users を作って orders と結合し、実際に実行する。
+    create_table(
+        &engine,
+        &TableDef {
+            name: "users".into(),
+            key: KeySchema {
+                pk: "id".into(),
+                sk: None,
+            },
+            indexes: vec![],
+            ttl_attr: None,
+        },
+    )?;
+    let mut alice: Item = Item::new();
+    alice.insert("id".into(), AttributeValue::S("u1".into()));
+    alice.insert("name".into(), AttributeValue::S("Alice".into()));
+    put_item(&engine, "users", &alice, None)?;
+
     let join = JoinQuery {
         root: InputRef {
             table: "orders".into(),
@@ -83,7 +100,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             input: InputRef {
                 table: "users".into(),
                 alias: "u".into(),
-                index: Some("byId".into()),
+                index: None, // u.id は主キーなので直引き
             },
             kind: JoinKind::Inner,
             on: vec![JoinEq {
@@ -91,12 +108,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 right: "u.id".into(),
             }],
         }],
-        select: vec!["o.orderId".into(), "u.name".into()],
+        filter: None,
+        select: vec!["o.orderId".into(), "o.amount".into(), "u.name".into()],
     };
-    println!(
-        "join  : {} 段のプラン（実行器は未実装・骨子）",
-        join.steps.len()
-    );
+    let joined = execute(&engine, &join)?;
+    println!("join  : orders × users -> {} 行", joined.rows.len());
+    for row in &joined.rows {
+        println!("        {row:?}");
+    }
 
     Ok(())
 }

@@ -30,12 +30,15 @@ JOIN で差別化する。詳細は README.md と docs/00〜05 を参照。
 - JOIN は N テーブル多段（left-deep・inner/left・エイリアス必須）— spec §10。
 - バッチ/transact 操作数は無制限・GSI 常に強整合・後付け GSI（バックフィル）が差別化。
 
-## 開発順序（現在地: コア完成・73 テスト green）
+## 開発順序（現在地: JOIN 実行器まで完成・84 テスト green）
 
-1. **JOIN 実行器**（spec §10.3・差別化の本丸）← 次
-2. `loom-node`（napi-rs → npm "loomdb"）
+1. ~~JOIN 実行器~~ ✅ 完了（多段 left-deep・pk/索引 probe・scan フォールバック warnings・
+   参照実装比較 property 済み。v1 範囲: root 全走査・ページング§10.7 は後続）
+2. `loom-node`（napi-rs → npm "loomdb"）← 次。**backend 差替可能な設計にすること**
 3. `loom-py`（PyO3 → PyPI "loomdb"）
 4. ワイヤ層（任意・drop-in 互換の入口）
+5. コア残タスク: transact_write/batch・TTL・集合型 SS/NS/BS・Projection・
+   JOIN ページング・§13 運用 API（compact/stats/format_version）
 
 ## 開発プロセス（must）
 

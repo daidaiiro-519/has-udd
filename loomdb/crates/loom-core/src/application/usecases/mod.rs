@@ -30,7 +30,9 @@ use std::collections::BTreeMap;
 
 /// 式の入力一式（DynamoDB の *Expression / ExpressionAttributeNames /
 /// ExpressionAttributeValues 相当）。Condition / Update / KeyCondition で共用。
-#[derive(Debug, Clone, Default)]
+/// serde 対応は JOIN の宣言的 `JoinQuery`（spec §10.5-B・JSON 投入）が post-join
+/// filter として内包するため。
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ExprInput {
     pub expression: String,
     /// キーは `#n` の完全形

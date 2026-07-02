@@ -1,11 +1,14 @@
 //! LoomDB の JOIN 層（spec §10）。読取専用・N テーブル多段（left-deep）。
 //!
-//! この crate は **データ構造**（`JoinQuery` / `JoinStep` / …）を提供する。実行器
-//! （index-nested-loop）は骨子のみで、アルゴリズムは spec §10.3 に対応させて実装する。
+//! データ構造（`JoinQuery` / `JoinStep` / …）と実行器（`execute`・多段
+//! index-nested-loop）を提供する。書込パス・トランザクション意味論には影響しない。
 
+mod exec;
+
+pub use exec::execute;
+
+use loom_core::application::usecases::ConditionInput;
 use loom_core::domain::attribute::AttributeValue;
-use loom_core::domain::error::DbError;
-use loom_core::ports::StorageEngine;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -16,7 +19,7 @@ pub enum JoinKind {
     Left,
 }
 
-/// 等値結合の 1 条件。`"alias.attr" = "alias.attr"`。
+/// 等値結合の 1 条件。`"alias.attr" = "alias.attr"`（属性はトップレベル・S/N/B）。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct JoinEq {
     pub left: String,
@@ -28,10 +31,9 @@ pub struct JoinEq {
 pub struct InputRef {
     pub table: String,
     pub alias: String,
-    /// 明示的に使う索引名（省略時はアダプタが選択／scan フォールバック）。
+    /// 明示的に使う索引名（省略時は結合キーに合う索引を自動選択／なければ scan フォールバック）。
     #[serde(default)]
     pub index: Option<String>,
-    // NOTE: key_condition / filter（式言語 spec §5）はサンプルでは省略。
 }
 
 /// 1 段の結合（left-deep tree のノード）。
@@ -39,7 +41,7 @@ pub struct InputRef {
 pub struct JoinStep {
     pub input: InputRef,
     pub kind: JoinKind,
-    /// 複合キー結合は AND（複数エントリ）で表す。
+    /// 複合キー結合は AND（複数エントリ）で表す。1 本目が probe キーになる。
     pub on: Vec<JoinEq>,
 }
 
@@ -49,27 +51,23 @@ pub struct JoinQuery {
     pub root: InputRef,
     #[serde(default)]
     pub steps: Vec<JoinStep>,
+    /// 結合後フィルタ。属性パスは `alias.attr` 修飾形（spec §10.2）。
+    #[serde(default)]
+    pub filter: Option<ConditionInput>,
     /// 射影パス（`"alias.attr"` 形式）。空なら全属性。
     #[serde(default)]
     pub select: Vec<String>,
 }
 
-/// 結合結果の 1 行（`"alias.attr"` → 値）。
+/// 結合結果の 1 行（`"alias.attr"` → 値）。LEFT 未マッチの入力の属性は欠落。
 pub type JoinRow = BTreeMap<String, AttributeValue>;
 
-/// 結合結果ページ（root 走査位置でストリーミング・ページング）。
+/// 結合結果ページ。
 #[derive(Debug, Default)]
 pub struct JoinPage {
     pub rows: Vec<JoinRow>,
+    /// ページング再開位置（v1 未対応・常に None。spec §10.7 は後続）。
     pub last_evaluated_key: Option<Vec<u8>>,
-}
-
-/// 多段 index-nested-loop の実行（spec §10.3）。
-///
-/// TODO(spec §10.3): root を `scan_prefix` で走査 →各 step を索引/scan で probe →
-/// INNER は 0 件で打切り・LEFT は残す →post-join filter →select で射影。単一 read txn で。
-pub fn execute<E: StorageEngine>(_engine: &E, _query: &JoinQuery) -> Result<JoinPage, DbError> {
-    Err(DbError::Validation(
-        "join executor not yet implemented (sample scaffold; see docs/01-spec.md §10.3)".into(),
-    ))
+    /// scan フォールバック等の実行時警告（spec §10.3。logging に依存しない伝達）。
+    pub warnings: Vec<String>,
 }

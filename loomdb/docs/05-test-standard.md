@@ -2,15 +2,24 @@
 
 実装方法＝ドメインモデル寄り（式・索引・トランザクション意味論が中核）→ **ピラミッド型**（単体厚め）。加えて DB 特有の**プロパティテスト**と**クラッシュ/ロールバック試験**を必須にする。
 
+## 開発プロセス＝TDD（必須）
+
+- **Red → Green → Refactor**。テストが先に無いプロダクションコードは書かない。コミットはテストと実装を同梱し、メッセージに赤→緑の経緯を記録する。
+- 進行は依存の内側から: key_codec → 式言語 → StorageEngine 契約 → usecases → 索引維持 → transact/batch → JOIN → TTL。
+- バグ修正は**まず再現テスト（赤）**を書き、それから直す（回帰防止）。
+
 ## テストの層
 
 | 層 | 対象 | フレームワーク |
 |---|---|---|
 | 単体 | key_codec・式パーサ/評価・index 差分・属性型変換 | `cargo test` |
 | プロパティ | 順序保存の単調性・式評価の性質・txn 原子性・JOIN 結果の正しさ | `proptest` |
+| **契約（port）** | `StorageEngine` の意味論（get/put/delete・範囲・commit/rollback）を**アダプタ非依存の共通スイート**で。in-memory fake と `loom-redb` の双方に同一スイートを適用＝差替可能性の実証 | 共有テスト関数 |
 | 結合 | 操作 API を一時 redb ファイル上で（tempfile） | `cargo test` ＋ `tempfile` |
-| 適合（conformance） | DynamoDB 挙動のサブセット一致（条件付き書込・Query 範囲・GSI 強整合） | 表駆動テスト |
+| 適合（conformance） | DynamoDB 挙動のサブセット一致（条件付き書込・Query 範囲・**Limit×Filter 適用順**・GSI 強整合） | 表駆動テスト |
 | 障害 | write txn 中断→ロールバック確認・電源断シミュレーション | 専用ハーネス |
+| fuzz | 手書きパーサ/デコーダ（式・key_codec・MessagePack 境界）が任意入力で panic せず不変条件を破らない | `cargo-fuzz`（nightly・CI 夜間） |
+| 性能回帰 | put/get/query/JOIN の簡易ベンチ（閾値は初回計測後に固定） | 専用ハーネス |
 | サイズ回帰 | リリースバイナリ/ライブラリのサイズ上限 | `cargo size`/CI 閾値 |
 
 ## 必須プロパティ（proptest）

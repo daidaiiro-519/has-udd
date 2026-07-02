@@ -69,7 +69,10 @@ cargo run -p loom-cli
 ## ステータス
 
 設計フェーズ＋雛形。`put_item` / `get_item` は redb を通して実際に round-trip する。
-式言語（spec §5）・二次索引維持（§7）・JOIN 実行器（§10.3）・完全な順序保存 N エンコード
-（§2.3）は骨子または TODO で、これから実装する。
+式言語（spec §5）・二次索引維持（§7）・JOIN 実行器（§10.3）は TODO。
+**ここからは TDD（テスト先行・Red→Green→Refactor）で肉付けする**（docs/05-test-standard.md）。
 
-<!-- TODO: LICENSE を選定して追加する（未定・現状は workspace で MIT を仮置き） -->
+## ライセンス
+
+MIT または Apache-2.0 のデュアルライセンス（利用者がいずれかを選択）。
+[LICENSE-MIT](LICENSE-MIT) / [LICENSE-APACHE](LICENSE-APACHE) を参照。

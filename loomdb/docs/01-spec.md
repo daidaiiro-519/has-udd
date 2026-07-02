@@ -28,7 +28,7 @@
 | 記号 | 型 | 備考 |
 |---|---|---|
 | S | 文字列（UTF-8） | |
-| N | 数値 | 10進・任意精度（文字列表現＋順序保存エンコード） |
+| N | 数値 | 10進・**38 有効桁**・範囲 1E-130〜9.9E+125（DynamoDB 準拠）。文字列表現＋順序保存エンコード。超過は `ValidationError` |
 | B | バイナリ | |
 | BOOL | 真偽 | |
 | NULL | ヌル | |
@@ -69,17 +69,20 @@
 - `delete_table(name) -> ()`
 - `describe_table(name) -> TableDef`
 - `list_tables() -> Vec<String>`
+- `update_table(name, add_indexes, remove_indexes) -> ()` — **GSI の後付け追加・削除**（§7・差別化の一つ）。
 
 ### 4.2 項目操作
 - `put_item(table, item, condition?) -> ()` — condition 不成立で `ConditionalCheckFailed`。
 - `get_item(table, key, consistent?, projection?) -> Option<Item>` — ローカルは常に強整合。
 - `update_item(table, key, update_expr, condition?, return_values?) -> Option<Item>`
 - `delete_item(table, key, condition?, return_values?) -> Option<Item>`
+- `return_values`: v1 は `NONE` / `ALL_OLD` / `ALL_NEW` に対応（`UPDATED_OLD/UPDATED_NEW` は後続）。
 
 ### 4.3 問い合わせ
 - `query(table, key_condition, opts) -> Page`
   - `opts`: index?（GSI/LSI 名）、filter?、projection?、`scan_forward`、`limit`、`exclusive_start_key`。
   - 戻り: `items` ＋ `last_evaluated_key`（ページング）。
+  - **`limit` は Filter 適用「前」に効く**（DynamoDB 準拠）: limit 件読んでから filter するため、結果は limit 件未満になり得る。互換の要注意点として適合テストで固定。
 - `scan(table, opts) -> Page` — index?・filter?・segment/total_segments（並列スキャン任意）。
 
 ### 4.4 バッチ・トランザクション
@@ -87,6 +90,7 @@
 - `batch_write(puts, deletes) -> ...`（非トランザクション・冪等ループ）
 - `transact_write(ops) -> ()` — Put/Update/Delete/ConditionCheck を**1 txn で all-or-nothing**。
 - `transact_get(keys) -> Vec<Option<Item>>` — 一貫スナップショット読取。
+- ローカルは分散の部分失敗が無いため **`UnprocessedItems`/`UnprocessedKeys` は常に空**（batch は全処理 or エラー）。
 - **操作数の上限なし**（DynamoDB の 25/100 件制限は分散由来ゆえ撤廃・§11）。トレードオフ: 巨大 `transact_write` は 1 個の大きな write txn となり、commit まで単一ライタを占有しメモリを保持する（ローカル用途では許容）。
 
 ---
@@ -142,6 +146,8 @@ DELETE path :set                  （集合差）
 - **transact_write** = 明示的に複数変更を 1 txn に束ねる。いずれか失敗で全体ロールバック。
 - **分離性**: redb は単一 writer＋MVCC read。読取は書込のスナップショットを見る。ローカルなので**常に強整合**（DynamoDB の eventually consistent は再現不要）。
 - **索引一貫性**: 主データと GSI/LSI を同一 txn で更新するため、索引が本体とズレることはない。
+- **同時実行モデル**: 複数 read txn ＋単一 write txn（redb）。書込は直列化され、競合時は**ブロック**（エラーにしない）。DB ハンドルは `Send + Sync`。**単一プロセス前提**（ファイルロックで多重オープンを拒否）。
+- **耐久性（fsync）**: 既定＝commit ごとに fsync（電源断でも commit 済みは失われない）。open 時に `Durability::{Immediate(既定), Eventual}` を選択可。`Eventual` は性能優先で直近 commit を失い得る — ゲートウェイの電源断特性に応じて利用者が選ぶ。
 
 ---
 
@@ -151,6 +157,7 @@ DELETE path :set                  （集合差）
 - **LSI**: 主テーブルと同じ pk・異なる sk。作成後不変。
 - **GSI**: 任意属性を pk/sk に。**ローカルは同一 txn 維持なので常に強整合**（DynamoDB の GSI は結果整合だが、ここでは強整合で上位互換）。
 - 索引に無い属性を持つ項目は当該索引に載らない（sparse index）。
+- **後付け追加（差別化）**: GSI は `update_table` で**いつでも追加・削除できる**。追加時は既存データを全走査して索引を**バックフィル**する（1 write txn で構築＝完成した索引だけが見える。巨大テーブルでは長い txn になり他の書込をブロックする点は明示のトレードオフ）。LSI は DynamoDB 準拠で作成時のみ。
 
 ---
 
@@ -203,6 +210,7 @@ JoinStep {
 }
 ```
 - `steps` を増やすだけで 2, 3, 4… テーブルへ自然に拡張。v1 で件数上限は設けない（§11・実用上はプラン深さで自律制御）。
+- post-join `filter` / `select` の属性パスは **`alias.attr` 修飾形**を第一級で受ける（§5 の式文法にエイリアス修飾パスを拡張）。
 
 ### 10.3 アルゴリズム（index-nested-loop・多段）
 ```
@@ -218,6 +226,7 @@ root を query/scan で走査（root の key_condition/filter を先に適用＝
   全 step 通過後、post-join filter を適用 → select で射影
 ```
 - **指針**: 各ステップの結合キー（`input.attrY`）に**索引を貼ることを推奨**。無ければ動くが scan フォールバックで遅い（多段では効きが累積するので特に）。
+- **警告の伝達**: scan フォールバックの発生は logging ではなく**結果メタデータ**（`JoinPage.warnings`）で返す（ライブラリの logging 既定オフ方針と整合し、呼び出し側が機械的に検知できる）。
 - **プラン順序**: v1 は宣言順（left-deep）をそのまま実行＝**利用者が結合順を制御**。コストベース最適化は後続（範囲外）。
 
 ### 10.4 一貫性
@@ -255,6 +264,10 @@ root を query/scan で走査（root の key_condition/filter を先に適用＝
 | 最大キー長（pk/sk 各） | 2 KB |
 | Query/Scan 1 ページ最大 | 1 MB or limit 件 |
 | transact_write / batch_write 最大操作数 | 無制限（ローカル・メモリ次第。DynamoDB の 25/100 件制限は撤廃） |
+| M/L の入れ子深度 | 32 段（DynamoDB 準拠） |
+| N の有効桁・指数範囲 | 38 桁・1E-130〜9.9E+125（DynamoDB 準拠） |
+| 空文字列・空バイナリ | 非キー属性で許容（現行 DynamoDB 準拠） |
+| 空集合（SS/NS/BS） | 不可＝ `ValidationError`（DynamoDB 準拠） |
 
 ---
 
@@ -263,4 +276,14 @@ root を query/scan で走査（root の key_condition/filter を先に適用＝
 - HTTP エンドポイント1つ。`X-Amz-Target: DynamoDB_20120810.{Op}` を見て JSON を型付き API に橋渡し。
 - v1 対応 Op（サブセット）: PutItem/GetItem/UpdateItem/DeleteItem/Query/Scan/BatchWriteItem/BatchGetItem/TransactWriteItems/TransactGetItems/CreateTable/DeleteTable/DescribeTable。
 - **JOIN は LoomDB 固有の拡張 Op**（DynamoDB プロトコルには存在しない）。ワイヤで公開する場合は独自ターゲット名で `JoinSpec`（§10.4 B）を受ける。既存 AWS SDK からは呼べない前提。
+- **セキュリティ既定**: 認証なし・**既定バインドは 127.0.0.1**（ローカル専用）。外部公開する場合の保護（TLS・認証）は利用者責務。
 - サイズが要らない構成では丸ごと除外可能（feature flag）。
+
+---
+
+## 13. 運用（フォーマット・保守）
+
+- **オンディスク形式のバージョニング**: `meta` に `format_version` を保持。互換変更は自動読替え、非互換変更は crate のメジャー版数と連動して上げ、旧形式は明示エラー（将来 `migrate` を提供）。OSS として長期利用される前提の必須事項。
+- **compaction**: 削除・更新で生じた空き領域は明示 API `compact()` で回収（redb の compact に委譲）。呼ぶタイミングは利用者制御。
+- **バックアップ**: **open 中のファイルコピーは不可**。close 後にファイルコピー、または（後続）read txn スナップショットから複製する `backup(path)`。
+- **統計**: `stats(table) -> { item_count, file_bytes }`（DescribeTable の ItemCount 相当・O(1)）。

@@ -11,3 +11,6 @@ description = "LoomDB core: domain model, ports, and application use-cases (hexa
 serde.workspace = true
 rmp-serde.workspace = true
 thiserror.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true

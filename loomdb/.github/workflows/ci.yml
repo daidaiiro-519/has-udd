@@ -1,0 +1,22 @@
+# LoomDB CI（test-standard §CI ゲート）
+# 注: has-udd 配下ではリポジトリ root でないため発火しない。loomdb/ を
+# 独立リポジトリに切り出した時点で有効になる前提のプレースホルダ。
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+  # TODO(test-standard): MSRV 検証・クロスターゲット（aarch64-musl）ビルド・
+  # サイズ回帰閾値・cargo-fuzz 夜間ジョブを追加する。

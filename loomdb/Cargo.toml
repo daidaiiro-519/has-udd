@@ -10,7 +10,7 @@ members = [
 [workspace.package]
 edition = "2021"
 rust-version = "1.85"
-license = "MIT"          # TODO: 確定後に見直し
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/daidaiiro-519/loomdb"
 
 [workspace.dependencies]
@@ -19,6 +19,8 @@ redb = "2"
 serde = { version = "1", features = ["derive"] }
 rmp-serde = "1"
 thiserror = "1"
+# テスト専用（dev-dependencies でのみ使用・配布サイズに影響しない）
+proptest = "1"
 # ワークスペース内 crate
 loom-core = { path = "crates/loom-core" }
 loom-redb = { path = "crates/loom-redb" }

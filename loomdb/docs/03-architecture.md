@@ -25,11 +25,14 @@ loom/
 │  ├─ loom-redb/        # outbound adapter: StorageEngine を redb で実装
 │  ├─ loom-query/       # 任意（feature "join"）: 結合/集計など読取専用クエリ層（index-nested-loop join）
 │  ├─ loom-wire/        # inbound adapter（任意・feature "wire"）: DynamoDB JSON プロトコル
+│  ├─ loom-node/        # inbound adapter（任意）: Node.js バインディング（napi-rs・DocumentClient 風）
+│  ├─ loom-py/          # inbound adapter（任意）: Python バインディング（PyO3・boto3 風）
 │  └─ loom-cli/         # inbound adapter（任意）: 端末操作
 └─ Cargo.toml (workspace)
 ```
 
-- **gateway への最小配布** = `loom-core` + `loom-redb` のみ。query/wire/cli は必要時。
+- **gateway への最小配布** = `loom-core` + `loom-redb` のみ。query/wire/node/py/cli は必要時。
+- **多言語対応も inbound adapter** = Node.js（napi-rs）/ Python（PyO3）は application を叩く薄い変換層で、コア無改修・コアサイズに不影響。加えて wire 層経由なら公式 AWS SDK がそのまま使える（spec §12）。
 - **JOIN（LoomDB 拡張）は `loom-query` に隔離** = 読取専用・application を叩く薄い層。要らない構成では除外しコア常駐サイズに影響させない。
 
 ## 3. ポート（抽象）
@@ -61,7 +64,7 @@ pub trait Clock { fn now_epoch(&self) -> i64; }
 | domain-service | `domain/`（`key_codec`, `expr::eval`, `index::maintain`） | ステートレス純関数 |
 | usecase | `application/usecases/{op}.rs`（`put_item`, `query`, `transact_write`…） | 入口関数・txn を調停・仕様 §4 と対応 |
 | aggregate 相当 | 明示クラスは作らない。整合は txn ＋索引維持サービスで担保 | — |
-| inbound-adapter | `loom-wire` / `loom-cli` | 変換のみ・ロジック持たない |
+| inbound-adapter | `loom-wire` / `loom-node` / `loom-py` / `loom-cli` | 変換のみ・ロジック持たない |
 | outbound-adapter | `loom-redb`（StorageEngine 実装） | redb 依存はここに閉じ込め |
 | query 層（拡張） | `loom-query`（`join::inner` / `join::left`） | 読取専用・複数 read を 1 スナップショットで調停 |
 

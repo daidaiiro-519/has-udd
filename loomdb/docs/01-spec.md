@@ -280,6 +280,7 @@ root を query/scan で走査（root の key_condition/filter を先に適用＝
 - v1 対応 Op（サブセット）: PutItem/GetItem/UpdateItem/DeleteItem/Query/Scan/BatchWriteItem/BatchGetItem/TransactWriteItems/TransactGetItems/CreateTable/DeleteTable/DescribeTable。
 - **JOIN は LoomDB 固有の拡張 Op**（DynamoDB プロトコルには存在しない）。ワイヤで公開する場合は独自ターゲット名で `JoinSpec`（§10.4 B）を受ける。既存 AWS SDK からは呼べない前提。
 - **セキュリティ既定**: 認証なし・**既定バインドは 127.0.0.1**（ローカル専用）。外部公開する場合の保護（TLS・認証）は利用者責務。
+- **多言語対応の入口**: ワイヤ互換により**公式 AWS SDK（JS/TS の @aws-sdk/client-dynamodb・Python の boto3 等）が endpoint 差し替えのみで利用できる**。組込で使う場合は言語バインディング（`loom-node` / `loom-py`・architecture §2）を使う。
 - サイズが要らない構成では丸ごと除外可能（feature flag）。
 
 ---

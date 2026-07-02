@@ -66,27 +66,22 @@ cargo run -p loom-cli
 # get   : u1/o100 -> Some({"amount": N(Number("1200")), ...})
 ```
 
-## 使いやすさロードマップ（API ergonomics）
+## API 方針と多言語対応
 
-現状の API は意図的に「素の usecase 関数」の段階（コアの意味論を TDD で固める工事中の足場）。
-**最終的には次の書き味を目標にする**（ヘキサゴナル構成のため、コア無改修の薄い facade で実現できる）:
+**書き味は DynamoDB と同じ**（式言語 `"SET qty = qty - :n"`・ConditionExpression・
+ExpressionAttributeNames/Values）を貫く。DynamoDB 経験者はそのまま書ける。
 
-```rust
-let db = Db::open("data.redb")?;
-db.put("orders")
-  .item(item! { "userId": "u1", "orderId": "o100", "amount": 1200 })
-  .condition("attribute_not_exists(userId)")
-  .exec()?;
-db.update("orders").key(("u1", "o100"))
-  .expr("SET qty = qty - :n").condition("qty >= :n").value(":n", 1)
-  .exec()?;
-// serde 連携（任意 feature）
-let o: Option<Order> = db.get_typed("orders", ("u1", "o100"))?;
-```
+加えて **TypeScript / JavaScript / Python から使えるようにする**（2 トラック）:
 
-段階計画:
-1. **facade 第1弾**（Query/Scan 実装後）: `Db` ハンドル・`From<&str>/From<i64>` 等・`item!` マクロ・`.value(":n", 1)` ビルダー
-2. **facade 第2弾**（JOIN 実装後）: クエリ/JOIN ビルダー（spec §10.5-A）・serde ブリッジ（structs ↔ Item、任意 feature）
+1. **組込バインディング（優先）** — ヘキサゴナルの inbound adapter として提供。
+   コア無改修・別 crate（gateway 配布サイズに影響なし）
+   - Node.js: `loom-node`（napi-rs）— DocumentClient 風 `db.put({ TableName, Item })`
+   - Python: `loom-py`（PyO3・abi3 wheel）— boto3 風 `table.put_item(Item={...})`
+   - 注意点: JS の number は f64 のため、38 桁 N の精度が要る値は文字列/BigInt で
+     受け渡す（DocumentClient と同種の注意点）
+2. **ワイヤ層（spec §12）** — DynamoDB JSON プロトコル互換サーバ。
+   **公式 AWS SDK（@aws-sdk/client-dynamodb / boto3）を endpoint 差し替えだけで
+   そのまま使える**（クライアントコード変更ゼロ）
 
 > 注: crates.io には既に `loom`（並行性テスタ）が存在するため、公開時の crate 名は
 > `loomdb-core` / `loomdb-query` 等にリネームする（製品名 LoomDB は不変）。

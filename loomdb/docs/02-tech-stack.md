@@ -32,6 +32,8 @@
 |---|---|---|
 | ワイヤ互換サーバ | 極小 HTTP（`tiny_http` 等・要評価） | `wire` |
 | 結合クエリ層（JOIN） | 追加依存なし（core の API・索引・read txn を利用） | 別 crate `loom-query`・feature `join`・コアに非混入 |
+| Node.js バインディング | `napi-rs`（npm 配布・DocumentClient 風 API。JS number は f64 のため高精度 N は文字列/BigInt） | 別 crate `loom-node`・コアに非混入 |
+| Python バインディング | `PyO3`（PyPI abi3 wheel・boto3 風 API） | 別 crate `loom-py`・コアに非混入 |
 | CLI | 最小引数解析（`clap` は重いので `pico-args` 等を検討） | `cli` |
 
 > **原則: コア（ライブラリ）にはワイヤ/CLI/query の依存を持ち込まない。** これらは別 crate か feature。gateway には必要な物だけ配布。

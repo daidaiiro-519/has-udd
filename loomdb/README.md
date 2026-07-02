@@ -71,20 +71,37 @@ cargo run -p loom-cli
 **書き味は DynamoDB と同じ**（式言語 `"SET qty = qty - :n"`・ConditionExpression・
 ExpressionAttributeNames/Values）を貫く。DynamoDB 経験者はそのまま書ける。
 
-加えて **TypeScript / JavaScript / Python から使えるようにする**（2 トラック）:
+**本命: 「LoomDB というライブラリ」として TypeScript / JavaScript / Python から
+直接使えるようにする**（better-sqlite3 的な組込感。サーバ不要・プロセス内・DB はファイル1個）:
 
-1. **組込バインディング（優先）** — ヘキサゴナルの inbound adapter として提供。
-   コア無改修・別 crate（gateway 配布サイズに影響なし）
-   - Node.js: `loom-node`（napi-rs）— DocumentClient 風 `db.put({ TableName, Item })`
-   - Python: `loom-py`（PyO3・abi3 wheel）— boto3 風 `table.put_item(Item={...})`
-   - 注意点: JS の number は f64 のため、38 桁 N の精度が要る値は文字列/BigInt で
-     受け渡す（DocumentClient と同種の注意点）
-2. **ワイヤ層（spec §12）** — DynamoDB JSON プロトコル互換サーバ。
-   **公式 AWS SDK（@aws-sdk/client-dynamodb / boto3）を endpoint 差し替えだけで
-   そのまま使える**（クライアントコード変更ゼロ）
+```ts
+// npm install loomdb
+import { LoomDB } from "loomdb";
+const db = new LoomDB("data.loom");
+db.put("orders", { userId: "u1", orderId: "o100", amount: 1200 });
+const page = db.query("orders", {
+  keyCondition: "userId = :u", values: { ":u": "u1" },
+});
+```
+```python
+# pip install loomdb
+from loomdb import LoomDB
+db = LoomDB("data.loom")
+db.put("orders", {"userId": "u1", "orderId": "o100", "amount": 1200})
+```
+
+- 実装: `loom-node`（napi-rs → npm）/ `loom-py`（PyO3 → PyPI wheel）。
+  ヘキサゴナルの inbound adapter＝コア無改修・gateway 配布サイズに不影響
+- JS オブジェクト / Python dict がそのまま item（`{"S": ...}` 型記法は書かせない）
+- 注意点: JS の number は f64 のため、38 桁 N の精度が要る値は文字列/BigInt で受け渡す
+
+**任意のおまけ: ワイヤ層（spec §12）** — DynamoDB JSON プロトコル互換サーバ。
+既存 DynamoDB アプリの移行用途で、公式 AWS SDK を endpoint 差し替えだけで繋げられる
+（LoomDB をライブラリとして使う上記が本命で、こちらは要る人だけ）。
 
 > 注: crates.io には既に `loom`（並行性テスタ）が存在するため、公開時の crate 名は
-> `loomdb-core` / `loomdb-query` 等にリネームする（製品名 LoomDB は不変）。
+> `loomdb-core` / `loomdb-query` 等にリネームする（npm / PyPI の `loomdb` も公開時に
+> 空き確認。製品名 LoomDB は不変）。
 
 ## ステータス
 

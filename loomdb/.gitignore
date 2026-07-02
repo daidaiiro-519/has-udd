@@ -1,0 +1,13 @@
+# Rust
+/target
+**/*.rs.bk
+Cargo.lock            # ライブラリ主体のため無視（バイナリ配布時は方針を再検討）
+
+# サイズ計測・ビルド成果物
+*.profraw
+
+# エディタ・OS
+.DS_Store
+*.swp
+.idea/
+.vscode/

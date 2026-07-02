@@ -4,7 +4,7 @@
 //! 大文字小文字非区別・予約（属性名に使うなら `#name` を使う）。関数名は小文字固定
 //! （DynamoDB 準拠）。構文誤りは `ValidationError`。
 
-use super::ast::{CmpOp, Expr, Operand, Path, PathSeg};
+use super::ast::{CmpOp, Expr, Operand, Path, PathSeg, SetOperand, SetValue, UpdateExpr};
 use crate::domain::error::DbError;
 
 pub fn parse_condition(input: &str) -> Result<Expr, DbError> {
@@ -15,6 +15,79 @@ pub fn parse_condition(input: &str) -> Result<Expr, DbError> {
         return Err(p.err("unexpected trailing tokens"));
     }
     Ok(expr)
+}
+
+/// UpdateExpression（spec §5.3）: `SET …` / `REMOVE …` / `ADD …` / `DELETE …` の
+/// 句をこの順不同・各 1 回まで。アクションはカンマ区切り。
+pub fn parse_update(input: &str) -> Result<UpdateExpr, DbError> {
+    let toks = lex(input)?;
+    let mut p = Parser { toks, pos: 0 };
+    let mut upd = UpdateExpr::default();
+    if p.toks.is_empty() {
+        return Err(p.err("empty update expression"));
+    }
+    while p.pos < p.toks.len() {
+        if p.eat_kw("SET") {
+            if !upd.sets.is_empty() {
+                return Err(p.err("duplicate SET clause"));
+            }
+            loop {
+                let path = p.parse_path()?;
+                match p.next() {
+                    Some(Tok::Cmp(CmpOp::Eq)) => {}
+                    _ => return Err(p.err("expected '=' in SET action")),
+                }
+                let value = p.parse_set_value()?;
+                upd.sets.push((path, value));
+                if !p.eat_comma() {
+                    break;
+                }
+            }
+        } else if p.eat_kw("REMOVE") {
+            if !upd.removes.is_empty() {
+                return Err(p.err("duplicate REMOVE clause"));
+            }
+            loop {
+                upd.removes.push(p.parse_path()?);
+                if !p.eat_comma() {
+                    break;
+                }
+            }
+        } else if p.eat_kw("ADD") {
+            if !upd.adds.is_empty() {
+                return Err(p.err("duplicate ADD clause"));
+            }
+            loop {
+                let path = p.parse_path()?;
+                let ph = match p.next() {
+                    Some(Tok::ValPh(v)) => v,
+                    _ => return Err(p.err("ADD expects a :value placeholder")),
+                };
+                upd.adds.push((path, ph));
+                if !p.eat_comma() {
+                    break;
+                }
+            }
+        } else if p.eat_kw("DELETE") {
+            if !upd.deletes.is_empty() {
+                return Err(p.err("duplicate DELETE clause"));
+            }
+            loop {
+                let path = p.parse_path()?;
+                let ph = match p.next() {
+                    Some(Tok::ValPh(v)) => v,
+                    _ => return Err(p.err("DELETE expects a :value placeholder")),
+                };
+                upd.deletes.push((path, ph));
+                if !p.eat_comma() {
+                    break;
+                }
+            }
+        } else {
+            return Err(p.err("expected SET, REMOVE, ADD or DELETE"));
+        }
+    }
+    Ok(upd)
 }
 
 // ---------------------------------------------------------------------------
@@ -33,6 +106,8 @@ enum Tok {
     Dot,
     LBrack,
     RBrack,
+    Plus,
+    Minus,
     Cmp(CmpOp),
 }
 
@@ -67,6 +142,14 @@ fn lex(input: &str) -> Result<Vec<Tok>, DbError> {
             }
             b']' => {
                 toks.push(Tok::RBrack);
+                i += 1;
+            }
+            b'+' => {
+                toks.push(Tok::Plus);
+                i += 1;
+            }
+            b'-' => {
+                toks.push(Tok::Minus);
                 i += 1;
             }
             b'=' => {
@@ -175,6 +258,66 @@ impl Parser {
         match self.next() {
             Some(ref t) if t == want => Ok(()),
             _ => Err(self.err(&format!("expected {what}"))),
+        }
+    }
+
+    fn eat_comma(&mut self) -> bool {
+        if self.peek() == Some(&Tok::Comma) {
+            self.pos += 1;
+            true
+        } else {
+            false
+        }
+    }
+
+    /// SET の右辺（単項または `a + b` / `a - b`）。
+    fn parse_set_value(&mut self) -> Result<SetValue, DbError> {
+        let a = self.parse_set_operand()?;
+        match self.peek() {
+            Some(Tok::Plus) => {
+                self.pos += 1;
+                Ok(SetValue::Plus(a, self.parse_set_operand()?))
+            }
+            Some(Tok::Minus) => {
+                self.pos += 1;
+                Ok(SetValue::Minus(a, self.parse_set_operand()?))
+            }
+            _ => Ok(SetValue::Single(a)),
+        }
+    }
+
+    /// SET の項: `:v` | `if_not_exists(path, 項)` | `list_append(項, 項)` | path
+    fn parse_set_operand(&mut self) -> Result<SetOperand, DbError> {
+        match self.peek() {
+            Some(Tok::ValPh(_)) => {
+                let Some(Tok::ValPh(v)) = self.next() else {
+                    unreachable!()
+                };
+                Ok(SetOperand::Value(v))
+            }
+            Some(Tok::Ident(name))
+                if name == "if_not_exists" && self.toks.get(self.pos + 1) == Some(&Tok::LParen) =>
+            {
+                self.pos += 1;
+                self.expect(&Tok::LParen, "'('")?;
+                let path = self.parse_path()?;
+                self.expect(&Tok::Comma, "','")?;
+                let default = self.parse_set_operand()?;
+                self.expect(&Tok::RParen, "')'")?;
+                Ok(SetOperand::IfNotExists(path, Box::new(default)))
+            }
+            Some(Tok::Ident(name))
+                if name == "list_append" && self.toks.get(self.pos + 1) == Some(&Tok::LParen) =>
+            {
+                self.pos += 1;
+                self.expect(&Tok::LParen, "'('")?;
+                let a = self.parse_set_operand()?;
+                self.expect(&Tok::Comma, "','")?;
+                let b = self.parse_set_operand()?;
+                self.expect(&Tok::RParen, "')'")?;
+                Ok(SetOperand::ListAppend(Box::new(a), Box::new(b)))
+            }
+            _ => Ok(SetOperand::Path(self.parse_path()?)),
         }
     }
 
@@ -340,7 +483,9 @@ impl Parser {
         match self.next() {
             Some(Tok::Ident(name)) => {
                 // キーワードは属性名として使えない（#name を使う）
-                for kw in ["AND", "OR", "NOT", "BETWEEN", "IN"] {
+                for kw in [
+                    "AND", "OR", "NOT", "BETWEEN", "IN", "SET", "REMOVE", "ADD", "DELETE",
+                ] {
                     if name.eq_ignore_ascii_case(kw) {
                         return Err(self.err(&format!(
                             "reserved word {name:?} in path (use a #name placeholder)"

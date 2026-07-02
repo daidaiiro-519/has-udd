@@ -117,7 +117,10 @@ pub fn eval(expr: &Expr, item: &Item, ctx: &ExprContext) -> Result<bool, DbError
 // 解決
 // ---------------------------------------------------------------------------
 
-fn lookup_value<'a>(ph: &str, ctx: &'a ExprContext) -> Result<&'a AttributeValue, DbError> {
+pub(super) fn lookup_value<'a>(
+    ph: &str,
+    ctx: &'a ExprContext,
+) -> Result<&'a AttributeValue, DbError> {
     ctx.values
         .get(&format!(":{ph}"))
         .ok_or_else(|| DbError::Validation(format!("unknown expression attribute value :{ph}")))
@@ -138,7 +141,7 @@ fn resolve_operand(
 }
 
 /// パスを item に対して解決。欠落は None、未知の #name は ValidationError。
-fn resolve_path<'a>(
+pub(super) fn resolve_path<'a>(
     path: &Path,
     item: &'a Item,
     ctx: &ExprContext,
@@ -171,7 +174,7 @@ fn resolve_path<'a>(
 }
 
 /// 名前セグメントを実属性名へ（#name は ExpressionAttributeNames で解決）。
-fn seg_name(seg: &PathSeg, ctx: &ExprContext) -> Result<String, DbError> {
+pub(super) fn seg_name(seg: &PathSeg, ctx: &ExprContext) -> Result<String, DbError> {
     match seg {
         PathSeg::Name(n) => Ok(n.clone()),
         PathSeg::Placeholder(ph) => {

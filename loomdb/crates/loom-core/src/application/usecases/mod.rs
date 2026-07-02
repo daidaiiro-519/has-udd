@@ -7,6 +7,7 @@ pub mod describe_table;
 pub mod get_item;
 pub mod list_tables;
 pub mod put_item;
+pub mod update_item;
 
 pub use create_table::create_table;
 pub use delete_item::delete_item;
@@ -15,6 +16,7 @@ pub use describe_table::describe_table;
 pub use get_item::get_item;
 pub use list_tables::list_tables;
 pub use put_item::put_item;
+pub use update_item::update_item;
 
 use crate::domain::expr::{eval, parse_condition, ExprContext};
 use crate::domain::{AttributeValue, DbError, Item};
@@ -24,6 +26,16 @@ use std::collections::BTreeMap;
 /// ConditionExpression / ExpressionAttributeNames / ExpressionAttributeValues 相当）。
 #[derive(Debug, Clone, Default)]
 pub struct ConditionInput {
+    pub expression: String,
+    /// キーは `#n` の完全形
+    pub names: BTreeMap<String, String>,
+    /// キーは `:v` の完全形
+    pub values: BTreeMap<String, AttributeValue>,
+}
+
+/// UpdateExpression の入力一式（形は ConditionInput と同じ・意味が異なるので別型）。
+#[derive(Debug, Clone, Default)]
+pub struct UpdateInput {
     pub expression: String,
     /// キーは `#n` の完全形
     pub names: BTreeMap<String, String>,

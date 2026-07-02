@@ -35,6 +35,34 @@ pub enum CmpOp {
     Ge,
 }
 
+/// UpdateExpression（spec §5.3）。句ごとのアクション列。
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct UpdateExpr {
+    pub sets: Vec<(Path, SetValue)>,
+    pub removes: Vec<Path>,
+    /// ADD path :num（v1 は数値加算のみ。集合和は SS/NS/BS 導入後）
+    pub adds: Vec<(Path, String)>,
+    /// DELETE path :set（集合差。SS/NS/BS 導入までは評価時に Validation）
+    pub deletes: Vec<(Path, String)>,
+}
+
+/// SET の右辺項。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SetOperand {
+    Path(Path),
+    Value(String),
+    IfNotExists(Path, Box<SetOperand>),
+    ListAppend(Box<SetOperand>, Box<SetOperand>),
+}
+
+/// SET の右辺（単項または加減算）。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SetValue {
+    Single(SetOperand),
+    Plus(SetOperand, SetOperand),
+    Minus(SetOperand, SetOperand),
+}
+
 /// Condition/Filter 式（spec §5.2 の文法に 1:1 対応）。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Expr {

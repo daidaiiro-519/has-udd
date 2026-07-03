@@ -57,6 +57,12 @@ pub struct JoinQuery {
     /// 射影パス（`"alias.attr"` 形式）。空なら全属性。
     #[serde(default)]
     pub select: Vec<String>,
+    /// 1 ページの最大行数（spec §10.7・filter 適用後の出力行で数える）。
+    #[serde(default)]
+    pub limit: Option<usize>,
+    /// 前ページの `last_evaluated_key`（root キー＋展開オフセットの不透明トークン）。
+    #[serde(default)]
+    pub exclusive_start_key: Option<Vec<u8>>,
 }
 
 /// 結合結果の 1 行（`"alias.attr"` → 値）。LEFT 未マッチの入力の属性は欠落。
@@ -66,7 +72,8 @@ pub type JoinRow = BTreeMap<String, AttributeValue>;
 #[derive(Debug, Default)]
 pub struct JoinPage {
     pub rows: Vec<JoinRow>,
-    /// ページング再開位置（v1 未対応・常に None。spec §10.7 は後続）。
+    /// ページング再開位置（spec §10.7）。root キー＋展開オフセットの不透明トークン。
+    /// 次回の `exclusive_start_key` に渡す。
     pub last_evaluated_key: Option<Vec<u8>>,
     /// scan フォールバック等の実行時警告（spec §10.3。logging に依存しない伝達）。
     pub warnings: Vec<String>,

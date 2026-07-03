@@ -92,6 +92,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     put_item(&engine, "users", &alice, None)?;
 
     let join = JoinQuery {
+        limit: None,
+        exclusive_start_key: None,
         root: InputRef {
             table: "orders".into(),
             alias: "o".into(),

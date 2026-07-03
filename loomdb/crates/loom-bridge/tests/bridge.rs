@@ -275,6 +275,50 @@ fn join_via_bridge() {
     assert!(result["warnings"].as_array().unwrap().is_empty());
 }
 
+/// JOIN のページング（§10.7）: limit + 不透明トークンで全行を欠落なく回収
+#[test]
+fn join_pagination_via_bridge() {
+    let b = bridge();
+    seed(&b);
+    b.create_table(&json!({ "name": "users", "key": { "pk": "id" } }))
+        .expect("create users");
+    b.put("users", &json!({ "id": "u1", "name": "Alice" }), None)
+        .expect("put user");
+
+    let mut collected = Vec::new();
+    let mut start: Option<Value> = None;
+    let mut guard = 0;
+    loop {
+        let mut params = json!({
+            "root": { "table": "orders", "alias": "o" },
+            "steps": [
+                { "table": "users", "alias": "u", "kind": "inner",
+                  "on": [{ "left": "o.userId", "right": "u.id" }] }
+            ],
+            "select": ["o.orderId"],
+            "limit": 1
+        });
+        if let Some(t) = &start {
+            params["startKey"] = t.clone();
+        }
+        let page = b.join(&params).expect("join");
+        let rows = page["rows"].as_array().unwrap();
+        assert!(rows.len() <= 1);
+        collected.extend(
+            rows.iter()
+                .map(|r| r["o.orderId"].as_str().unwrap().to_string()),
+        );
+        match page.get("lastEvaluatedKey") {
+            Some(t) if !t.is_null() => start = Some(t.clone()),
+            _ => break,
+        }
+        guard += 1;
+        assert!(guard < 10, "must terminate");
+    }
+    collected.sort();
+    assert_eq!(collected, ["o1", "o2", "o3"]);
+}
+
 /// テーブル管理: list / updateTable(後付け索引) / deleteTable
 #[test]
 fn table_management() {

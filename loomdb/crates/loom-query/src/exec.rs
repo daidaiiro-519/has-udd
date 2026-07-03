@@ -7,7 +7,10 @@
 //!   ③どちらでもない → **scan フォールバック**（`JoinPage.warnings` で通知）。
 //! - 結合キーはキーに使える型（S/N/B）。等価判定は順序保存エンコードの一致
 //!   （= N は数値として等価。"1.0" と "1" は同じキー）。
-//! - v1 範囲: root は全走査（key_condition プッシュダウンは後続）・ページング未対応。
+//! - **ページング（§10.7）**: root を 1 item ずつ展開するストリーミング。
+//!   `last_evaluated_key` = root キー＋展開オフセット（1 root item の展開途中の
+//!   境界も再開できる）。limit は filter 適用後の出力行で数える。
+//! - v1 範囲: root は全走査（key_condition プッシュダウンは後続）。
 
 use crate::{InputRef, JoinKind, JoinPage, JoinQuery, JoinRow, JoinStep};
 use loom_core::application::meta;
@@ -37,55 +40,110 @@ pub fn execute<E: StorageEngine>(engine: &E, query: &JoinQuery) -> Result<JoinPa
         }
     }
 
-    // root: 全走査（v1）
+    // step ごとの probe 戦略を先に決める（scan フォールバックの全読みも 1 回だけ）
+    let mut known = BTreeSet::new();
+    known.insert(query.root.alias.clone());
+    let mut prepared = Vec::with_capacity(query.steps.len());
+    for step in &query.steps {
+        prepared.push(prepare_step(&*txn, step, &known, &mut warnings)?);
+        known.insert(step.input.alias.clone());
+    }
+
+    // 結合後フィルタは AST を 1 回だけ構文解析
+    let filter = query
+        .filter
+        .as_ref()
+        .map(|f| Ok::<_, DbError>((parse_condition(&f.expression)?, f)))
+        .transpose()?;
+
+    // 再開位置（root キー＋展開オフセット・spec §10.7）
+    let resume = query
+        .exclusive_start_key
+        .as_deref()
+        .map(decode_join_lek)
+        .transpose()?;
+
+    // root を 1 item ずつ展開するストリーミング（§10.7）
     let root_def = meta::load_def_read(&*txn, &query.root.table)?;
-    let mut tuples: Vec<Tuple> = Vec::new();
-    for (_key, value) in txn.scan_prefix(&root_def.name, b"")? {
+    let mut rows: Vec<JoinRow> = Vec::new();
+    let mut last_evaluated_key = None;
+    'roots: for (key, value) in txn.scan_prefix(&root_def.name, b"")? {
+        // 再開位置より前の root item は飛ばす（同じキーはオフセットから再開）
+        let offset = match &resume {
+            Some((start, off)) => match key.as_slice().cmp(start.as_slice()) {
+                std::cmp::Ordering::Less => continue,
+                std::cmp::Ordering::Equal => *off,
+                std::cmp::Ordering::Greater => 0,
+            },
+            None => 0,
+        };
         let item: Item =
             rmp_serde_decode(&value).map_err(|e| DbError::Serialization(e.to_string()))?;
         if ttl::is_expired(&root_def, &item, now) {
             continue; // 失効 item は存在しない扱い
         }
+
+        // この root item をすべての step・filter・select に通す
         let mut t = Tuple::new();
         t.insert(query.root.alias.clone(), item);
-        tuples.push(t);
-    }
-
-    // steps を宣言順に適用（left-deep）
-    let mut known = BTreeSet::new();
-    known.insert(query.root.alias.clone());
-    for step in &query.steps {
-        tuples = apply_step(&*txn, tuples, step, &known, &mut warnings, now)?;
-        known.insert(step.input.alias.clone());
-    }
-
-    // 結合後フィルタ: alias 修飾パスは「alias → M(item)」の入れ子表現で §5 評価器に乗る
-    if let Some(filter) = &query.filter {
-        let ast = parse_condition(&filter.expression)?;
-        let ctx = ExprContext {
-            names: &filter.names,
-            values: &filter.values,
-        };
-        let mut kept = Vec::with_capacity(tuples.len());
-        for tuple in tuples {
-            if eval(&ast, &nested_item(&tuple), &ctx)? {
-                kept.push(tuple);
-            }
+        let mut tuples = vec![t];
+        for prep in &prepared {
+            tuples = apply_prepared(&*txn, tuples, prep, now)?;
         }
-        tuples = kept;
-    }
+        let mut item_rows = Vec::with_capacity(tuples.len());
+        for tuple in tuples {
+            if let Some((ast, f)) = &filter {
+                let ctx = ExprContext {
+                    names: &f.names,
+                    values: &f.values,
+                };
+                if !eval(ast, &nested_item(&tuple), &ctx)? {
+                    continue;
+                }
+            }
+            item_rows.push(project(&tuple, &query.select)?);
+        }
 
-    // select 射影 → `alias.attr` の平坦な行へ
-    let rows = tuples
-        .iter()
-        .map(|t| project(t, &query.select))
-        .collect::<Result<Vec<JoinRow>, DbError>>()?;
+        // limit 到達で LEK = (この root キー, 出力済み行数)。展開途中の境界も表せる
+        let mut emitted = offset;
+        for row in item_rows.into_iter().skip(offset) {
+            if let Some(limit) = query.limit {
+                if rows.len() >= limit {
+                    last_evaluated_key = Some(encode_join_lek(&key, emitted));
+                    break 'roots;
+                }
+            }
+            rows.push(row);
+            emitted += 1;
+        }
+    }
 
     Ok(JoinPage {
         rows,
-        last_evaluated_key: None,
+        last_evaluated_key,
         warnings,
     })
+}
+
+// ---------------------------------------------------------------------------
+// ページング再開トークン = root キー ++ 展開オフセット（u64 BE 固定 8 バイト）
+// ---------------------------------------------------------------------------
+
+fn encode_join_lek(root_key: &[u8], offset: usize) -> Vec<u8> {
+    let mut out = root_key.to_vec();
+    out.extend_from_slice(&(offset as u64).to_be_bytes());
+    out
+}
+
+fn decode_join_lek(bytes: &[u8]) -> Result<(Vec<u8>, usize), DbError> {
+    if bytes.len() < 8 {
+        return Err(DbError::Validation(
+            "invalid join resume token (too short)".into(),
+        ));
+    }
+    let (key, off) = bytes.split_at(bytes.len() - 8);
+    let offset = u64::from_be_bytes(off.try_into().expect("8 bytes checked above"));
+    Ok((key.to_vec(), offset as usize))
 }
 
 fn rmp_serde_decode(bytes: &[u8]) -> Result<Item, rmp_serde::decode::Error> {
@@ -106,39 +164,62 @@ enum Probe {
     Scan(Vec<Item>),
 }
 
-fn apply_step(
+/// 準備済みの 1 段（probe 戦略・on 条件は execute の冒頭で 1 回だけ決める）。
+struct PreparedStep {
+    def: TableDef,
+    alias: String,
+    kind: JoinKind,
+    ons: Vec<OnCond>,
+    probe_attr: String,
+    probe: Probe,
+}
+
+fn prepare_step(
     txn: &(impl ReadTxn + ?Sized),
-    tuples: Vec<Tuple>,
     step: &JoinStep,
     known_aliases: &BTreeSet<String>,
     warnings: &mut Vec<String>,
-    now: i64,
-) -> Result<Vec<Tuple>, DbError> {
+) -> Result<PreparedStep, DbError> {
     let def = meta::load_def_read(txn, &step.input.table)?;
     let ons = parse_on(step, known_aliases)?;
     let (probe_attr, probe) = choose_probe(txn, &def, &step.input, &ons[0].1, warnings)?;
+    Ok(PreparedStep {
+        def,
+        alias: step.input.alias.clone(),
+        kind: step.kind,
+        ons,
+        probe_attr,
+        probe,
+    })
+}
 
+fn apply_prepared(
+    txn: &(impl ReadTxn + ?Sized),
+    tuples: Vec<Tuple>,
+    prep: &PreparedStep,
+    now: i64,
+) -> Result<Vec<Tuple>, DbError> {
     let mut out = Vec::new();
     for tuple in tuples {
         // probe キー（1 本目の on 条件の左辺）をタプルから取り出す
-        let left_val = resolve_left(&tuple, &ons[0].0);
+        let left_val = resolve_left(&tuple, &prep.ons[0].0);
         let mut candidates: Vec<Item> = match left_val {
             None => Vec::new(), // 左値欠落 = マッチなし
-            Some(v) => match &probe {
-                Probe::MainPk => fetch_main_partition(txn, &def, v)?,
-                Probe::Index(idx) => fetch_via_index(txn, &def, idx, v)?,
+            Some(v) => match &prep.probe {
+                Probe::MainPk => fetch_main_partition(txn, &prep.def, v)?,
+                Probe::Index(idx) => fetch_via_index(txn, &prep.def, idx, v)?,
                 Probe::Scan(all) => all
                     .iter()
-                    .filter(|item| attr_equal(item.get(&probe_attr), v))
+                    .filter(|item| attr_equal(item.get(&prep.probe_attr), v))
                     .cloned()
                     .collect(),
             },
         };
         // 失効 item は存在しない扱い（spec §8）
-        candidates.retain(|cand| !ttl::is_expired(&def, cand, now));
+        candidates.retain(|cand| !ttl::is_expired(&prep.def, cand, now));
         // 残りの on 条件（AND）で絞る
         candidates.retain(|cand| {
-            ons[1..].iter().all(|((l_alias, l_attr), r_attr)| {
+            prep.ons[1..].iter().all(|((l_alias, l_attr), r_attr)| {
                 match tuple.get(l_alias).and_then(|it| it.get(l_attr)) {
                     Some(lv) => attr_equal(cand.get(r_attr), lv),
                     None => false,
@@ -147,14 +228,14 @@ fn apply_step(
         });
 
         if candidates.is_empty() {
-            match step.kind {
+            match prep.kind {
                 JoinKind::Inner => {}              // 捨てる（以降の step に進めない）
                 JoinKind::Left => out.push(tuple), // 残す（当該 alias は欠落）
             }
         } else {
             for cand in candidates {
                 let mut expanded = tuple.clone();
-                expanded.insert(step.input.alias.clone(), cand);
+                expanded.insert(prep.alias.clone(), cand);
                 out.push(expanded); // 1対多はタプル × 各マッチに展開
             }
         }

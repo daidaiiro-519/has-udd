@@ -208,7 +208,8 @@ impl<E: StorageEngine> Bridge<E> {
 
     /// JOIN（spec §10.5-B の宣言形）:
     /// `{ root: {table, alias}, steps: [{table, alias, kind, on: [{left, right}], index?}],
-    ///    filter?, values?, names?, select? }` → `{ rows, warnings }`
+    ///    filter?, values?, names?, select?, limit?, startKey? }`
+    /// → `{ rows, warnings, lastEvaluatedKey? }`（§10.7 ページング）
     pub fn join(&self, params: &Value) -> Result<Value, DbError> {
         let obj = as_object(params, "join params")?;
         let (values, names) = shared_values_names(obj)?;
@@ -242,6 +243,8 @@ impl<E: StorageEngine> Bridge<E> {
             steps,
             filter,
             select,
+            limit: opt_usize(obj, "limit")?,
+            exclusive_start_key: opt_token(obj, "startKey")?,
         };
         let page = loom_query::execute(&self.engine, &query)?;
         let rows: Vec<Value> = page
@@ -255,7 +258,16 @@ impl<E: StorageEngine> Bridge<E> {
                 )
             })
             .collect();
-        Ok(json!({ "rows": rows, "warnings": page.warnings }))
+        let mut out = Map::new();
+        out.insert("rows".into(), Value::Array(rows));
+        out.insert("warnings".into(), json!(page.warnings));
+        if let Some(lek) = page.last_evaluated_key {
+            out.insert(
+                "lastEvaluatedKey".into(),
+                Value::String(value::to_hex(&lek)),
+            );
+        }
+        Ok(Value::Object(out))
     }
 
     // -- transact / batch / sweep（§4.4・§8） ---------------------------------

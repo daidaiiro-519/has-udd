@@ -78,6 +78,8 @@ fn jq(root: InputRef, steps: Vec<JoinStep>) -> JoinQuery {
         steps,
         filter: None,
         select: vec![],
+        limit: None,
+        exclusive_start_key: None,
     }
 }
 
@@ -462,4 +464,95 @@ proptest! {
         expected.sort();
         prop_assert_eq!(got, expected);
     }
+}
+
+/// §10.7 ページング: limit 件ずつ返し、LEK（root キー＋展開オフセット）で再開できる。
+/// 1 root item（u1 は 2 行に展開）の**途中**にページ境界が来ても欠落・重複なし。
+#[test]
+fn join_pagination_round_trip() {
+    let e = seeded(true);
+    let base = jq(
+        input("users", "u"),
+        vec![step(
+            "orders",
+            "o",
+            JoinKind::Inner,
+            &[("u.id", "o.userId")],
+        )],
+    );
+    // ページなしの全量が基準
+    let all = execute(&e, &base).expect("join");
+    assert_eq!(all.rows.len(), 3);
+    assert!(all.last_evaluated_key.is_none());
+
+    // limit=1 で回すと u1 の展開（2 行）の途中で必ず境界が来る
+    let mut collected = Vec::new();
+    let mut start: Option<Vec<u8>> = None;
+    let mut guard = 0;
+    loop {
+        let mut q = base.clone();
+        q.limit = Some(1);
+        q.exclusive_start_key = start.clone();
+        let page = execute(&e, &q).expect("join page");
+        assert!(page.rows.len() <= 1, "page must respect limit");
+        collected.extend(page.rows);
+        match page.last_evaluated_key {
+            Some(k) => start = Some(k),
+            None => break,
+        }
+        guard += 1;
+        assert!(guard < 10, "pagination must terminate");
+    }
+    assert_eq!(pairs(&collected), pairs(&all.rows));
+}
+
+/// ページングは filter・LEFT 未マッチ行とも整合する（全ページ連結 = 一括実行）
+#[test]
+fn join_pagination_with_filter_and_left() {
+    let e = seeded(true);
+    let mut base = jq(
+        input("users", "u"),
+        vec![step("orders", "o", JoinKind::Left, &[("u.id", "o.userId")])],
+    );
+    base.filter = Some(ConditionInput {
+        expression: "attribute_not_exists(o.amount) OR o.amount >= :min".into(),
+        names: BTreeMap::new(),
+        values: [(":min".to_string(), n(20))].into_iter().collect(),
+    });
+    let all = execute(&e, &base).expect("join");
+    assert_eq!(all.rows.len(), 3); // o1(30)+Alice, o3(99)+Bob, Carol(未マッチ)
+
+    let mut collected = Vec::new();
+    let mut start: Option<Vec<u8>> = None;
+    loop {
+        let mut q = base.clone();
+        q.limit = Some(2);
+        q.exclusive_start_key = start.clone();
+        let page = execute(&e, &q).expect("join page");
+        assert!(page.rows.len() <= 2);
+        collected.extend(page.rows);
+        match page.last_evaluated_key {
+            Some(k) => start = Some(k),
+            None => break,
+        }
+    }
+    assert_eq!(pairs(&collected), pairs(&all.rows));
+}
+
+/// 不正な再開トークンは ValidationError
+#[test]
+fn join_invalid_start_key_is_rejected() {
+    let e = seeded(true);
+    let mut q = jq(
+        input("users", "u"),
+        vec![step(
+            "orders",
+            "o",
+            JoinKind::Inner,
+            &[("u.id", "o.userId")],
+        )],
+    );
+    q.exclusive_start_key = Some(vec![1, 2, 3]); // オフセット 8 バイトすら無い
+    let r = execute(&e, &q);
+    assert!(matches!(r, Err(DbError::Validation(_))), "got {r:?}");
 }

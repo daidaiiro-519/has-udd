@@ -189,6 +189,30 @@ class TestLoomDB(unittest.TestCase):
         with self.assertRaises(TypeError):
             db.put("orders", {"userId": "u1", "orderId": "s3", "bad": {"a", 1}})
 
+    def test_join_pagination(self):
+        db = orders_db()
+        db.create_table({"name": "users", "key": {"pk": "id"}})
+        db.put("users", {"id": "u1", "name": "Alice"})
+
+        collected, start = [], None
+        for _ in range(10):
+            params = {
+                "root": {"table": "orders", "alias": "o"},
+                "steps": [{"table": "users", "alias": "u", "kind": "inner",
+                           "on": [{"left": "o.userId", "right": "u.id"}]}],
+                "select": ["o.orderId"],
+                "limit": 1,
+            }
+            if start:
+                params["startKey"] = start
+            page = db.join(params)
+            self.assertLessEqual(len(page["rows"]), 1)
+            collected += [r["o.orderId"] for r in page["rows"]]
+            start = page.get("lastEvaluatedKey")
+            if not start:
+                break
+        self.assertEqual(sorted(collected), ["o1", "o2", "o3"])
+
     def test_projection(self):
         db = orders_db()
         db.put("orders", {"userId": "u1", "orderId": "p1", "amount": 5,

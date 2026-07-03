@@ -114,12 +114,18 @@ export interface JoinParams {
   names?: { [placeholder: string]: string };
   /** 射影（"alias.attr" の配列）。省略時は全属性 */
   select?: string[];
+  /** 1 ページの最大行数（filter 適用後の出力行で数える） */
+  limit?: number;
+  /** 前ページの lastEvaluatedKey（不透明トークン） */
+  startKey?: string;
 }
 
 export interface JoinResult {
   rows: { [aliasDotAttr: string]: Attr }[];
   /** scan フォールバック等の実行時警告（結合キーへの索引追加を促す） */
   warnings: string[];
+  /** limit で途中終了した場合の再開トークン。次回の startKey に渡す */
+  lastEvaluatedKey?: string;
 }
 
 /** transactWrite の 1 操作（put / update / delete / conditionCheck のいずれか1つ）。 */

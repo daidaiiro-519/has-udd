@@ -63,16 +63,16 @@ fn get_hides_expired_items() {
     put_item(&e, "events", &ev("forever", None), None).expect("put");
 
     e.set_now(1499);
-    assert!(get_item(&e, "events", &s("a"), None)
+    assert!(get_item(&e, "events", &s("a"), None, None)
         .expect("get")
         .is_some());
 
     e.set_now(1500); // ちょうど期限 = 失効
-    assert!(get_item(&e, "events", &s("a"), None)
+    assert!(get_item(&e, "events", &s("a"), None, None)
         .expect("get")
         .is_none());
     // TTL 属性を持たない item は永続
-    assert!(get_item(&e, "events", &s("forever"), None)
+    assert!(get_item(&e, "events", &s("forever"), None, None)
         .expect("get")
         .is_some());
 }
@@ -85,7 +85,7 @@ fn non_numeric_ttl_is_ignored() {
     it.insert("expiresAt".into(), s("not-a-number"));
     put_item(&e, "events", &it, None).expect("put");
     e.set_now(999_999);
-    assert!(get_item(&e, "events", &s("weird"), None)
+    assert!(get_item(&e, "events", &s("weird"), None, None)
         .expect("get")
         .is_some());
 }
@@ -165,7 +165,7 @@ fn sweep_deletes_up_to_budget() {
     assert_eq!(sweep_expired(&e, "events", 10).expect("sweep"), 0); // もう無い
 
     // live は残っている
-    assert!(get_item(&e, "events", &s("live"), None)
+    assert!(get_item(&e, "events", &s("live"), None, None)
         .expect("get")
         .is_some());
     // 索引エントリも物理削除済み: 失効前の時刻に巻き戻しても x1/x2 は出ない
@@ -208,5 +208,7 @@ fn sweep_on_table_without_ttl_is_noop() {
     put_item(&e, "plain", &ev("a", Some(1)), None).expect("put");
     e.set_now(999_999);
     assert_eq!(sweep_expired(&e, "plain", 10).expect("sweep"), 0);
-    assert!(get_item(&e, "plain", &s("a"), None).expect("get").is_some());
+    assert!(get_item(&e, "plain", &s("a"), None, None)
+        .expect("get")
+        .is_some());
 }

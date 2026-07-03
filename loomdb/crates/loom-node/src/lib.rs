@@ -87,10 +87,18 @@ impl LoomDb {
             .map_err(js_err)
     }
 
-    /// key: `{ pk属性: 値, sk属性?: 値 }` → item または null
+    /// key: `{ pk属性: 値, sk属性?: 値 }` → item または null。
+    /// options: `{ projection?, names? }`（取得属性の絞り込み・§5.4）
     #[napi]
-    pub fn get(&self, table: String, key: Value) -> napi::Result<Option<Value>> {
-        self.bridge()?.get(&table, &key).map_err(js_err)
+    pub fn get(
+        &self,
+        table: String,
+        key: Value,
+        options: Option<Value>,
+    ) -> napi::Result<Option<Value>> {
+        self.bridge()?
+            .get(&table, &key, options.as_ref())
+            .map_err(js_err)
     }
 
     /// 旧 item（無ければ null）を返す。options: `{ condition?, values?, names? }`

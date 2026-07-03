@@ -82,7 +82,7 @@ fn delete_table_removes_definition_and_items() {
 
     // 同名で作り直しても旧データが蘇らないこと（DynamoDB の DeleteTable 準拠）
     create_table(&engine, &def("orders")).expect("re-create");
-    let got = get_item(&engine, "orders", &s("a"), None).expect("get");
+    let got = get_item(&engine, "orders", &s("a"), None, None).expect("get");
     assert_eq!(got, None, "old items must not resurrect");
 }
 
@@ -121,7 +121,7 @@ fn item_ops_on_missing_table_are_resource_not_found() {
         Err(DbError::ResourceNotFound(_))
     ));
     assert!(matches!(
-        get_item(&engine, "ghost", &s("a"), None),
+        get_item(&engine, "ghost", &s("a"), None, None),
         Err(DbError::ResourceNotFound(_))
     ));
 }

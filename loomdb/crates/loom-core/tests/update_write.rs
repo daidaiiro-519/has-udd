@@ -70,7 +70,9 @@ fn update_missing_item_upserts_with_key() {
     assert_eq!(new.get("id"), Some(&s("a"))); // キー属性が入る
     assert_eq!(new.get("title"), Some(&s("hello")));
     // 実際に格納されている
-    let got = get_item(&e, "docs", &s("a"), None).expect("get").unwrap();
+    let got = get_item(&e, "docs", &s("a"), None, None)
+        .expect("get")
+        .unwrap();
     assert_eq!(got, new);
 }
 
@@ -115,7 +117,7 @@ fn atomic_counter_through_storage() {
         )
         .expect("update");
     }
-    let got = get_item(&e, "docs", &s("page"), None)
+    let got = get_item(&e, "docs", &s("page"), None, None)
         .expect("get")
         .unwrap();
     assert_eq!(got.get("hits"), Some(&n("2")));
@@ -152,7 +154,9 @@ fn conditional_update() {
     )
     .expect_err("stale cas must fail");
     assert!(matches!(err, DbError::ConditionalCheckFailed));
-    let got = get_item(&e, "docs", &s("a"), None).expect("get").unwrap();
+    let got = get_item(&e, "docs", &s("a"), None, None)
+        .expect("get")
+        .unwrap();
     assert_eq!(got.get("version"), Some(&n("2")));
 }
 

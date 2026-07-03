@@ -55,7 +55,7 @@ fn plain_json_round_trips() {
     });
     b.put("orders", &item, None).expect("put");
     let got = b
-        .get("orders", &json!({ "userId": "u1", "orderId": "o1" }))
+        .get("orders", &json!({ "userId": "u1", "orderId": "o1" }), None)
         .expect("get")
         .expect("item exists");
     assert_eq!(got, item);
@@ -65,7 +65,11 @@ fn plain_json_round_trips() {
 fn get_missing_returns_none() {
     let b = bridge();
     let got = b
-        .get("orders", &json!({ "userId": "u1", "orderId": "nope" }))
+        .get(
+            "orders",
+            &json!({ "userId": "u1", "orderId": "nope" }),
+            None,
+        )
         .expect("get");
     assert_eq!(got, None);
 }
@@ -82,7 +86,7 @@ fn big_numbers_come_back_as_strings() {
     )
     .expect("put"); // 2^53+1: f64 では表現できないが i64 なら正確
     let got = b
-        .get("orders", &json!({ "userId": "u1", "orderId": "big" }))
+        .get("orders", &json!({ "userId": "u1", "orderId": "big" }), None)
         .expect("get")
         .unwrap();
     assert_eq!(got["n"], json!(9_007_199_254_740_993i64)); // i64 に収まる → number のまま
@@ -96,7 +100,7 @@ fn big_numbers_come_back_as_strings() {
     .expect("update");
     // 文字列で入れたものは S のまま
     let got = b
-        .get("orders", &json!({ "userId": "u1", "orderId": "big" }))
+        .get("orders", &json!({ "userId": "u1", "orderId": "big" }), None)
         .expect("get")
         .unwrap();
     assert_eq!(got["huge"], json!("12345678901234567890123456789012345678"));
@@ -136,7 +140,11 @@ fn update_returns_all_new_and_counts() {
         .expect("update");
     }
     let got = b
-        .get("orders", &json!({ "userId": "u1", "orderId": "page" }))
+        .get(
+            "orders",
+            &json!({ "userId": "u1", "orderId": "page" }),
+            None,
+        )
         .expect("get")
         .unwrap();
     assert_eq!(got["hits"], json!(2));
@@ -320,7 +328,7 @@ fn transact_write_applies_all_ops() {
     .expect("transact_write");
 
     let get = |oid: &str| {
-        b.get("orders", &json!({ "userId": "u1", "orderId": oid }))
+        b.get("orders", &json!({ "userId": "u1", "orderId": oid }), None)
             .expect("get")
     };
     assert_eq!(get("o9").unwrap()["amount"], json!(1)); // put された
@@ -354,7 +362,7 @@ fn transact_write_cancels_all_on_condition_failure() {
     }
     // put もロールバックされている
     let got = b
-        .get("orders", &json!({ "userId": "u1", "orderId": "o9" }))
+        .get("orders", &json!({ "userId": "u1", "orderId": "o9" }), None)
         .expect("get");
     assert_eq!(got, None);
 }
@@ -397,11 +405,11 @@ fn batch_write_puts_and_deletes() {
     }))
     .expect("batch_write");
     assert!(b
-        .get("orders", &json!({ "userId": "u2", "orderId": "b1" }))
+        .get("orders", &json!({ "userId": "u2", "orderId": "b1" }), None)
         .expect("get")
         .is_some());
     assert_eq!(
-        b.get("orders", &json!({ "userId": "u1", "orderId": "o2" }))
+        b.get("orders", &json!({ "userId": "u1", "orderId": "o2" }), None)
             .expect("get"),
         None
     );
@@ -427,13 +435,14 @@ fn sweep_expired_via_bridge() {
 
     // 読取時失効（sweep 前でも見えない）
     assert_eq!(
-        b.get("sessions", &json!({ "id": "old" })).expect("get"),
+        b.get("sessions", &json!({ "id": "old" }), None)
+            .expect("get"),
         None
     );
     // 物理削除は sweep で
     assert_eq!(b.sweep_expired("sessions", 10).expect("sweep"), 1);
     assert!(b
-        .get("sessions", &json!({ "id": "live" }))
+        .get("sessions", &json!({ "id": "live" }), None)
         .expect("get")
         .is_some());
 }
@@ -471,7 +480,64 @@ fn malformed_requests_are_validation_errors() {
     }
     // key に pk 属性が欠けている get
     seed(&b);
-    let r = b.get("orders", &json!({ "orderId": "o1" }));
+    let r = b.get("orders", &json!({ "orderId": "o1" }), None);
+    assert!(matches!(r, Err(DbError::Validation(_))), "got {r:?}");
+}
+
+/// projection（§5.4）: get の options / query / scan で取得属性を絞れる
+#[test]
+fn projection_via_bridge() {
+    let b = bridge();
+    seed(&b);
+    b.put(
+        "orders",
+        &json!({ "userId": "u1", "orderId": "p1",
+                 "amount": 5, "addr": { "city": "tokyo", "zip": "100" } }),
+        None,
+    )
+    .expect("put");
+
+    // get: 入れ子パス＋#name
+    let got = b
+        .get(
+            "orders",
+            &json!({ "userId": "u1", "orderId": "p1" }),
+            Some(&json!({ "projection": "addr.city, #a", "names": { "#a": "amount" } })),
+        )
+        .expect("get")
+        .unwrap();
+    assert_eq!(got, json!({ "addr": { "city": "tokyo" }, "amount": 5 }));
+
+    // query / scan
+    let page = b
+        .query(
+            "orders",
+            &json!({
+                "keyCondition": "userId = :u",
+                "projection": "orderId",
+                "values": { ":u": "u1" }
+            }),
+        )
+        .expect("query");
+    for item in page["items"].as_array().unwrap() {
+        assert_eq!(item.as_object().unwrap().len(), 1);
+        assert!(item.get("orderId").is_some());
+    }
+    let page = b
+        .scan("orders", &json!({ "projection": "userId" }))
+        .expect("scan");
+    assert!(page["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .all(|i| i.as_object().unwrap().len() == 1));
+
+    // パス重複は ValidationError
+    let r = b.get(
+        "orders",
+        &json!({ "userId": "u1", "orderId": "p1" }),
+        Some(&json!({ "projection": "addr, addr.city" })),
+    );
     assert!(matches!(r, Err(DbError::Validation(_))), "got {r:?}");
 }
 
@@ -491,7 +557,7 @@ fn sets_via_bridge() {
     )
     .expect("put");
     let got = b
-        .get("orders", &json!({ "userId": "u1", "orderId": "s1" }))
+        .get("orders", &json!({ "userId": "u1", "orderId": "s1" }), None)
         .expect("get")
         .unwrap();
     assert_eq!(got["tags"], json!({ "$ss": ["blue", "red"] })); // 整列＋一意

@@ -57,10 +57,18 @@ export interface UpdateParams extends ConditionOptions {
   update: string;
 }
 
+/** ProjectionExpression（例: "name, addr.city, tags[0]"）。取得属性を絞る。 */
+export interface GetOptions {
+  projection?: string;
+  names?: { [placeholder: string]: string };
+}
+
 export interface QueryParams {
   /** KeyConditionExpression（例: "userId = :u AND begins_with(orderId, :p)"） */
   keyCondition: string;
   filter?: string;
+  /** ProjectionExpression（Filter の後に適用） */
+  projection?: string;
   values?: { [placeholder: string]: Attr };
   names?: { [placeholder: string]: string };
   index?: string;
@@ -73,6 +81,8 @@ export interface QueryParams {
 
 export interface ScanParams {
   filter?: string;
+  /** ProjectionExpression（Filter の後に適用） */
+  projection?: string;
   values?: { [placeholder: string]: Attr };
   names?: { [placeholder: string]: string };
   limit?: number;
@@ -144,7 +154,7 @@ export class LoomDB {
   updateTable(name: string, changes: { add?: IndexDef[]; remove?: string[] }): void;
 
   put(table: string, item: Item, options?: ConditionOptions): void;
-  get(table: string, key: Item): Item | null;
+  get(table: string, key: Item, options?: GetOptions): Item | null;
   /** 旧 item（無ければ null）を返す。 */
   delete(table: string, key: Item, options?: ConditionOptions): Item | null;
   /** 適用後の item 全体（ALL_NEW）を返す。 */

@@ -281,10 +281,19 @@ impl LoomDB {
             .map_err(py_err)
     }
 
-    fn get(&self, py: Python<'_>, table: &str, key: Bound<'_, PyAny>) -> PyResult<PyObject> {
+    /// options: `{"projection": "a, b.c", "names": {...}}`（取得属性の絞り込み・§5.4）
+    #[pyo3(signature = (table, key, options=None))]
+    fn get(
+        &self,
+        py: Python<'_>,
+        table: &str,
+        key: Bound<'_, PyAny>,
+        options: Option<Bound<'_, PyAny>>,
+    ) -> PyResult<PyObject> {
+        let options = options.map(|o| py_to_json(&o)).transpose()?;
         match self
             .bridge()?
-            .get(table, &py_to_json(&key)?)
+            .get(table, &py_to_json(&key)?, options.as_ref())
             .map_err(py_err)?
         {
             Some(item) => json_to_py(py, &item),

@@ -126,7 +126,8 @@ db.put("orders", {"userId": "u1", "orderId": "o100", "amount": 1200})
 | **TTL（§8）** | ✅ 読取時失効（get/query/scan/transact_get/JOIN すべてで隠蔽・limit に数えない・ttl<=now）・`sweep_expired(budget)` で物理削除（索引も同一 txn 掃除）・Clock port（テストは固定時計） |
 | **transact / batch / sweep のブリッジ＋バインディング公開** | ✅ `transactWrite`（`{put}/{update}/{delete}/{conditionCheck}` の 4 種・不成立は TransactionCanceled で全ロールバック）・`transactGet`/`batchGet`（同順 item\|null）・`batchWrite`・`sweepExpired` が **JS（node:test）と Python（unittest）の実テストで green**・TS 型定義同梱 |
 | **集合型 SS / NS / BS（§2.2）** | ✅ 正規化（整列・一意・NS は数値として一意＋canonical 表記）・空集合拒否・ADD=集合和／DELETE=集合差（空になったら属性ごと削除）・contains/size/attribute_type 対応。ブリッジは `{"$ss"}/{"$ns"}/{"$bs"}` 表現・**Python は素の set/frozenset がそのまま使える**（巨大 int も正確） |
-| 配布パッケージング（npm/@napi-rs/cli・PyPI/maturin）・Projection（§5.4）・JOIN ページング（§10.7） | ⏳ 次の TDD サイクル |
+| **Projection（§5.4）** | ✅ `projection: "name, addr.city, tags[0]"` を get / query / scan で指定可（Filter の後に適用）。入れ子は構造を保つ・リスト添字は詰める・存在しないパスは省く・パス重複は ValidationError。#name 共有・JS / Python からも利用可 |
+| 配布パッケージング（npm/@napi-rs/cli・PyPI/maturin）・JOIN ページング（§10.7）・§13 運用 API | ⏳ 次の TDD サイクル |
 
 ## ライセンス
 

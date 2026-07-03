@@ -189,6 +189,19 @@ class TestLoomDB(unittest.TestCase):
         with self.assertRaises(TypeError):
             db.put("orders", {"userId": "u1", "orderId": "s3", "bad": {"a", 1}})
 
+    def test_projection(self):
+        db = orders_db()
+        db.put("orders", {"userId": "u1", "orderId": "p1", "amount": 5,
+                          "addr": {"city": "tokyo", "zip": "100"}})
+        got = db.get("orders", {"userId": "u1", "orderId": "p1"},
+                     {"projection": "addr.city, #a", "names": {"#a": "amount"}})
+        self.assertEqual(got, {"addr": {"city": "tokyo"}, "amount": 5})
+
+        page = db.query("orders", {"keyCondition": "userId = :u",
+                                   "projection": "orderId", "values": {":u": "u1"}})
+        for item in page["items"]:
+            self.assertEqual(list(item.keys()), ["orderId"])
+
     def test_persistence_with_close(self):
         path = fresh_path()
         db = LoomDB(path)

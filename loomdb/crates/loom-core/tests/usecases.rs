@@ -41,14 +41,14 @@ fn put_then_get_round_trips() {
     let item = order_item("u1", "o100", "1200");
 
     put_item(&engine, "orders", &item, None).expect("put_item");
-    let got = get_item(&engine, "orders", &s("u1"), Some(&s("o100"))).expect("get_item");
+    let got = get_item(&engine, "orders", &s("u1"), Some(&s("o100")), None).expect("get_item");
     assert_eq!(got, Some(item));
 }
 
 #[test]
 fn get_missing_returns_none() {
     let engine = engine_with_orders();
-    let got = get_item(&engine, "orders", &s("u1"), Some(&s("nope"))).expect("get_item");
+    let got = get_item(&engine, "orders", &s("u1"), Some(&s("nope")), None).expect("get_item");
     assert_eq!(got, None);
 }
 
@@ -58,8 +58,8 @@ fn different_sk_are_different_items() {
     put_item(&engine, "orders", &order_item("u1", "o100", "1"), None).expect("put");
     put_item(&engine, "orders", &order_item("u1", "o101", "2"), None).expect("put");
 
-    let a = get_item(&engine, "orders", &s("u1"), Some(&s("o100"))).expect("get");
-    let b = get_item(&engine, "orders", &s("u1"), Some(&s("o101"))).expect("get");
+    let a = get_item(&engine, "orders", &s("u1"), Some(&s("o100")), None).expect("get");
+    let b = get_item(&engine, "orders", &s("u1"), Some(&s("o101")), None).expect("get");
     assert_ne!(a, b);
     assert!(a.is_some() && b.is_some());
 }

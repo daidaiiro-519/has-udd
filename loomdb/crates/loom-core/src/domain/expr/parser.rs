@@ -122,6 +122,26 @@ pub fn parse_update(input: &str) -> Result<UpdateExpr, DbError> {
     Ok(upd)
 }
 
+/// ProjectionExpression（spec §5.4）: カンマ区切りのパスのリスト。
+pub fn parse_projection(input: &str) -> Result<Vec<Path>, DbError> {
+    let toks = lex(input)?;
+    let mut p = Parser { toks, pos: 0 };
+    if p.toks.is_empty() {
+        return Err(p.err("empty projection expression"));
+    }
+    let mut paths = Vec::new();
+    loop {
+        paths.push(p.parse_path()?);
+        if !p.eat_comma() {
+            break;
+        }
+    }
+    if p.pos != p.toks.len() {
+        return Err(p.err("unexpected trailing tokens"));
+    }
+    Ok(paths)
+}
+
 // ---------------------------------------------------------------------------
 // 字句
 // ---------------------------------------------------------------------------

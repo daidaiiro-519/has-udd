@@ -3,7 +3,7 @@
 //! テーブル全域をキー昇順で走査。Limit は Filter 適用「前」に効く（query と同じ）。
 //! segment / total_segments（並列スキャン）は後続。
 
-use super::{apply_filter, Page, ScanOptions};
+use super::{apply_filter, apply_projection, Page, ScanOptions};
 use crate::application::meta;
 use crate::domain::{ttl, DbError, Item};
 use crate::ports::StorageEngine;
@@ -43,6 +43,7 @@ pub fn scan<E: StorageEngine>(
 
     let last_evaluated_key = if limit_hit { last_key } else { None };
     let items = apply_filter(matched, opts.filter.as_ref())?;
+    let items = apply_projection(items, opts.projection.as_ref())?; // Projection は最後
     Ok(Page {
         items,
         last_evaluated_key,

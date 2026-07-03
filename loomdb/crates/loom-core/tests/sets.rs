@@ -84,7 +84,9 @@ fn sets_round_trip_through_storage() {
     it.insert("scores".into(), ns(&["1", "2.5"]));
     it.insert("blobs".into(), bs(&[b"\x00\xff", b"\x01"]));
     put_item(&e, "docs", &it, None).expect("put");
-    let got = get_item(&e, "docs", &s("d1"), None).expect("get").unwrap();
+    let got = get_item(&e, "docs", &s("d1"), None, None)
+        .expect("get")
+        .unwrap();
     assert_eq!(got, it);
 }
 

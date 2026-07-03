@@ -164,13 +164,13 @@ fn successful_transact_applies_everything() {
     )
     .expect("transact");
 
-    assert!(get_item(&e, "docs", &s("fresh"), None)
+    assert!(get_item(&e, "docs", &s("fresh"), None, None)
         .expect("get")
         .is_some());
-    assert!(get_item(&e, "docs", &s("victim"), None)
+    assert!(get_item(&e, "docs", &s("victim"), None, None)
         .expect("get")
         .is_none());
-    let counter = get_item(&e, "docs", &s("counter"), None)
+    let counter = get_item(&e, "docs", &s("counter"), None, None)
         .expect("get")
         .unwrap();
     assert_eq!(counter.get("hits"), Some(&n("1")));
@@ -194,7 +194,9 @@ fn condition_check_failure_cancels() {
     )
     .expect_err("must cancel");
     assert!(matches!(err, DbError::TransactionCanceled(_)));
-    assert!(get_item(&e, "docs", &s("x"), None).expect("get").is_none());
+    assert!(get_item(&e, "docs", &s("x"), None, None)
+        .expect("get")
+        .is_none());
 }
 
 /// 同一 item への複数操作は拒否（DynamoDB 準拠）
@@ -275,9 +277,13 @@ fn batch_write_applies_puts_and_deletes() {
     )
     .expect("batch_write");
 
-    assert!(get_item(&e, "docs", &s("n1"), None).expect("get").is_some());
-    assert!(get_item(&e, "docs", &s("n2"), None).expect("get").is_some());
-    assert!(get_item(&e, "docs", &s("old"), None)
+    assert!(get_item(&e, "docs", &s("n1"), None, None)
+        .expect("get")
+        .is_some());
+    assert!(get_item(&e, "docs", &s("n2"), None, None)
+        .expect("get")
+        .is_some());
+    assert!(get_item(&e, "docs", &s("old"), None, None)
         .expect("get")
         .is_none());
 }

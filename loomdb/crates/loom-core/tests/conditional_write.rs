@@ -59,7 +59,9 @@ fn put_if_not_exists_idiom() {
     let err = put_item(&e, "docs", &doc("a", "9"), Some(&c)).expect_err("second must fail");
     assert!(matches!(err, DbError::ConditionalCheckFailed));
     // 失敗した put は何も変えていない（ロールバック）
-    let got = get_item(&e, "docs", &s("a"), None).expect("get").unwrap();
+    let got = get_item(&e, "docs", &s("a"), None, None)
+        .expect("get")
+        .unwrap();
     assert_eq!(got.get("version"), Some(&n("1")));
 }
 
@@ -88,7 +90,9 @@ fn optimistic_lock_via_version_condition() {
     .expect_err("stale cas must fail");
     assert!(matches!(err, DbError::ConditionalCheckFailed));
 
-    let got = get_item(&e, "docs", &s("a"), None).expect("get").unwrap();
+    let got = get_item(&e, "docs", &s("a"), None, None)
+        .expect("get")
+        .unwrap();
     assert_eq!(got.get("version"), Some(&n("2")));
 }
 
@@ -130,7 +134,10 @@ fn conditional_delete_returns_old_item() {
     )
     .expect("delete");
     assert_eq!(old, Some(doc("a", "7")));
-    assert_eq!(get_item(&e, "docs", &s("a"), None).expect("get"), None);
+    assert_eq!(
+        get_item(&e, "docs", &s("a"), None, None).expect("get"),
+        None
+    );
 }
 
 /// delete: 条件不成立なら何も消えない
@@ -147,5 +154,7 @@ fn failed_conditional_delete_changes_nothing() {
     )
     .expect_err("must fail");
     assert!(matches!(err, DbError::ConditionalCheckFailed));
-    assert!(get_item(&e, "docs", &s("a"), None).expect("get").is_some());
+    assert!(get_item(&e, "docs", &s("a"), None, None)
+        .expect("get")
+        .is_some());
 }

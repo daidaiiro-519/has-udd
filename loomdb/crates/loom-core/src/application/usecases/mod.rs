@@ -32,7 +32,7 @@ pub use transact_write::{transact_write, TransactWriteOp};
 pub use update_item::update_item;
 pub use update_table::update_table;
 
-use crate::domain::expr::{eval, parse_condition, ExprContext};
+use crate::domain::expr::{eval, parse_condition, parse_projection, project, ExprContext};
 use crate::domain::{AttributeValue, DbError, Item};
 use std::collections::BTreeMap;
 
@@ -52,6 +52,8 @@ pub struct ExprInput {
 pub type ConditionInput = ExprInput;
 pub type UpdateInput = ExprInput;
 pub type KeyConditionInput = ExprInput;
+/// ProjectionExpression（spec §5.4）。values は使わない（names のみ参照）。
+pub type ProjectionInput = ExprInput;
 
 /// query/scan の結果ページ（spec §4.3）。
 #[derive(Debug, Clone, Default)]
@@ -71,6 +73,8 @@ pub struct QueryOptions {
     pub scan_forward: bool,
     pub limit: Option<usize>,
     pub exclusive_start_key: Option<Vec<u8>>,
+    /// 取得属性の絞り込み（spec §5.4・Filter の後に適用）
+    pub projection: Option<ProjectionInput>,
 }
 
 impl Default for QueryOptions {
@@ -81,6 +85,7 @@ impl Default for QueryOptions {
             scan_forward: true,
             limit: None,
             exclusive_start_key: None,
+            projection: None,
         }
     }
 }
@@ -91,6 +96,8 @@ pub struct ScanOptions {
     pub filter: Option<ConditionInput>,
     pub limit: Option<usize>,
     pub exclusive_start_key: Option<Vec<u8>>,
+    /// 取得属性の絞り込み（spec §5.4・Filter の後に適用）
+    pub projection: Option<ProjectionInput>,
 }
 
 /// Filter を「Limit 適用後のページ」に適用する（spec §4.3: Limit が先）。
@@ -111,6 +118,25 @@ pub(crate) fn apply_filter(
         }
     }
     Ok(out)
+}
+
+/// Projection をページの各 item に適用する（spec §5.4・Filter の後）。
+pub(crate) fn apply_projection(
+    items: Vec<Item>,
+    projection: Option<&ProjectionInput>,
+) -> Result<Vec<Item>, DbError> {
+    let Some(p) = projection else {
+        return Ok(items);
+    };
+    let paths = parse_projection(&p.expression)?;
+    let ctx = ExprContext {
+        names: &p.names,
+        values: &p.values,
+    };
+    items
+        .into_iter()
+        .map(|it| project(&paths, &it, &ctx))
+        .collect()
 }
 
 /// condition を現行 item（未存在なら空 item）に対して評価し、

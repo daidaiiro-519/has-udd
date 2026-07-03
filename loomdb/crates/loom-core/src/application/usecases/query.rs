@@ -4,7 +4,7 @@
 //! 適用する。**Limit は Filter 適用「前」**に効く（DynamoDB 準拠・spec §4.3）。
 //! 索引経由でも item は main から全属性を返す（ローカル特権・常に強整合・spec §7）。
 
-use super::{apply_filter, KeyConditionInput, Page, QueryOptions};
+use super::{apply_filter, apply_projection, KeyConditionInput, Page, QueryOptions};
 use crate::application::meta;
 use crate::domain::expr::{self, key as key_expr, ExprContext, SkCond};
 use crate::domain::index::index_table_name;
@@ -135,6 +135,7 @@ pub fn query<E: StorageEngine>(
 
     let last_evaluated_key = if limit_hit { last_key } else { None };
     let items = apply_filter(matched, opts.filter.as_ref())?; // Filter は Limit の後
+    let items = apply_projection(items, opts.projection.as_ref())?; // Projection は最後
     Ok(Page {
         items,
         last_evaluated_key,

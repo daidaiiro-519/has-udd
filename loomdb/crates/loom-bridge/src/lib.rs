@@ -88,10 +88,24 @@ impl<E: StorageEngine> Bridge<E> {
         uc::put_item(&self.engine, table, &item, condition.as_ref())
     }
 
-    /// key: `{ pkAttr: value, skAttr?: value }`（属性名はテーブル定義で解決）
-    pub fn get(&self, table: &str, key: &Value) -> Result<Option<Value>, DbError> {
+    /// key: `{ pkAttr: value, skAttr?: value }`（属性名はテーブル定義で解決）。
+    /// options: `{ projection?, names? }`
+    pub fn get(
+        &self,
+        table: &str,
+        key: &Value,
+        options: Option<&Value>,
+    ) -> Result<Option<Value>, DbError> {
         let (pk, sk) = self.resolve_key(table, key)?;
-        let got = uc::get_item(&self.engine, table, &pk, sk.as_ref())?;
+        let projection = match options {
+            Some(o) => {
+                let obj = as_object(o, "options")?;
+                let (_, names) = shared_values_names(obj)?;
+                parse_projection_expr(obj, &names)?
+            }
+            None => None,
+        };
+        let got = uc::get_item(&self.engine, table, &pk, sk.as_ref(), projection.as_ref())?;
         Ok(got.map(|item| value::item_to_json(&item)))
     }
 
@@ -146,7 +160,7 @@ impl<E: StorageEngine> Bridge<E> {
 
     // -- 問い合わせ ----------------------------------------------------------
 
-    /// params: `{ keyCondition, filter?, values?, names?, index?, limit?,
+    /// params: `{ keyCondition, filter?, projection?, values?, names?, index?, limit?,
     ///            scanForward?, startKey? }` → `{ items, lastEvaluatedKey? }`
     pub fn query(&self, table: &str, params: &Value) -> Result<Value, DbError> {
         let obj = as_object(params, "query params")?;
@@ -172,12 +186,13 @@ impl<E: StorageEngine> Bridge<E> {
             },
             limit: opt_usize(obj, "limit")?,
             exclusive_start_key: opt_token(obj, "startKey")?,
+            projection: parse_projection_expr(obj, &names)?,
         };
         let page = uc::query(&self.engine, table, &key_condition, &opts)?;
         Ok(page_to_json(page))
     }
 
-    /// params: `{ filter?, values?, names?, limit?, startKey? }`
+    /// params: `{ filter?, projection?, values?, names?, limit?, startKey? }`
     pub fn scan(&self, table: &str, params: &Value) -> Result<Value, DbError> {
         let obj = as_object(params, "scan params")?;
         let (values, names) = shared_values_names(obj)?;
@@ -185,6 +200,7 @@ impl<E: StorageEngine> Bridge<E> {
             filter: parse_filter(obj, &values, &names)?,
             limit: opt_usize(obj, "limit")?,
             exclusive_start_key: opt_token(obj, "startKey")?,
+            projection: parse_projection_expr(obj, &names)?,
         };
         let page = uc::scan(&self.engine, table, &opts)?;
         Ok(page_to_json(page))
@@ -488,6 +504,21 @@ fn parse_condition_opt(options: Option<&Value>) -> Result<Option<ConditionInput>
         names,
         values,
     }))
+}
+
+/// ProjectionExpression（§5.4）。names は他の式と共有する。
+fn parse_projection_expr(
+    obj: &Map<String, Value>,
+    names: &BTreeMap<String, String>,
+) -> Result<Option<uc::ProjectionInput>, DbError> {
+    match obj.get("projection") {
+        Some(p) => Ok(Some(uc::ProjectionInput {
+            expression: as_str(p, "projection")?.to_string(),
+            names: names.clone(),
+            values: BTreeMap::new(),
+        })),
+        None => Ok(None),
+    }
 }
 
 fn parse_filter(

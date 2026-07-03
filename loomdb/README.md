@@ -124,7 +124,8 @@ db.put("orders", {"userId": "u1", "orderId": "o100", "amount": 1200})
 | **loom-py（PyPI "loomdb"・Python から使える）** | ✅ `LoomDB("data.loom")` → 全操作＋join＋close が **Python 3.11 の実テストで green**（8本）。**int は任意精度（2^53+1 も正確）**・bytes ↔ B 型・abi3 wheel 前提 |
 | **transact_write / transact_get / batch（§4.4）** | ✅ all-or-nothing（**失敗時は項目も索引も不変** = 必須プロパティ）・理由コード配列・同一 item 重複拒否・**150 操作が 1 txn で通る**（無制限 = 差別化）・一貫スナップショット読取 |
 | **TTL（§8）** | ✅ 読取時失効（get/query/scan/transact_get/JOIN すべてで隠蔽・limit に数えない・ttl<=now）・`sweep_expired(budget)` で物理削除（索引も同一 txn 掃除）・Clock port（テストは固定時計） |
-| 配布パッケージング（npm/@napi-rs/cli・PyPI/maturin）・transact/batch/sweep のブリッジ公開・集合型 SS/NS/BS・Projection（§5.4）・JOIN ページング（§10.7） | ⏳ 次の TDD サイクル |
+| **transact / batch / sweep のブリッジ＋バインディング公開** | ✅ `transactWrite`（`{put}/{update}/{delete}/{conditionCheck}` の 4 種・不成立は TransactionCanceled で全ロールバック）・`transactGet`/`batchGet`（同順 item\|null）・`batchWrite`・`sweepExpired` が **JS（node:test）と Python（unittest）の実テストで green**・TS 型定義同梱 |
+| 配布パッケージング（npm/@napi-rs/cli・PyPI/maturin）・集合型 SS/NS/BS・Projection（§5.4）・JOIN ページング（§10.7） | ⏳ 次の TDD サイクル |
 
 ## ライセンス
 

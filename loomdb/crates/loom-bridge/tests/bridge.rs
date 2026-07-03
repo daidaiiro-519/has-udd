@@ -296,6 +296,165 @@ fn table_management() {
     assert!(b.list_tables().expect("list").is_empty());
 }
 
+// ---------------------------------------------------------------------------
+// transact / batch / sweep（§4.4・§8 のブリッジ公開）
+// ---------------------------------------------------------------------------
+
+/// transact_write: put/update/delete/conditionCheck の 4 種が 1 txn で全部通る
+#[test]
+fn transact_write_applies_all_ops() {
+    let b = bridge();
+    seed(&b);
+    b.transact_write(&json!([
+        { "put": { "table": "orders",
+                   "item": { "userId": "u1", "orderId": "o9", "status": "open", "amount": 1 } } },
+        { "update": { "table": "orders",
+                      "key": { "userId": "u1", "orderId": "o1" },
+                      "update": "ADD amount :d", "values": { ":d": 5 } } },
+        { "delete": { "table": "orders",
+                      "key": { "userId": "u1", "orderId": "o2" } } },
+        { "conditionCheck": { "table": "orders",
+                              "key": { "userId": "u1", "orderId": "o3" },
+                              "condition": "amount = :a", "values": { ":a": 99 } } }
+    ]))
+    .expect("transact_write");
+
+    let get = |oid: &str| {
+        b.get("orders", &json!({ "userId": "u1", "orderId": oid }))
+            .expect("get")
+    };
+    assert_eq!(get("o9").unwrap()["amount"], json!(1)); // put された
+    assert_eq!(get("o1").unwrap()["amount"], json!(35)); // 30 + 5
+    assert_eq!(get("o2"), None); // delete された
+}
+
+/// 条件不成立は TransactionCanceled（理由コード配列・該当位置のみ Failed）で
+/// **全操作ロールバック**
+#[test]
+fn transact_write_cancels_all_on_condition_failure() {
+    let b = bridge();
+    seed(&b);
+    let err = b
+        .transact_write(&json!([
+            { "put": { "table": "orders",
+                       "item": { "userId": "u1", "orderId": "o9", "amount": 1 } } },
+            { "conditionCheck": { "table": "orders",
+                                  "key": { "userId": "u1", "orderId": "o3" },
+                                  "condition": "amount = :a", "values": { ":a": -1 } } }
+        ]))
+        .expect_err("must cancel");
+    match &err {
+        DbError::TransactionCanceled(reasons) => {
+            assert_eq!(
+                reasons,
+                &vec!["None".to_string(), "ConditionalCheckFailed".into()]
+            );
+        }
+        other => panic!("expected TransactionCanceled, got {other:?}"),
+    }
+    // put もロールバックされている
+    let got = b
+        .get("orders", &json!({ "userId": "u1", "orderId": "o9" }))
+        .expect("get");
+    assert_eq!(got, None);
+}
+
+/// transact_get / batch_get: 単一スナップショットで複数キー → 順序保存・欠損は null
+#[test]
+fn transact_get_returns_items_and_nulls_in_order() {
+    let b = bridge();
+    seed(&b);
+    let keys = json!([
+        { "table": "orders", "key": { "userId": "u1", "orderId": "o3" } },
+        { "table": "orders", "key": { "userId": "u1", "orderId": "ghost" } },
+        { "table": "orders", "key": { "userId": "u1", "orderId": "o1" } }
+    ]);
+    let got = b.transact_get(&keys).expect("transact_get");
+    let items = got.as_array().expect("array");
+    assert_eq!(items[0]["amount"], json!(99));
+    assert!(items[1].is_null());
+    assert_eq!(items[2]["amount"], json!(30));
+    // ローカルでは batch_get も同一意味論
+    assert_eq!(b.batch_get(&keys).expect("batch_get"), got);
+}
+
+/// batch_write: puts / deletes を無制限に流せる冪等ループ
+#[test]
+fn batch_write_puts_and_deletes() {
+    let b = bridge();
+    seed(&b);
+    b.batch_write(&json!({
+        "puts": [
+            { "table": "orders",
+              "item": { "userId": "u2", "orderId": "b1", "amount": 7 } },
+            { "table": "orders",
+              "item": { "userId": "u2", "orderId": "b2", "amount": 8 } }
+        ],
+        "deletes": [
+            { "table": "orders", "key": { "userId": "u1", "orderId": "o2" } },
+            { "table": "orders", "key": { "userId": "u1", "orderId": "ghost" } }
+        ]
+    }))
+    .expect("batch_write");
+    assert!(b
+        .get("orders", &json!({ "userId": "u2", "orderId": "b1" }))
+        .expect("get")
+        .is_some());
+    assert_eq!(
+        b.get("orders", &json!({ "userId": "u1", "orderId": "o2" }))
+            .expect("get"),
+        None
+    );
+}
+
+/// TTL: 失効項目は読取時点で隠れ、sweep_expired が物理削除数を返す（§8）
+#[test]
+fn sweep_expired_via_bridge() {
+    let b = Bridge::new(InMemoryStorage::new());
+    b.create_table(&json!({
+        "name": "sessions", "key": { "pk": "id" }, "ttlAttr": "expiresAt"
+    }))
+    .expect("create_table");
+    b.engine().set_now(1_000);
+    b.put("sessions", &json!({ "id": "old", "expiresAt": 500 }), None)
+        .expect("put");
+    b.put(
+        "sessions",
+        &json!({ "id": "live", "expiresAt": 2_000 }),
+        None,
+    )
+    .expect("put");
+
+    // 読取時失効（sweep 前でも見えない）
+    assert_eq!(
+        b.get("sessions", &json!({ "id": "old" })).expect("get"),
+        None
+    );
+    // 物理削除は sweep で
+    assert_eq!(b.sweep_expired("sessions", 10).expect("sweep"), 1);
+    assert!(b
+        .get("sessions", &json!({ "id": "live" }))
+        .expect("get")
+        .is_some());
+}
+
+/// 不正な形の transact 操作は Validation
+#[test]
+fn malformed_transact_ops_are_validation_errors() {
+    let b = bridge();
+    seed(&b);
+    for bad in [
+        json!({ "not": "an array" }),
+        json!([{ "teleport": { "table": "orders" } }]), // 未知の操作
+        json!([{ "put": { "table": "orders" } }]),      // item がない
+        json!([{ "update": { "table": "orders",
+                             "key": { "userId": "u1", "orderId": "o1" } } }]), // update 式がない
+    ] {
+        let r = b.transact_write(&bad);
+        assert!(matches!(r, Err(DbError::Validation(_))), "{bad}: got {r:?}");
+    }
+}
+
 /// 不正な形の JSON は Validation
 #[test]
 fn malformed_requests_are_validation_errors() {

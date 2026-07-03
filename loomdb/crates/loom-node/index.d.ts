@@ -94,6 +94,24 @@ export interface JoinResult {
   warnings: string[];
 }
 
+/** transactWrite の 1 操作（put / update / delete / conditionCheck のいずれか1つ）。 */
+export type TransactWriteOp =
+  | { put: { table: string; item: Item } & ConditionOptions }
+  | { update: { table: string; key: Item } & UpdateParams }
+  | { delete: { table: string; key: Item } & ConditionOptions }
+  | { conditionCheck: { table: string; key: Item; condition: string } & ConditionOptions };
+
+/** transactGet / batchGet / batchWrite の deletes で使うキー参照。 */
+export interface KeyRef {
+  table: string;
+  key: Item;
+}
+
+export interface BatchWriteParams {
+  puts?: { table: string; item: Item }[];
+  deletes?: KeyRef[];
+}
+
 export class LoomDB {
   /** ファイルを開く（無ければ作成）。 */
   constructor(path: string);
@@ -118,4 +136,18 @@ export class LoomDB {
   scan(table: string, params?: ScanParams): Page;
   /** LoomDB の差別化: N テーブル JOIN（inner / left・多段）。 */
   join(params: JoinParams): JoinResult;
+
+  /**
+   * 複数操作を 1 トランザクションで all-or-nothing 適用（件数無制限）。
+   * 条件不成立時は TransactionCanceled（理由コード配列付き）を throw。
+   */
+  transactWrite(ops: TransactWriteOp[]): void;
+  /** 単一スナップショットで複数キーを読む。結果は同順の item | null。 */
+  transactGet(keys: KeyRef[]): (Item | null)[];
+  /** ローカルでは transactGet と同一意味論（UnprocessedKeys は常に空）。 */
+  batchGet(keys: KeyRef[]): (Item | null)[];
+  /** puts / deletes の冪等ループ（件数無制限・UnprocessedItems は常に空）。 */
+  batchWrite(params: BatchWriteParams): void;
+  /** TTL 失効項目を budget 件まで物理削除し、削除数を返す。 */
+  sweepExpired(table: string, budget: number): number;
 }

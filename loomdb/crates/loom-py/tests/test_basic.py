@@ -109,6 +109,58 @@ class TestLoomDB(unittest.TestCase):
                                    "keyCondition": "amount = :a", "values": {":a": 30}})
         self.assertEqual(len(page["items"]), 1)
 
+    def test_transact_write_and_get(self):
+        db = orders_db()
+        db.transact_write([
+            {"put": {"table": "orders",
+                     "item": {"userId": "u1", "orderId": "t1", "amount": 1}}},
+            {"update": {"table": "orders", "key": {"userId": "u1", "orderId": "o1"},
+                        "update": "ADD amount :d", "values": {":d": 5}}},
+            {"delete": {"table": "orders", "key": {"userId": "u1", "orderId": "o2"}}},
+            {"conditionCheck": {"table": "orders", "key": {"userId": "u1", "orderId": "o3"},
+                                "condition": "amount = :a", "values": {":a": 99}}},
+        ])
+        self.assertEqual(db.get("orders", {"userId": "u1", "orderId": "o1"})["amount"], 35)
+        self.assertIsNone(db.get("orders", {"userId": "u1", "orderId": "o2"}))
+
+        # 条件不成立 → TransactionCanceled で put もロールバック
+        with self.assertRaises(RuntimeError) as cm:
+            db.transact_write([
+                {"put": {"table": "orders", "item": {"userId": "u1", "orderId": "t2"}}},
+                {"conditionCheck": {"table": "orders",
+                                    "key": {"userId": "u1", "orderId": "o3"},
+                                    "condition": "amount = :a", "values": {":a": -1}}},
+            ])
+        self.assertIn("TransactionCanceled", str(cm.exception))
+        self.assertIsNone(db.get("orders", {"userId": "u1", "orderId": "t2"}))
+
+        # transact_get / batch_get は同順で item | None
+        keys = [{"table": "orders", "key": {"userId": "u1", "orderId": "o3"}},
+                {"table": "orders", "key": {"userId": "u1", "orderId": "ghost"}}]
+        got = db.transact_get(keys)
+        self.assertEqual(got[0]["amount"], 99)
+        self.assertIsNone(got[1])
+        self.assertEqual(db.batch_get(keys), got)
+
+    def test_batch_write_and_sweep_expired(self):
+        db = orders_db()
+        db.batch_write({
+            "puts": [{"table": "orders",
+                      "item": {"userId": "u2", "orderId": "b1", "amount": 7}}],
+            "deletes": [{"table": "orders", "key": {"userId": "u1", "orderId": "o2"}}],
+        })
+        self.assertEqual(db.get("orders", {"userId": "u2", "orderId": "b1"})["amount"], 7)
+        self.assertIsNone(db.get("orders", {"userId": "u1", "orderId": "o2"}))
+
+        # TTL: 失効項目は読取で隠れ、sweep_expired が物理削除数を返す
+        import time
+        db.create_table({"name": "sessions", "key": {"pk": "id"}, "ttlAttr": "expiresAt"})
+        db.put("sessions", {"id": "old", "expiresAt": 1})  # とうに失効
+        db.put("sessions", {"id": "live", "expiresAt": int(time.time()) + 3600})
+        self.assertIsNone(db.get("sessions", {"id": "old"}))
+        self.assertEqual(db.sweep_expired("sessions", 10), 1)
+        self.assertEqual(db.get("sessions", {"id": "live"})["id"], "live")
+
     def test_persistence_with_close(self):
         path = fresh_path()
         db = LoomDB(path)

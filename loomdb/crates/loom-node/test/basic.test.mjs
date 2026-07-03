@@ -146,6 +146,65 @@ test("テーブル管理: listTables / updateTable(後付け索引バックフ�
   assert.equal(page.items.length, 1);
 });
 
+test("transactWrite: 4 種の操作が all-or-nothing・不成立は全ロールバック", () => {
+  const db = ordersDb();
+  db.transactWrite([
+    { put: { table: "orders", item: { userId: "u1", orderId: "t1", amount: 1 } } },
+    { update: { table: "orders", key: { userId: "u1", orderId: "o1" },
+                update: "ADD amount :d", values: { ":d": 5 } } },
+    { delete: { table: "orders", key: { userId: "u1", orderId: "o2" } } },
+    { conditionCheck: { table: "orders", key: { userId: "u1", orderId: "o3" },
+                        condition: "amount = :a", values: { ":a": 99 } } },
+  ]);
+  assert.equal(db.get("orders", { userId: "u1", orderId: "t1" }).amount, 1);
+  assert.equal(db.get("orders", { userId: "u1", orderId: "o1" }).amount, 35);
+  assert.equal(db.get("orders", { userId: "u1", orderId: "o2" }), null);
+
+  // 条件不成立 → TransactionCanceled で put もロールバック
+  assert.throws(
+    () => db.transactWrite([
+      { put: { table: "orders", item: { userId: "u1", orderId: "t2" } } },
+      { conditionCheck: { table: "orders", key: { userId: "u1", orderId: "o3" },
+                          condition: "amount = :a", values: { ":a": -1 } } },
+    ]),
+    (err) => err.message.includes("TransactionCanceled"),
+  );
+  assert.equal(db.get("orders", { userId: "u1", orderId: "t2" }), null);
+});
+
+test("transactGet / batchGet: 同順で item | null が返る", () => {
+  const db = ordersDb();
+  const keys = [
+    { table: "orders", key: { userId: "u1", orderId: "o3" } },
+    { table: "orders", key: { userId: "u1", orderId: "ghost" } },
+  ];
+  const got = db.transactGet(keys);
+  assert.equal(got[0].amount, 99);
+  assert.equal(got[1], null);
+  assert.deepEqual(db.batchGet(keys), got);
+});
+
+test("batchWrite: puts / deletes をまとめて流せる", () => {
+  const db = ordersDb();
+  db.batchWrite({
+    puts: [{ table: "orders", item: { userId: "u2", orderId: "b1", amount: 7 } }],
+    deletes: [{ table: "orders", key: { userId: "u1", orderId: "o2" } }],
+  });
+  assert.equal(db.get("orders", { userId: "u2", orderId: "b1" }).amount, 7);
+  assert.equal(db.get("orders", { userId: "u1", orderId: "o2" }), null);
+});
+
+test("TTL: 失効項目は読取で隠れ、sweepExpired が物理削除数を返す", () => {
+  const db = new LoomDB(freshPath());
+  db.createTable({ name: "sessions", key: { pk: "id" }, ttlAttr: "expiresAt" });
+  const now = Math.floor(Date.now() / 1000);
+  db.put("sessions", { id: "old", expiresAt: 1 });          // とうに失効
+  db.put("sessions", { id: "live", expiresAt: now + 3600 }); // 1 時間後
+  assert.equal(db.get("sessions", { id: "old" }), null);
+  assert.equal(db.sweepExpired("sessions", 10), 1);
+  assert.equal(db.get("sessions", { id: "live" }).id, "live");
+});
+
 test("永続化: close して開き直してもデータが残っている", () => {
   const path = freshPath();
   const db = new LoomDB(path);

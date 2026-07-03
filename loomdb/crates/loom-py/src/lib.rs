@@ -267,6 +267,46 @@ impl LoomDB {
         let result = self.bridge()?.join(&py_to_json(&params)?).map_err(py_err)?;
         json_to_py(py, &result)
     }
+
+    /// ops: `[{"put": {...}} | {"update": {...}} | {"delete": {...}} |
+    ///        {"conditionCheck": {...}}]` を 1 txn で all-or-nothing 適用（件数無制限）。
+    /// 条件不成立は TransactionCanceled（理由コード付き）で全体ロールバック。
+    fn transact_write(&self, ops: Bound<'_, PyAny>) -> PyResult<()> {
+        self.bridge()?
+            .transact_write(&py_to_json(&ops)?)
+            .map_err(py_err)
+    }
+
+    /// keys: `[{"table": .., "key": {..}}]` → 単一スナップショットで
+    /// item | None のリスト（同順）。
+    fn transact_get(&self, py: Python<'_>, keys: Bound<'_, PyAny>) -> PyResult<PyObject> {
+        let got = self
+            .bridge()?
+            .transact_get(&py_to_json(&keys)?)
+            .map_err(py_err)?;
+        json_to_py(py, &got)
+    }
+
+    /// ローカルでは transact_get と同一意味論（UnprocessedKeys は常に空）。
+    fn batch_get(&self, py: Python<'_>, keys: Bound<'_, PyAny>) -> PyResult<PyObject> {
+        let got = self
+            .bridge()?
+            .batch_get(&py_to_json(&keys)?)
+            .map_err(py_err)?;
+        json_to_py(py, &got)
+    }
+
+    /// params: `{"puts": [{table, item}], "deletes": [{table, key}]}`（件数無制限）
+    fn batch_write(&self, params: Bound<'_, PyAny>) -> PyResult<()> {
+        self.bridge()?
+            .batch_write(&py_to_json(&params)?)
+            .map_err(py_err)
+    }
+
+    /// TTL 失効項目を budget 件まで物理削除し、削除数を返す。
+    fn sweep_expired(&self, table: &str, budget: usize) -> PyResult<usize> {
+        self.bridge()?.sweep_expired(table, budget).map_err(py_err)
+    }
 }
 
 #[pymodule]

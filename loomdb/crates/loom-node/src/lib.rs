@@ -131,4 +131,38 @@ impl LoomDb {
     pub fn join(&self, params: Value) -> napi::Result<Value> {
         self.bridge()?.join(&params).map_err(js_err)
     }
+
+    /// ops: `[{ put } | { update } | { delete } | { conditionCheck }]` を
+    /// 1 txn で all-or-nothing 適用（件数無制限）。不成立は TransactionCanceled。
+    #[napi]
+    pub fn transact_write(&self, ops: Value) -> napi::Result<()> {
+        self.bridge()?.transact_write(&ops).map_err(js_err)
+    }
+
+    /// keys: `[{ table, key }]` → 単一スナップショットで item | null の配列（同順）
+    #[napi]
+    pub fn transact_get(&self, keys: Value) -> napi::Result<Value> {
+        self.bridge()?.transact_get(&keys).map_err(js_err)
+    }
+
+    /// ローカルでは transactGet と同一意味論（UnprocessedKeys は常に空）。
+    #[napi]
+    pub fn batch_get(&self, keys: Value) -> napi::Result<Value> {
+        self.bridge()?.batch_get(&keys).map_err(js_err)
+    }
+
+    /// params: `{ puts?: [{table, item}], deletes?: [{table, key}] }`（件数無制限）
+    #[napi]
+    pub fn batch_write(&self, params: Value) -> napi::Result<()> {
+        self.bridge()?.batch_write(&params).map_err(js_err)
+    }
+
+    /// TTL 失効項目を budget 件まで物理削除し、削除数を返す。
+    #[napi]
+    pub fn sweep_expired(&self, table: String, budget: u32) -> napi::Result<u32> {
+        self.bridge()?
+            .sweep_expired(&table, budget as usize)
+            .map(|n| n as u32)
+            .map_err(js_err)
+    }
 }

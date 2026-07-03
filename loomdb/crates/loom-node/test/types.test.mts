@@ -7,7 +7,7 @@ import { createRequire } from "node:module";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { Item, JoinResult, Page } from "../index.js";
+import type { Item, JoinResult, Page, TransactWriteOp } from "../index.js";
 
 const require = createRequire(import.meta.url);
 // ネイティブモジュールは CJS なので require で読み、型は index.d.ts から付ける
@@ -59,6 +59,21 @@ test("TypeScript: 型付きで一通りの操作が書ける", () => {
   assert.equal(joined.rows.length, 1);
   assert.equal(joined.rows[0]["u.name"], "Alice");
 
+  const ops: TransactWriteOp[] = [
+    { put: { table: "orders", item: { userId: "u1", orderId: "o2", amount: 5 } } },
+    { conditionCheck: { table: "users", key: { id: "u1" },
+                        condition: "attribute_exists(id)" } },
+  ];
+  db.transactWrite(ops);
+  const fetched: (Item | null)[] = db.transactGet([
+    { table: "orders", key: { userId: "u1", orderId: "o2" } },
+  ]);
+  assert.equal(fetched[0]?.amount, 5);
+
+  db.batchWrite({ deletes: [{ table: "orders", key: { userId: "u1", orderId: "o2" } }] });
+  const swept: number = db.sweepExpired("orders", 100);
+  assert.equal(swept, 0); // TTL 未設定テーブルは常に 0
+
   db.close();
 });
 
@@ -74,11 +89,14 @@ test("TypeScript: 誤用はコンパイル時に弾かれる", () => {
   const bad3 = () => db.query("docs", { keyCondition: "id = :i", scanForward: "yes" });
   // @ts-expect-error — createTable に key は必須
   const bad4 = () => db.createTable({ name: "xxx" });
+  // @ts-expect-error — transactWrite の op は put/update/delete/conditionCheck のみ
+  const bad5 = () => db.transactWrite([{ teleport: { table: "docs" } }]);
 
   // 実行はしない（型チェック専用）。未使用警告を避けるためだけに触れておく
   assert.equal(typeof bad1, "function");
   assert.equal(typeof bad2, "function");
   assert.equal(typeof bad3, "function");
   assert.equal(typeof bad4, "function");
+  assert.equal(typeof bad5, "function");
   db.close();
 });

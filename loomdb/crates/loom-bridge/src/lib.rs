@@ -242,7 +242,150 @@ impl<E: StorageEngine> Bridge<E> {
         Ok(json!({ "rows": rows, "warnings": page.warnings }))
     }
 
+    // -- transact / batch / sweep（§4.4・§8） ---------------------------------
+
+    /// ops: `[{ "put": {table, item, condition?, values?, names?} }
+    ///       | { "update": {table, key, update, condition?, values?, names?} }
+    ///       | { "delete": {table, key, condition?, values?, names?} }
+    ///       | { "conditionCheck": {table, key, condition, values?, names?} }]`
+    /// — 1 txn で all-or-nothing（件数無制限）。不成立は TransactionCanceled。
+    pub fn transact_write(&self, ops: &Value) -> Result<(), DbError> {
+        let list = as_array(ops, "transactWrite ops")?;
+        let mut parsed = Vec::with_capacity(list.len());
+        for op in list {
+            parsed.push(self.parse_transact_op(op)?);
+        }
+        uc::transact_write(&self.engine, &parsed)
+    }
+
+    /// keys: `[{ table, key }]` → 単一スナップショットで読み、item | null の
+    /// 配列を**同じ順序**で返す。
+    pub fn transact_get(&self, keys: &Value) -> Result<Value, DbError> {
+        let refs = self.parse_key_refs(keys)?;
+        let got = uc::transact_get(&self.engine, &refs)?;
+        Ok(Value::Array(
+            got.iter()
+                .map(|o| o.as_ref().map(value::item_to_json).unwrap_or(Value::Null))
+                .collect(),
+        ))
+    }
+
+    /// ローカルでは transact_get と同一意味論（UnprocessedKeys は常に空・spec §4.4）。
+    pub fn batch_get(&self, keys: &Value) -> Result<Value, DbError> {
+        self.transact_get(keys)
+    }
+
+    /// params: `{ puts?: [{table, item}], deletes?: [{table, key}] }`
+    /// — 非トランザクションの冪等ループ（件数無制限・UnprocessedItems は常に空）。
+    pub fn batch_write(&self, params: &Value) -> Result<(), DbError> {
+        let obj = as_object(params, "batchWrite params")?;
+        let mut puts = Vec::new();
+        if let Some(list) = obj.get("puts") {
+            for p in as_array(list, "puts")? {
+                let p = as_object(p, "puts entry")?;
+                let table = as_str(require(p, "table", "puts entry")?, "table")?.to_string();
+                let item = value::json_to_item(require(p, "item", "puts entry")?)?;
+                puts.push((table, item));
+            }
+        }
+        let deletes = match obj.get("deletes") {
+            Some(list) => self.parse_key_refs(list)?,
+            None => Vec::new(),
+        };
+        uc::batch_write(&self.engine, &puts, &deletes)
+    }
+
+    /// 失効項目を budget 件まで物理削除し、削除数を返す（spec §8）。
+    pub fn sweep_expired(&self, table: &str, budget: usize) -> Result<usize, DbError> {
+        uc::sweep_expired(&self.engine, table, budget)
+    }
+
     // -- 内部 -----------------------------------------------------------------
+
+    /// transact op 1 件（`{"put": {...}}` 形の 1 キーオブジェクト）を解析する。
+    fn parse_transact_op(&self, v: &Value) -> Result<uc::TransactWriteOp, DbError> {
+        let obj = as_object(v, "transact op")?;
+        if obj.len() != 1 {
+            return Err(DbError::Validation(
+                "each transact op must be an object with exactly one of \
+                 put / update / delete / conditionCheck"
+                    .into(),
+            ));
+        }
+        let (kind, body) = obj.iter().next().expect("len == 1 checked above");
+        let body = as_object(body, kind)?;
+        let table = as_str(require(body, "table", kind)?, "table")?.to_string();
+        let (values, names) = shared_values_names(body)?;
+        let condition = body
+            .get("condition")
+            .map(|c| -> Result<ConditionInput, DbError> {
+                Ok(ConditionInput {
+                    expression: as_str(c, "condition")?.to_string(),
+                    names: names.clone(),
+                    values: values.clone(),
+                })
+            })
+            .transpose()?;
+        match kind.as_str() {
+            "put" => Ok(uc::TransactWriteOp::Put {
+                item: value::json_to_item(require(body, "item", "put")?)?,
+                table,
+                condition,
+            }),
+            "update" => {
+                let (pk, sk) = self.resolve_key(&table, require(body, "key", "update")?)?;
+                let expression = as_str(require(body, "update", "update")?, "update")?.to_string();
+                Ok(uc::TransactWriteOp::Update {
+                    table,
+                    pk,
+                    sk,
+                    update: UpdateInput {
+                        expression,
+                        names,
+                        values,
+                    },
+                    condition,
+                })
+            }
+            "delete" => {
+                let (pk, sk) = self.resolve_key(&table, require(body, "key", "delete")?)?;
+                Ok(uc::TransactWriteOp::Delete {
+                    table,
+                    pk,
+                    sk,
+                    condition,
+                })
+            }
+            "conditionCheck" => {
+                let (pk, sk) = self.resolve_key(&table, require(body, "key", "conditionCheck")?)?;
+                let condition = condition.ok_or_else(|| {
+                    DbError::Validation("conditionCheck requires condition".into())
+                })?;
+                Ok(uc::TransactWriteOp::ConditionCheck {
+                    table,
+                    pk,
+                    sk,
+                    condition,
+                })
+            }
+            other => Err(DbError::Validation(format!(
+                "unknown transact op {other:?} (expected put / update / delete / conditionCheck)"
+            ))),
+        }
+    }
+
+    /// `[{ table, key }]` を KeyRef の列に解決する（transact_get / batch の deletes）。
+    fn parse_key_refs(&self, v: &Value) -> Result<Vec<uc::KeyRef>, DbError> {
+        as_array(v, "keys")?
+            .iter()
+            .map(|entry| {
+                let obj = as_object(entry, "key entry")?;
+                let table = as_str(require(obj, "table", "key entry")?, "table")?.to_string();
+                let (pk, sk) = self.resolve_key(&table, require(obj, "key", "key entry")?)?;
+                Ok(uc::KeyRef { table, pk, sk })
+            })
+            .collect()
+    }
 
     /// key JSON をテーブル定義に照らして (pk, sk?) に解決する。
     fn resolve_key(
@@ -283,6 +426,11 @@ fn as_array<'a>(v: &'a Value, what: &str) -> Result<&'a Vec<Value>, DbError> {
 fn as_str<'a>(v: &'a Value, what: &str) -> Result<&'a str, DbError> {
     v.as_str()
         .ok_or_else(|| DbError::Validation(format!("{what} must be a string")))
+}
+
+fn require<'a>(obj: &'a Map<String, Value>, key: &str, what: &str) -> Result<&'a Value, DbError> {
+    obj.get(key)
+        .ok_or_else(|| DbError::Validation(format!("{what} requires {key}")))
 }
 
 fn opt_string(obj: &Map<String, Value>, key: &str) -> Result<Option<String>, DbError> {

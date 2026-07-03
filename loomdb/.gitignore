@@ -12,3 +12,5 @@ Cargo.lock
 *.swp
 .idea/
 .vscode/
+loomdb.node
+node_modules/

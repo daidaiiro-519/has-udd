@@ -1,0 +1,24 @@
+[package]
+name = "loom-node"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+description = "LoomDB Node.js binding (napi-rs shell over loom-bridge). Published to npm as \"loomdb\"."
+
+[lib]
+name = "loom_node"
+crate-type = ["cdylib"]
+
+[dependencies]
+loom-bridge.workspace = true
+loom-core.workspace = true
+loom-redb.workspace = true
+serde_json.workspace = true
+napi = { version = "2.16", default-features = false, features = ["napi8", "serde-json"] }
+napi-derive = "2.16"
+
+[build-dependencies]
+napi-build = "2"

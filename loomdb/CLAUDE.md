@@ -37,8 +37,12 @@ JOIN で差別化する。詳細は README.md と docs/00〜05 を参照。
 1.5. ~~loom-bridge~~ ✅ 完了 — node/py/wire が共有する JSON API ブリッジ（pure Rust・
    素の JSON ↔ item・数値精度規則・values/names 共有・全操作＋JOIN）。
    **言語シェルはこの Bridge の薄い皮として作る**（環境に node v22 あり・検証可能）
-2. `loom-node`（napi-rs シェル → npm "loomdb"）← 次。**backend 差替可能な設計にすること**
-3. `loom-py`（PyO3 → PyPI "loomdb"）
+2. ~~loom-node~~ ✅ 完了 — napi-rs シェル（crates/loom-node）。JS から
+   `new LoomDB(path)` で全操作＋JOIN が動作（node --test 8本 green・実ファイル redb）。
+   close() でファイルロック解放（better-sqlite3 流）。Bridge<E> がジェネリック
+   なので backend 差替の縫い目は確保済み。npm 公開は @napi-rs/cli の
+   マルチプラットフォームビルド整備後（未着手）
+3. `loom-py`（PyO3 → PyPI "loomdb"）← 次
 4. ワイヤ層（任意・drop-in 互換の入口）
 5. コア残タスク: transact_write/batch・TTL・集合型 SS/NS/BS・Projection・
    JOIN ページング・§13 運用 API（compact/stats/format_version）

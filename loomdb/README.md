@@ -120,7 +120,8 @@ db.put("orders", {"userId": "u1", "orderId": "o100", "amount": 1200})
 | 二次索引 GSI（§7） | ✅ 同一 txn 維持（常に強整合）・sparse・index 指定 query（全属性返却）・**update_table での後付け追加＋バックフィル**（差別化） |
 | **JOIN 実行器（§10.3・差別化の本丸）** | ✅ N テーブル多段 left-deep・inner/left・自己結合・複合 on・単一スナップショット・pk/索引 probe・scan フォールバック warnings・alias 修飾 filter・select 射影。**参照実装との property 比較で検証** |
 | **loom-bridge（多言語対応の共通土台）** | ✅ 素の JSON ↔ item（`{"S":..}` 型記法不要）・数値精度規則（i64 正確／f64 で不正確になる N は文字列フォールバック）・values/names 共有（DocumentClient 風）・全操作＋JOIN を JSON で・不透明ページングトークン |
-| loom-node（napi シェル → npm "loomdb"）・loom-py・バッチ/Transact・TTL（§8）・集合型 SS/NS/BS・Projection（§5.4）・JOIN ページング（§10.7） | ⏳ 次の TDD サイクル |
+| **loom-node（npm "loomdb"・TS/JS から使える）** | ✅ `new LoomDB("data.loom")` → createTable/put/get/delete/update/query/scan/**join**/updateTable/close が **Node v22 の実テストで green**。同期 API（better-sqlite3 流）・型定義（index.d.ts）付き |
+| loom-py（PyO3 → PyPI）・npm 配布パッケージング（@napi-rs/cli マルチプラットフォーム）・バッチ/Transact・TTL（§8）・集合型 SS/NS/BS・Projection（§5.4）・JOIN ページング（§10.7） | ⏳ 次の TDD サイクル |
 
 ## ライセンス
 

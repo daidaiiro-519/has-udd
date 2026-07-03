@@ -5,6 +5,7 @@ members = [
     "crates/loom-redb",
     "crates/loom-query",
     "crates/loom-bridge",
+    "crates/loom-node",
     "crates/loom-cli",
     "crates/loom-testkit",
 ]

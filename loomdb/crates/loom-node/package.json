@@ -1,0 +1,16 @@
+{
+  "name": "loomdb",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Embedded local NoSQL with the DynamoDB data model plus JOIN. Single file, no server.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "license": "MIT OR Apache-2.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "cargo build -p loom-node && cp ../../target/debug/libloom_node.so ./loomdb.node",
+    "test": "npm run build && node --test test/"
+  }
+}

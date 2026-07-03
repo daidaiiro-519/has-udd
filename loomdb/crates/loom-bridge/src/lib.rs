@@ -19,6 +19,18 @@ use loom_core::ports::StorageEngine;
 use serde_json::{json, Map, Value};
 use std::collections::BTreeMap;
 
+/// 言語シェルが例外に載せる機械可読なエラーコード（DynamoDB のエラー名に対応）。
+pub fn error_code(e: &DbError) -> &'static str {
+    match e {
+        DbError::ConditionalCheckFailed => "ConditionalCheckFailed",
+        DbError::ResourceNotFound(_) => "ResourceNotFound",
+        DbError::ResourceInUse(_) => "ResourceInUse",
+        DbError::Validation(_) => "ValidationError",
+        DbError::Serialization(_) => "SerializationError",
+        DbError::Storage(_) => "StorageError",
+    }
+}
+
 pub struct Bridge<E: StorageEngine> {
     engine: E,
 }

@@ -4,11 +4,15 @@
 //! - string → S / bool → BOOL / null → NULL / array → L / object → M
 //! - number: 整数（i64/u64 に収まる）→ N を正確に。浮動小数 → 最短表現の N
 //! - `{"$binary": "<hex>"}` のみからなるオブジェクト → B
+//! - 集合型（JSON に集合が無いための明示表現・要素は一意に正規化される）:
+//!   `{"$ss": ["a", ...]}` → SS / `{"$ns": [1, "2.5", ...]}` → NS
+//!   （要素は number または数値文字列 — 精度が要る値は文字列で渡す）/
+//!   `{"$bs": ["<hex>", ...]}` → BS
 //!
 //! 出力:
 //! - N → i64/u64 に収まれば JSON number。f64 で**数値として正確に**表現できるなら
 //!   JSON number。どちらも無理なら **JSON string**（精度を黙って壊さない）
-//! - B → `{"$binary": "<hex>"}`
+//! - B → `{"$binary": "<hex>"}` / 集合 → 上記の `$ss` / `$ns` / `$bs` 形
 
 use loom_core::domain::{number, AttributeValue, DbError, Item, Number};
 use serde_json::{Map, Value};
@@ -30,6 +34,44 @@ pub fn json_to_attr(v: &Value) -> Result<AttributeValue, DbError> {
                 if let Some(Value::String(hex)) = map.get("$binary") {
                     return Ok(AttributeValue::B(from_hex(hex)?));
                 }
+                if let Some(list) = map.get("$ss") {
+                    let elems = as_set_elems(list, "$ss")?
+                        .iter()
+                        .map(|e| match e {
+                            Value::String(s) => Ok(s.clone()),
+                            other => Err(DbError::Validation(format!(
+                                "$ss elements must be strings, got {other}"
+                            ))),
+                        })
+                        .collect::<Result<Vec<_>, _>>()?;
+                    return AttributeValue::string_set(elems);
+                }
+                if let Some(list) = map.get("$ns") {
+                    let elems = as_set_elems(list, "$ns")?
+                        .iter()
+                        .map(|e| match e {
+                            // 精度が要る値は文字列で渡せる（f64 を経由しない）
+                            Value::Number(n) => Ok(Number(n.to_string())),
+                            Value::String(s) => Ok(Number(s.clone())),
+                            other => Err(DbError::Validation(format!(
+                                "$ns elements must be numbers or numeric strings, got {other}"
+                            ))),
+                        })
+                        .collect::<Result<Vec<_>, _>>()?;
+                    return AttributeValue::number_set(elems);
+                }
+                if let Some(list) = map.get("$bs") {
+                    let elems = as_set_elems(list, "$bs")?
+                        .iter()
+                        .map(|e| match e {
+                            Value::String(hex) => from_hex(hex),
+                            other => Err(DbError::Validation(format!(
+                                "$bs elements must be hex strings, got {other}"
+                            ))),
+                        })
+                        .collect::<Result<Vec<_>, _>>()?;
+                    return AttributeValue::binary_set(elems);
+                }
             }
             let mut out = std::collections::BTreeMap::new();
             for (k, v) in map {
@@ -38,6 +80,11 @@ pub fn json_to_attr(v: &Value) -> Result<AttributeValue, DbError> {
             AttributeValue::M(out)
         }
     })
+}
+
+fn as_set_elems<'a>(v: &'a Value, what: &str) -> Result<&'a Vec<Value>, DbError> {
+    v.as_array()
+        .ok_or_else(|| DbError::Validation(format!("{what} must be a JSON array")))
 }
 
 pub fn attr_to_json(v: &AttributeValue) -> Value {
@@ -57,7 +104,20 @@ pub fn attr_to_json(v: &AttributeValue) -> Value {
                 .map(|(k, v)| (k.clone(), attr_to_json(v)))
                 .collect(),
         ),
+        AttributeValue::Ss(xs) => {
+            wrap_set("$ss", xs.iter().map(|s| Value::String(s.clone())).collect())
+        }
+        AttributeValue::Ns(xs) => wrap_set("$ns", xs.iter().map(number_to_json).collect()),
+        AttributeValue::Bs(xs) => {
+            wrap_set("$bs", xs.iter().map(|b| Value::String(to_hex(b))).collect())
+        }
     }
+}
+
+fn wrap_set(key: &str, elems: Vec<Value>) -> Value {
+    let mut map = Map::new();
+    map.insert(key.into(), Value::Array(elems));
+    Value::Object(map)
 }
 
 /// N → JSON number（正確な場合のみ）/ それ以外は文字列フォールバック。

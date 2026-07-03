@@ -45,6 +45,13 @@ fn sign(d: &Decimal) -> i8 {
     }
 }
 
+/// N を canonical な平叙 10 進文字列へ正規化する（"1.0"→"1"・"2.50"→"2.5"）。
+/// NS 集合の要素表現を一意にするために使う（数値等価 ⇔ 構造等価が成立する）。
+pub fn canonicalize(n: &Number) -> Result<Number, DbError> {
+    let d = parse_decimal(&n.0)?;
+    Ok(Number(format_decimal(d.neg, &d.digits, d.exp)))
+}
+
 /// 任意精度 10 進の加算（原子カウンタ・SET の +/- の基盤）。
 /// 結果が 38 桁・範囲制約を破る場合は `ValidationError`。
 pub fn add(a: &Number, b: &Number) -> Result<Number, DbError> {

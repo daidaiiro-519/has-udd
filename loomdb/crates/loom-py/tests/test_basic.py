@@ -161,6 +161,34 @@ class TestLoomDB(unittest.TestCase):
         self.assertEqual(db.sweep_expired("sessions", 10), 1)
         self.assertEqual(db.get("sessions", {"id": "live"})["id"], "live")
 
+    def test_sets_round_trip_as_python_sets(self):
+        db = orders_db()
+        item = {
+            "userId": "u1", "orderId": "s1",
+            "tags": {"red", "blue"},          # str の set → SS
+            "scores": {1, 2.5},               # int/float の set → NS
+            "blobs": {b"\x01", b"\x00\xff"},  # bytes の set → BS
+        }
+        db.put("orders", item)
+        got = db.get("orders", {"userId": "u1", "orderId": "s1"})
+        self.assertEqual(got, item)
+
+        # 巨大 int も set の中で正確（NS は 10 進文字列で往復する）
+        big = 2 ** 100
+        db.put("orders", {"userId": "u1", "orderId": "s2", "ns": {big, 1}})
+        self.assertEqual(db.get("orders", {"userId": "u1", "orderId": "s2"})["ns"], {big, 1})
+
+        # ADD = 集合和 / DELETE = 集合差（空になったら属性ごと削除）
+        after = db.update("orders", {"userId": "u1", "orderId": "s1"},
+                          {"update": "ADD tags :t DELETE scores :s",
+                           "values": {":t": {"green"}, ":s": {1, 2.5}}})
+        self.assertEqual(after["tags"], {"red", "blue", "green"})
+        self.assertNotIn("scores", after)
+
+        # 型が混ざった set は TypeError
+        with self.assertRaises(TypeError):
+            db.put("orders", {"userId": "u1", "orderId": "s3", "bad": {"a", 1}})
+
     def test_persistence_with_close(self):
         path = fresh_path()
         db = LoomDB(path)

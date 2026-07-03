@@ -221,7 +221,8 @@ fn add_is_atomic_counter() {
 }
 
 #[test]
-fn delete_requires_sets_and_is_not_yet_supported() {
+fn delete_requires_set_operands() {
+    // DELETE は集合差専用: L 属性 × S オペランドは ValidationError（tests/sets.rs も参照）
     let err = apply("DELETE tags :v", &sample_item(), &[(":v", s("red"))]).unwrap_err();
     assert!(matches!(err, DbError::Validation(_)));
 }

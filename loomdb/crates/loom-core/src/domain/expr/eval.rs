@@ -70,7 +70,10 @@ pub fn eval(expr: &Expr, item: &Item, ctx: &ExprContext) -> Result<bool, DbError
                     )))
                 }
             };
-            if !matches!(want.as_str(), "S" | "N" | "B" | "BOOL" | "NULL" | "M" | "L") {
+            if !matches!(
+                want.as_str(),
+                "S" | "N" | "B" | "BOOL" | "NULL" | "M" | "L" | "SS" | "NS" | "BS"
+            ) {
                 return Err(DbError::Validation(format!(
                     "unknown type descriptor {want:?}"
                 )));
@@ -107,6 +110,10 @@ pub fn eval(expr: &Expr, item: &Item, ctx: &ExprContext) -> Result<bool, DbError
                     }
                     Ok(false)
                 }
+                // 集合は要素判定（NS は数値等価）
+                (AttributeValue::Ss(xs), AttributeValue::S(n)) => Ok(xs.contains(n)),
+                (AttributeValue::Ns(xs), AttributeValue::N(n)) => ns_contains(xs, n),
+                (AttributeValue::Bs(xs), AttributeValue::B(n)) => Ok(xs.contains(n)),
                 _ => Ok(false),
             }
         }
@@ -219,11 +226,33 @@ pub(super) fn try_ord(a: &AttributeValue, b: &AttributeValue) -> Result<Option<O
     })
 }
 
+/// NS の要素判定（数値等価）。
+pub(super) fn ns_contains(xs: &[Number], n: &Number) -> Result<bool, DbError> {
+    for x in xs {
+        if number::compare(x, n)? == Ordering::Equal {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
 /// 等価（N は数値等価・L/M は再帰・その他は構造等価）。
 pub(super) fn values_equal(a: &AttributeValue, b: &AttributeValue) -> Result<bool, DbError> {
     match (a, b) {
         (AttributeValue::N(x), AttributeValue::N(y)) => {
             Ok(number::compare(x, y)? == Ordering::Equal)
+        }
+        // NS は両者とも数値順に正規化済みなので、位置ごとの数値等価で判定できる
+        (AttributeValue::Ns(xs), AttributeValue::Ns(ys)) => {
+            if xs.len() != ys.len() {
+                return Ok(false);
+            }
+            for (x, y) in xs.iter().zip(ys) {
+                if number::compare(x, y)? != Ordering::Equal {
+                    return Ok(false);
+                }
+            }
+            Ok(true)
         }
         (AttributeValue::L(xs), AttributeValue::L(ys)) => {
             if xs.len() != ys.len() {
@@ -260,16 +289,22 @@ fn type_desc(v: &AttributeValue) -> &'static str {
         AttributeValue::Null => "NULL",
         AttributeValue::M(_) => "M",
         AttributeValue::L(_) => "L",
+        AttributeValue::Ss(_) => "SS",
+        AttributeValue::Ns(_) => "NS",
+        AttributeValue::Bs(_) => "BS",
     }
 }
 
-/// size()（S=UTF-8 バイト長・B=バイト長・L/M=要素数）。他は対象外 = None。
+/// size()（S=UTF-8 バイト長・B=バイト長・L/M/集合=要素数）。他は対象外 = None。
 fn size_of(v: &AttributeValue) -> Option<usize> {
     match v {
         AttributeValue::S(s) => Some(s.len()),
         AttributeValue::B(b) => Some(b.len()),
         AttributeValue::L(l) => Some(l.len()),
         AttributeValue::M(m) => Some(m.len()),
+        AttributeValue::Ss(x) => Some(x.len()),
+        AttributeValue::Ns(x) => Some(x.len()),
+        AttributeValue::Bs(x) => Some(x.len()),
         _ => None,
     }
 }

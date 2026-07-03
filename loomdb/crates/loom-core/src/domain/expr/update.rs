@@ -5,23 +5,18 @@
 //! - SET は親パスが存在しないと `ValidationError`（トップレベルは新規作成可）
 //! - リスト添字への SET は範囲内なら置換・範囲外なら末尾追加（DynamoDB 準拠）
 //! - REMOVE は存在しないパスに対して no-op
-//! - ADD はトップレベル属性の数値加算のみ（欠落は 0 起点 = 原子カウンタ）。
-//!   集合和・DELETE（集合差）は SS/NS/BS 導入後（TODO spec §2.2）
+//! - ADD はトップレベル属性のみ: N は数値加算（欠落は 0 起点 = 原子カウンタ）、
+//!   SS/NS/BS は集合和（欠落は新規作成）
+//! - DELETE はトップレベル属性の集合差のみ。空になったら属性ごと削除・
+//!   欠落属性には no-op
 
 use super::ast::{Path, PathSeg, SetOperand, SetValue, UpdateExpr};
-use super::eval::{lookup_value, resolve_path, seg_name, ExprContext};
+use super::eval::{lookup_value, ns_contains, resolve_path, seg_name, ExprContext};
 use crate::domain::attribute::{AttributeValue, Item, Number};
 use crate::domain::error::DbError;
 use crate::domain::number;
 
 pub fn apply_update(expr: &UpdateExpr, item: &Item, ctx: &ExprContext) -> Result<Item, DbError> {
-    // DELETE は集合型（SS/NS/BS）前提。導入までは明示的に拒否する。
-    if !expr.deletes.is_empty() {
-        return Err(DbError::Validation(
-            "DELETE requires set types (SS/NS/BS), which are not yet supported".into(),
-        ));
-    }
-
     let mut out = item.clone();
 
     // 1) SET — 右辺をすべて元の item で評価してから適用
@@ -38,30 +33,125 @@ pub fn apply_update(expr: &UpdateExpr, item: &Item, ctx: &ExprContext) -> Result
         remove_path(&mut out, path, ctx)?;
     }
 
-    // 3) ADD（トップレベル・N のみ）
+    // 3) ADD（トップレベルのみ・N は数値加算 / SS・NS・BS は集合和）
     for (path, ph) in &expr.adds {
-        let name = top_level_name(path, ctx)?;
-        let delta = match lookup_value(ph, ctx)? {
-            AttributeValue::N(n) => n.clone(),
+        let name = top_level_name(path, "ADD", ctx)?;
+        let delta = lookup_value(ph, ctx)?;
+        match delta {
+            AttributeValue::N(d) => {
+                let current = match item.get(&name) {
+                    None => Number("0".into()), // 欠落は 0 起点（DynamoDB 準拠）
+                    Some(AttributeValue::N(n)) => n.clone(),
+                    Some(other) => {
+                        return Err(DbError::Validation(format!(
+                            "ADD target {name:?} is not N: {other:?}"
+                        )))
+                    }
+                };
+                out.insert(name, AttributeValue::N(number::add(&current, d)?));
+            }
+            AttributeValue::Ss(_) | AttributeValue::Ns(_) | AttributeValue::Bs(_) => {
+                let merged = set_union(item.get(&name), delta, &name)?;
+                out.insert(name, merged);
+            }
             other => {
                 return Err(DbError::Validation(format!(
-                    "ADD expects an N value, got {other:?}"
+                    "ADD expects an N or set (SS/NS/BS) value, got {other:?}"
                 )))
             }
+        }
+    }
+
+    // 4) DELETE（トップレベルのみ・集合差。空になったら属性ごと削除）
+    for (path, ph) in &expr.deletes {
+        let name = top_level_name(path, "DELETE", ctx)?;
+        let delta = lookup_value(ph, ctx)?;
+        let Some(current) = item.get(&name) else {
+            continue; // 欠落属性への DELETE は no-op
         };
-        let current = match item.get(&name) {
-            None => Number("0".into()), // 欠落は 0 起点（DynamoDB 準拠）
-            Some(AttributeValue::N(n)) => n.clone(),
-            Some(other) => {
-                return Err(DbError::Validation(format!(
-                    "ADD target {name:?} is not N: {other:?}"
-                )))
-            }
+        match set_difference(current, delta, &name)? {
+            Some(rest) => out.insert(name, rest),
+            None => out.remove(&name), // 空集合は存在しない（DynamoDB 準拠）
         };
-        out.insert(name, AttributeValue::N(number::add(&current, &delta)?));
     }
 
     Ok(out)
+}
+
+// ---------------------------------------------------------------------------
+// 集合演算（ADD = 和・DELETE = 差）
+// ---------------------------------------------------------------------------
+
+/// 集合和。欠落属性（cur = None）は delta をそのまま新規作成。
+fn set_union(
+    cur: Option<&AttributeValue>,
+    delta: &AttributeValue,
+    name: &str,
+) -> Result<AttributeValue, DbError> {
+    let Some(cur) = cur else {
+        return Ok(delta.clone());
+    };
+    match (cur, delta) {
+        (AttributeValue::Ss(a), AttributeValue::Ss(b)) => {
+            AttributeValue::string_set(a.iter().chain(b).cloned().collect())
+        }
+        (AttributeValue::Ns(a), AttributeValue::Ns(b)) => {
+            AttributeValue::number_set(a.iter().chain(b).cloned().collect())
+        }
+        (AttributeValue::Bs(a), AttributeValue::Bs(b)) => {
+            AttributeValue::binary_set(a.iter().chain(b).cloned().collect())
+        }
+        _ => Err(DbError::Validation(format!(
+            "ADD set type mismatch on {name:?}: cannot add {delta:?} to {cur:?}"
+        ))),
+    }
+}
+
+/// 集合差。残りが空なら None（呼び出し側で属性ごと削除する）。
+fn set_difference(
+    cur: &AttributeValue,
+    delta: &AttributeValue,
+    name: &str,
+) -> Result<Option<AttributeValue>, DbError> {
+    // 正規化済み集合の部分列は正規化済みなので、variant を直接構築してよい
+    let rest = match (cur, delta) {
+        (AttributeValue::Ss(a), AttributeValue::Ss(b)) => {
+            let rest: Vec<_> = a.iter().filter(|x| !b.contains(x)).cloned().collect();
+            if rest.is_empty() {
+                None
+            } else {
+                Some(AttributeValue::Ss(rest))
+            }
+        }
+        (AttributeValue::Ns(a), AttributeValue::Ns(b)) => {
+            let mut rest = Vec::new();
+            for x in a {
+                if !ns_contains(b, x)? {
+                    rest.push(x.clone());
+                }
+            }
+            if rest.is_empty() {
+                None
+            } else {
+                Some(AttributeValue::Ns(rest))
+            }
+        }
+        (AttributeValue::Bs(a), AttributeValue::Bs(b)) => {
+            let rest: Vec<_> = a.iter().filter(|x| !b.contains(x)).cloned().collect();
+            if rest.is_empty() {
+                None
+            } else {
+                Some(AttributeValue::Bs(rest))
+            }
+        }
+        _ => {
+            return Err(DbError::Validation(format!(
+                "DELETE requires matching set types on {name:?}: \
+                 cannot delete {delta:?} from {cur:?}"
+            )))
+        }
+    };
+    Ok(rest)
 }
 
 /// 式が触るトップレベル属性名（キー属性の変更禁止チェックに使う）。
@@ -91,11 +181,11 @@ fn head_name(path: &Path, ctx: &ExprContext) -> Result<String, DbError> {
 }
 
 /// ADD/DELETE 用: トップレベル 1 セグメントのパスのみ許可。
-fn top_level_name(path: &Path, ctx: &ExprContext) -> Result<String, DbError> {
+fn top_level_name(path: &Path, verb: &str, ctx: &ExprContext) -> Result<String, DbError> {
     if path.0.len() != 1 {
-        return Err(DbError::Validation(
-            "ADD supports only top-level attributes".into(),
-        ));
+        return Err(DbError::Validation(format!(
+            "{verb} supports only top-level attributes"
+        )));
     }
     head_name(path, ctx)
 }

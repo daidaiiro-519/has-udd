@@ -52,7 +52,8 @@ JOIN で差別化する。詳細は README.md と docs/00〜05 を参照。
    検証済み・150 ops 無制限実証）・~~TTL~~ ✅（読取時失効＋sweep_expired・Clock port）・
    ~~transact/batch/sweep のブリッジ＋ node/py 公開~~ ✅（transactWrite/transactGet/
    batchGet/batchWrite/sweepExpired・JS/Python 実テスト green）・
-   集合型 SS/NS/BS・Projection・JOIN ページング・
+   ~~集合型 SS/NS/BS~~ ✅（正規化構築子・ADD 和/DELETE 差・ブリッジ $ss/$ns/$bs・
+   Python は素の set）・Projection・JOIN ページング・
    §13 運用 API（compact/stats/format_version）
 
 ## 開発プロセス（must）

@@ -474,3 +474,58 @@ fn malformed_requests_are_validation_errors() {
     let r = b.get("orders", &json!({ "orderId": "o1" }));
     assert!(matches!(r, Err(DbError::Validation(_))), "got {r:?}");
 }
+
+/// 集合型: `$ss`/`$ns`/`$bs` で書き、正規化されて round-trip・ADD/DELETE・contains
+#[test]
+fn sets_via_bridge() {
+    let b = bridge();
+    b.put(
+        "orders",
+        &json!({
+            "userId": "u1", "orderId": "s1",
+            "tags":   { "$ss": ["red", "blue", "red"] },      // 重複は除去される
+            "scores": { "$ns": [2, "1.0"] },                  // 数値文字列も可・正規化
+            "blobs":  { "$bs": ["01", "00ff"] }
+        }),
+        None,
+    )
+    .expect("put");
+    let got = b
+        .get("orders", &json!({ "userId": "u1", "orderId": "s1" }))
+        .expect("get")
+        .unwrap();
+    assert_eq!(got["tags"], json!({ "$ss": ["blue", "red"] })); // 整列＋一意
+    assert_eq!(got["scores"], json!({ "$ns": [1, 2] })); // "1.0" → 1 に正規化
+    assert_eq!(got["blobs"], json!({ "$bs": ["00ff", "01"] }));
+
+    // ADD = 集合和 / DELETE = 集合差（空になったら属性ごと削除）
+    let after = b
+        .update(
+            "orders",
+            &json!({ "userId": "u1", "orderId": "s1" }),
+            &json!({
+                "update": "ADD tags :t DELETE scores :s",
+                "values": { ":t": { "$ss": ["green"] }, ":s": { "$ns": [1, 2] } }
+            }),
+        )
+        .expect("update");
+    assert_eq!(after["tags"], json!({ "$ss": ["blue", "green", "red"] }));
+    assert!(after.get("scores").is_none());
+
+    // filter でも contains が集合の要素判定になる
+    let page = b
+        .scan(
+            "orders",
+            &json!({ "filter": "contains(tags, :v)", "values": { ":v": "green" } }),
+        )
+        .expect("scan");
+    assert_eq!(page["items"].as_array().unwrap().len(), 1);
+
+    // 空集合は Validation
+    let r = b.put(
+        "orders",
+        &json!({ "userId": "u1", "orderId": "s2", "tags": { "$ss": [] } }),
+        None,
+    );
+    assert!(matches!(r, Err(DbError::Validation(_))), "got {r:?}");
+}

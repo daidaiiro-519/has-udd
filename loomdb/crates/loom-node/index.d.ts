@@ -6,8 +6,26 @@
  * f64 で正確に表せない大きな N 値は文字列として返る（精度を黙って壊さない）。
  */
 
+/**
+ * 集合型の明示表現（JSON に集合が無いため）。要素は一意に正規化されて保存される。
+ * NS の要素は number のほか、f64 で精度が壊れる値のための数値文字列も受け付ける。
+ * BS の要素は hex 文字列。
+ */
+export type StringSet = { $ss: string[] };
+export type NumberSet = { $ns: (number | string)[] };
+export type BinarySet = { $bs: string[] };
+
 /** 素の JS 値がそのまま item の属性値になる（DynamoDB の型記法は不要）。 */
-export type Attr = string | number | boolean | null | Attr[] | { [key: string]: Attr };
+export type Attr =
+  | string
+  | number
+  | boolean
+  | null
+  | Attr[]
+  | StringSet
+  | NumberSet
+  | BinarySet
+  | { [key: string]: Attr };
 export type Item = { [key: string]: Attr };
 
 export interface KeySchema {

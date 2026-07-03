@@ -11,6 +11,11 @@
   },
   "scripts": {
     "build": "cargo build -p loom-node && cp ../../target/debug/libloom_node.so ./loomdb.node",
-    "test": "npm run build && node --test test/"
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && npm run typecheck && node --test test/basic.test.mjs && node --experimental-strip-types --test test/types.test.mts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "typescript": "^6.0.3"
   }
 }

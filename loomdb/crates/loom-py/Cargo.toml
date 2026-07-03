@@ -11,6 +11,10 @@ description = "LoomDB Python binding (PyO3 shell over loom-bridge). Published to
 [lib]
 name = "loom_py"
 crate-type = ["cdylib"]
+# pyo3 の extension-module は Rust テストバイナリに libpython をリンクできない
+# (PyO3 FAQ 既知問題)。この crate の検証は tests/test_basic.py(Python 側)で行う。
+test = false
+doctest = false
 
 [dependencies]
 loom-bridge.workspace = true

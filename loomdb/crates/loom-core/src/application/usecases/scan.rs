@@ -5,7 +5,7 @@
 
 use super::{apply_filter, Page, ScanOptions};
 use crate::application::meta;
-use crate::domain::{DbError, Item};
+use crate::domain::{ttl, DbError, Item};
 use crate::ports::StorageEngine;
 
 pub fn scan<E: StorageEngine>(
@@ -13,6 +13,7 @@ pub fn scan<E: StorageEngine>(
     table: &str,
     opts: &ScanOptions,
 ) -> Result<Page, DbError> {
+    let now = engine.clock().now_epoch();
     let txn = engine.begin_read()?;
     let def = meta::load_def_read(&*txn, table)?;
 
@@ -27,6 +28,9 @@ pub fn scan<E: StorageEngine>(
         }
         let item: Item =
             rmp_serde::from_slice(&value).map_err(|e| DbError::Serialization(e.to_string()))?;
+        if ttl::is_expired(&def, &item, now) {
+            continue; // 読取時失効（spec §8）
+        }
         matched.push(item);
         last_key = Some(key);
         if let Some(limit) = opts.limit {

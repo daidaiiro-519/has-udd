@@ -7,21 +7,38 @@
 //! 単一スレッドのテスト用途前提（実 DB の単一 writer 直列化は模さない）。
 
 use loom_core::domain::error::DbError;
-use loom_core::ports::{KvEntries, ReadTxn, StorageEngine, WriteTxn};
+use loom_core::ports::{Clock, KvEntries, ReadTxn, StorageEngine, WriteTxn};
 use std::collections::BTreeMap;
+use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::{Arc, Mutex};
 
 /// (テーブル名, 論理キー) → 値。タプルキーなのでテーブル間の衝突が構造的に起きない。
 type Map = BTreeMap<(String, Vec<u8>), Vec<u8>>;
 
+/// 固定時計（TTL テスト用）。`set_now` で任意の epoch 秒に設定できる。既定は 0。
+#[derive(Default)]
+pub struct FakeClock(AtomicI64);
+
+impl Clock for FakeClock {
+    fn now_epoch(&self) -> i64 {
+        self.0.load(Ordering::Relaxed)
+    }
+}
+
 #[derive(Default, Clone)]
 pub struct InMemoryStorage {
     inner: Arc<Mutex<Map>>,
+    clock: Arc<FakeClock>,
 }
 
 impl InMemoryStorage {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// テスト用: 現在時刻（epoch 秒）を固定する。
+    pub fn set_now(&self, epoch: i64) {
+        self.clock.0.store(epoch, Ordering::Relaxed);
     }
 }
 
@@ -34,6 +51,10 @@ impl StorageEngine for InMemoryStorage {
     fn begin_read(&self) -> Result<Box<dyn ReadTxn + '_>, DbError> {
         let snapshot = self.inner.lock().expect("testkit: lock poisoned").clone();
         Ok(Box::new(MemRead { snapshot }))
+    }
+
+    fn clock(&self) -> &dyn Clock {
+        &*self.clock
     }
 }
 

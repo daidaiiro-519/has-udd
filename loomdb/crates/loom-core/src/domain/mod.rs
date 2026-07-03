@@ -8,6 +8,7 @@ pub mod key;
 pub mod key_codec;
 pub mod number;
 pub mod table;
+pub mod ttl;
 
 pub use attribute::{AttributeValue, Item, Number};
 pub use error::DbError;

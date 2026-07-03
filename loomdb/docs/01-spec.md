@@ -165,8 +165,10 @@ DELETE path :set                  （集合差）
 ## 8. TTL
 
 - テーブルに TTL 属性名を設定。値は epoch 秒（N）。
-- **読取時失効**: get/query/scan で期限切れ項目は返さない（論理削除）。
-- **掃引**: バックグラウンドまたは明示 `sweep_expired(table, budget)` で物理削除（txn 内・件数上限つき）。
+- **失効規則**: TTL 属性が N かつ **now 以下**なら失効。属性なし・N 以外の型は対象外。
+- **読取時失効**: get/query/scan/transact_get/JOIN で期限切れ項目は返さない（論理削除・limit にも数えない）。
+- **掃引**: 明示 `sweep_expired(table, budget) -> 削除数` で物理削除（1 write txn・索引も同時に掃除・件数上限つき）。常駐サービスが任意周期で呼ぶ。
+- 時刻源は `Clock` port（エンジン経由・既定は実時刻）。テストは固定時計に差し替える。
 
 ---
 

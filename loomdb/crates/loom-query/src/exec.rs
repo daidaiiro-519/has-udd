@@ -13,7 +13,7 @@ use crate::{InputRef, JoinKind, JoinPage, JoinQuery, JoinRow, JoinStep};
 use loom_core::application::meta;
 use loom_core::domain::expr::{eval, parse_condition, ExprContext};
 use loom_core::domain::index::index_table_name;
-use loom_core::domain::{key_codec, AttributeValue, DbError, IndexDef, Item, TableDef};
+use loom_core::domain::{key_codec, ttl, AttributeValue, DbError, IndexDef, Item, TableDef};
 use loom_core::ports::{ReadTxn, StorageEngine};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -21,6 +21,7 @@ use std::collections::{BTreeMap, BTreeSet};
 type Tuple = BTreeMap<String, Item>;
 
 pub fn execute<E: StorageEngine>(engine: &E, query: &JoinQuery) -> Result<JoinPage, DbError> {
+    let now = engine.clock().now_epoch(); // TTL 失効判定（spec §8: 読取時失効）
     let txn = engine.begin_read()?; // 単一スナップショット（spec §10.4）
     let mut warnings = Vec::new();
 
@@ -42,6 +43,9 @@ pub fn execute<E: StorageEngine>(engine: &E, query: &JoinQuery) -> Result<JoinPa
     for (_key, value) in txn.scan_prefix(&root_def.name, b"")? {
         let item: Item =
             rmp_serde_decode(&value).map_err(|e| DbError::Serialization(e.to_string()))?;
+        if ttl::is_expired(&root_def, &item, now) {
+            continue; // 失効 item は存在しない扱い
+        }
         let mut t = Tuple::new();
         t.insert(query.root.alias.clone(), item);
         tuples.push(t);
@@ -51,7 +55,7 @@ pub fn execute<E: StorageEngine>(engine: &E, query: &JoinQuery) -> Result<JoinPa
     let mut known = BTreeSet::new();
     known.insert(query.root.alias.clone());
     for step in &query.steps {
-        tuples = apply_step(&*txn, tuples, step, &known, &mut warnings)?;
+        tuples = apply_step(&*txn, tuples, step, &known, &mut warnings, now)?;
         known.insert(step.input.alias.clone());
     }
 
@@ -108,6 +112,7 @@ fn apply_step(
     step: &JoinStep,
     known_aliases: &BTreeSet<String>,
     warnings: &mut Vec<String>,
+    now: i64,
 ) -> Result<Vec<Tuple>, DbError> {
     let def = meta::load_def_read(txn, &step.input.table)?;
     let ons = parse_on(step, known_aliases)?;
@@ -129,6 +134,8 @@ fn apply_step(
                     .collect(),
             },
         };
+        // 失効 item は存在しない扱い（spec §8）
+        candidates.retain(|cand| !ttl::is_expired(&def, cand, now));
         // 残りの on 条件（AND）で絞る
         candidates.retain(|cand| {
             ons[1..].iter().all(|((l_alias, l_attr), r_attr)| {

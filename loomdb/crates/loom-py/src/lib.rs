@@ -9,6 +9,10 @@
 //! - bytes ↔ B 型（ブリッジの `$binary` 表現を介して透過変換）
 //! - close() でファイルロックを明示解放（better-sqlite3 / loom-node と同じ流儀）
 
+// pyo3 0.22 の #[pymethods] が生成するトランポリンコードが useless_conversion を
+// 誤発火させる既知の相性問題のため、この薄いシェル crate 全体で抑止する。
+#![allow(clippy::useless_conversion)]
+
 use loom_bridge::{error_code, Bridge};
 use loom_core::domain::DbError;
 use loom_redb::RedbStorage;

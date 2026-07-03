@@ -13,6 +13,26 @@ pub type KvEntries = Vec<(Vec<u8>, Vec<u8>)>;
 pub trait StorageEngine {
     fn begin_write(&self) -> Result<Box<dyn WriteTxn + '_>, DbError>;
     fn begin_read(&self) -> Result<Box<dyn ReadTxn + '_>, DbError>;
+
+    /// TTL 判定などに使う時刻源（Clock port）。既定は実時刻。
+    /// テスト用エンジン（testkit）は固定時計に差し替える。
+    fn clock(&self) -> &dyn Clock {
+        &SYSTEM_CLOCK
+    }
+}
+
+/// 実時刻の Clock（既定実装・tech-stack §6: std::time を port 越しに使う）。
+pub struct SystemClock;
+
+static SYSTEM_CLOCK: SystemClock = SystemClock;
+
+impl Clock for SystemClock {
+    fn now_epoch(&self) -> i64 {
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs() as i64)
+            .unwrap_or(0)
+    }
 }
 
 /// 書込トランザクション。`commit` しなければ drop = ロールバック（architecture §3）。

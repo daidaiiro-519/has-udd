@@ -8,7 +8,7 @@ use super::{apply_filter, KeyConditionInput, Page, QueryOptions};
 use crate::application::meta;
 use crate::domain::expr::{self, key as key_expr, ExprContext, SkCond};
 use crate::domain::index::index_table_name;
-use crate::domain::{key_codec, DbError, Item, KeySchema};
+use crate::domain::{key_codec, ttl, DbError, Item, KeySchema};
 use crate::ports::ReadTxn;
 use crate::ports::StorageEngine;
 
@@ -18,6 +18,7 @@ pub fn query<E: StorageEngine>(
     key_condition: &KeyConditionInput,
     opts: &QueryOptions,
 ) -> Result<Page, DbError> {
+    let now = engine.clock().now_epoch();
     let txn = engine.begin_read()?;
     let def = meta::load_def_read(&*txn, table)?;
 
@@ -114,11 +115,14 @@ pub fn query<E: StorageEngine>(
                 continue;
             }
         }
-        let item = if via_index {
+        let item: Item = if via_index {
             fetch_via_index(&*txn, &def.name, &key, has_isk)?
         } else {
             rmp_serde::from_slice(&value).map_err(|e| DbError::Serialization(e.to_string()))?
         };
+        if ttl::is_expired(&def, &item, now) {
+            continue; // 読取時失効 = 存在しない扱い（limit にも数えない・spec §8）
+        }
         matched.push(item);
         last_key = Some(key);
         if let Some(limit) = opts.limit {

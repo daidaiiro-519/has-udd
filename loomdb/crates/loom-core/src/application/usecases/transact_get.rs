@@ -5,7 +5,7 @@
 //! `UnprocessedKeys` は常に空（spec §4.4）。
 
 use crate::application::meta;
-use crate::domain::{key_codec, AttributeValue, DbError, Item};
+use crate::domain::{key_codec, ttl, AttributeValue, DbError, Item};
 use crate::ports::StorageEngine;
 
 /// 読取・削除対象のキー参照。
@@ -20,16 +20,21 @@ pub fn transact_get<E: StorageEngine>(
     engine: &E,
     keys: &[KeyRef],
 ) -> Result<Vec<Option<Item>>, DbError> {
+    let now = engine.clock().now_epoch();
     let txn = engine.begin_read()?;
     keys.iter()
         .map(|k| {
             let def = meta::load_def_read(&*txn, &k.table)?;
             let key = key_codec::encode_key(&k.pk, k.sk.as_ref())?;
             match txn.get(&def.name, &key)? {
-                Some(bytes) => Ok(Some(
-                    rmp_serde::from_slice(&bytes)
-                        .map_err(|e| DbError::Serialization(e.to_string()))?,
-                )),
+                Some(bytes) => {
+                    let item: Item = rmp_serde::from_slice(&bytes)
+                        .map_err(|e| DbError::Serialization(e.to_string()))?;
+                    if ttl::is_expired(&def, &item, now) {
+                        return Ok(None); // 読取時失効（spec §8）
+                    }
+                    Ok(Some(item))
+                }
                 None => Ok(None),
             }
         })

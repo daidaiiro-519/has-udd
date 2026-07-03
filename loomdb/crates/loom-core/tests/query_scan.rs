@@ -121,6 +121,7 @@ fn query_descending_with_scan_forward_false() {
 #[test]
 fn query_sk_conditions() {
     let e = seeded_engine();
+    #[allow(clippy::type_complexity)]
     let cases: Vec<(&str, Vec<(&str, AttributeValue)>, Vec<&str>)> = vec![
         (
             "userId = :u AND orderId > :o",

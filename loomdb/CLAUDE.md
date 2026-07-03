@@ -59,6 +59,8 @@ JOIN で差別化する。詳細は README.md と docs/00〜05 を参照。
   docs/05-test-standard.md 参照。コミットメッセージに赤→緑の経緯を記録。
 - 品質ゲート: `cargo test --workspace` / `cargo clippy --workspace --all-targets -- -D warnings` /
   `cargo fmt --all --check` をコミット前に必ず通す。
+  **必ず exit code で確認すること**（`; echo $?` 等）。grep/tail にパイプすると
+  失敗が隠れる — 実際にサイクル 6〜13 で clippy 違反 2 件が素通りした教訓。
 - テスト・usecase には `@spec 01-spec.md#X.Y` アンカーを付ける（docs/04-coding-standard.md）。
 - OSS 公開品質を目指す（fuzz・契約テスト・CI は docs/05 に規定）。
 

@@ -16,6 +16,11 @@ pub enum DbError {
     #[error("validation error: {0}")]
     Validation(String),
 
+    /// transact_write のいずれかの操作が失敗（spec §9）。
+    /// 各操作の理由コード配列（"None" / "ConditionalCheckFailed"）を持つ。
+    #[error("transaction canceled: {0:?}")]
+    TransactionCanceled(Vec<String>),
+
     #[error("serialization error: {0}")]
     Serialization(String),
 

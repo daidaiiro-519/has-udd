@@ -122,7 +122,8 @@ db.put("orders", {"userId": "u1", "orderId": "o100", "amount": 1200})
 | **loom-bridge（多言語対応の共通土台）** | ✅ 素の JSON ↔ item（`{"S":..}` 型記法不要）・数値精度規則（i64 正確／f64 で不正確になる N は文字列フォールバック）・values/names 共有（DocumentClient 風）・全操作＋JOIN を JSON で・不透明ページングトークン |
 | **loom-node（npm "loomdb"・TS/JS から使える）** | ✅ `new LoomDB("data.loom")` → 全操作＋join＋close が **Node v22 の実テストで green**（JS 8本）。**TypeScript も tsc strict で実証**（型誤用が弾かれることまで検証）・型定義（index.d.ts）同梱 |
 | **loom-py（PyPI "loomdb"・Python から使える）** | ✅ `LoomDB("data.loom")` → 全操作＋join＋close が **Python 3.11 の実テストで green**（8本）。**int は任意精度（2^53+1 も正確）**・bytes ↔ B 型・abi3 wheel 前提 |
-| 配布パッケージング（npm/@napi-rs/cli・PyPI/maturin のマルチプラットフォームビルド）・バッチ/Transact・TTL（§8）・集合型 SS/NS/BS・Projection（§5.4）・JOIN ページング（§10.7） | ⏳ 次の TDD サイクル |
+| **transact_write / transact_get / batch（§4.4）** | ✅ all-or-nothing（**失敗時は項目も索引も不変** = 必須プロパティ）・理由コード配列・同一 item 重複拒否・**150 操作が 1 txn で通る**（無制限 = 差別化）・一貫スナップショット読取 |
+| 配布パッケージング（npm/@napi-rs/cli・PyPI/maturin）・transact/batch のブリッジ公開・TTL（§8）・集合型 SS/NS/BS・Projection（§5.4）・JOIN ページング（§10.7） | ⏳ 次の TDD サイクル |
 
 ## ライセンス
 

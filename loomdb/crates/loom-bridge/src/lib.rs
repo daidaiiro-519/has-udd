@@ -23,6 +23,7 @@ use std::collections::BTreeMap;
 pub fn error_code(e: &DbError) -> &'static str {
     match e {
         DbError::ConditionalCheckFailed => "ConditionalCheckFailed",
+        DbError::TransactionCanceled(_) => "TransactionCanceled",
         DbError::ResourceNotFound(_) => "ResourceNotFound",
         DbError::ResourceInUse(_) => "ResourceInUse",
         DbError::Validation(_) => "ValidationError",

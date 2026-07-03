@@ -1,5 +1,6 @@
 //! ユースケース（1 操作 = 1 ファイル・1 入口関数・txn を張るのはここだけ）。
 
+pub mod batch_write;
 pub mod create_table;
 pub mod delete_item;
 pub mod delete_table;
@@ -9,9 +10,12 @@ pub mod list_tables;
 pub mod put_item;
 pub mod query;
 pub mod scan;
+pub mod transact_get;
+pub mod transact_write;
 pub mod update_item;
 pub mod update_table;
 
+pub use batch_write::batch_write;
 pub use create_table::create_table;
 pub use delete_item::delete_item;
 pub use delete_table::delete_table;
@@ -21,6 +25,8 @@ pub use list_tables::list_tables;
 pub use put_item::put_item;
 pub use query::query;
 pub use scan::scan;
+pub use transact_get::{batch_get, transact_get, KeyRef};
+pub use transact_write::{transact_write, TransactWriteOp};
 pub use update_item::update_item;
 pub use update_table::update_table;
 

@@ -48,8 +48,10 @@ JOIN で差別化する。詳細は README.md と docs/00〜05 を参照。
 4. 配布パッケージング（npm: @napi-rs/cli / PyPI: maturin のマルチプラットフォーム
    ビルド・CI）← 公開の前提
 5. ワイヤ層（任意・drop-in 互換の入口）
-6. コア残タスク: transact_write/batch・TTL・集合型 SS/NS/BS・Projection・
-   JOIN ページング・§13 運用 API（compact/stats/format_version）
+6. コア残タスク: ~~transact_write/batch~~ ✅（TransactWriteOp 4種・原子性プロパティ
+   検証済み・150 ops 無制限実証。**ブリッジ/バインディングへの公開は未**）・
+   TTL・集合型 SS/NS/BS・Projection・JOIN ページング・
+   §13 運用 API（compact/stats/format_version）
 
 ## 開発プロセス（must）
 

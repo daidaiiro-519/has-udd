@@ -128,7 +128,8 @@ db.put("orders", {"userId": "u1", "orderId": "o100", "amount": 1200})
 | **集合型 SS / NS / BS（§2.2）** | ✅ 正規化（整列・一意・NS は数値として一意＋canonical 表記）・空集合拒否・ADD=集合和／DELETE=集合差（空になったら属性ごと削除）・contains/size/attribute_type 対応。ブリッジは `{"$ss"}/{"$ns"}/{"$bs"}` 表現・**Python は素の set/frozenset がそのまま使える**（巨大 int も正確） |
 | **Projection（§5.4）** | ✅ `projection: "name, addr.city, tags[0]"` を get / query / scan で指定可（Filter の後に適用）。入れ子は構造を保つ・リスト添字は詰める・存在しないパスは省く・パス重複は ValidationError。#name 共有・JS / Python からも利用可 |
 | **JOIN ページング（§10.7）** | ✅ root ストリーミング展開・`limit`＋不透明トークンで再開（**1 root item の展開途中のページ境界**も root キー＋オフセットで正確に再開）・filter/LEFT とも整合・JS / Python からも利用可 |
-| 配布パッケージング（npm/@napi-rs/cli・PyPI/maturin）・§13 運用 API（compact/stats/format_version） | ⏳ 次の TDD サイクル |
+| **運用 API（§13）** | ✅ `format_version`（初回 open で記録・未知の版は明示エラー）・`stats(table)` = **O(1)** の itemCount（全書込パスが同一 txn でカウンタ維持・失敗 transact では不変）＋ storageBytes・`compact()`（redb 委譲）。JS / Python からも利用可 |
+| 配布パッケージング（npm/@napi-rs/cli・PyPI/maturin）— 公開の前提 | ⏳ 次 |
 
 ## ライセンス
 

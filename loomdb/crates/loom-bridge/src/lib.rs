@@ -37,13 +37,29 @@ pub struct Bridge<E: StorageEngine> {
 }
 
 impl<E: StorageEngine> Bridge<E> {
-    pub fn new(engine: E) -> Self {
-        Self { engine }
+    /// DB open 直後の構築。オンディスク形式の版を検証する（spec §13 —
+    /// 将来の版のファイルを黙って壊さない）。
+    pub fn new(engine: E) -> Result<Self, DbError> {
+        uc::ensure_format(&engine)?;
+        Ok(Self { engine })
     }
 
     /// 生エンジンへの脱出口（言語シェルが Rust API と併用したい場合）。
     pub fn engine(&self) -> &E {
         &self.engine
+    }
+
+    // -- 運用（§13） -----------------------------------------------------------
+
+    /// `{ "itemCount": n, "storageBytes": n }`（item_count は O(1)・維持カウンタ）
+    pub fn stats(&self, table: &str) -> Result<Value, DbError> {
+        let s = uc::stats(&self.engine, table)?;
+        Ok(json!({ "itemCount": s.item_count, "storageBytes": s.storage_bytes }))
+    }
+
+    /// 空き領域の回収。回収を実行したら true（対応しないエンジンは false）。
+    pub fn compact(&mut self) -> Result<bool, DbError> {
+        self.engine.compact()
     }
 
     // -- テーブル管理 --------------------------------------------------------

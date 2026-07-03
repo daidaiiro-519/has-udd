@@ -239,7 +239,7 @@ impl LoomDB {
     fn new(path: String) -> PyResult<Self> {
         let engine = RedbStorage::create(&path).map_err(py_err)?;
         Ok(Self {
-            bridge: Some(Bridge::new(engine)),
+            bridge: Some(Bridge::new(engine).map_err(py_err)?),
         })
     }
 
@@ -401,6 +401,21 @@ impl LoomDB {
     /// TTL 失効項目を budget 件まで物理削除し、削除数を返す。
     fn sweep_expired(&self, table: &str, budget: usize) -> PyResult<usize> {
         self.bridge()?.sweep_expired(table, budget).map_err(py_err)
+    }
+
+    /// `{"itemCount": n, "storageBytes": n}`（itemCount は O(1)・書込パスで維持）
+    fn stats(&self, py: Python<'_>, table: &str) -> PyResult<PyObject> {
+        let s = self.bridge()?.stats(table).map_err(py_err)?;
+        json_to_py(py, &s)
+    }
+
+    /// 空き領域の回収（redb の compact）。回収を実行したら True。
+    fn compact(&mut self) -> PyResult<bool> {
+        self.bridge
+            .as_mut()
+            .ok_or_else(|| PyRuntimeError::new_err("StorageError: database is closed"))?
+            .compact()
+            .map_err(py_err)
     }
 }
 

@@ -105,6 +105,7 @@ fn apply_op(txn: &mut dyn WriteTxn, op: &TransactWriteOp) -> Result<(), DbError>
             }
             let old = decode_old(existing.as_deref())?;
             update_index_entries(txn, &def, &key, old.as_ref(), Some(item))?;
+            super::adjust_item_count(txn, &def.name, old.is_some(), true)?;
             let bytes =
                 rmp_serde::to_vec(item).map_err(|e| DbError::Serialization(e.to_string()))?;
             txn.put(&def.name, &key, &bytes)
@@ -150,6 +151,7 @@ fn apply_op(txn: &mut dyn WriteTxn, op: &TransactWriteOp) -> Result<(), DbError>
                 None
             };
             update_index_entries(txn, &def, &key, old, Some(&new_item))?;
+            super::adjust_item_count(txn, &def.name, old.is_some(), true)?;
             let bytes =
                 rmp_serde::to_vec(&new_item).map_err(|e| DbError::Serialization(e.to_string()))?;
             txn.put(&def.name, &key, &bytes)
@@ -168,6 +170,7 @@ fn apply_op(txn: &mut dyn WriteTxn, op: &TransactWriteOp) -> Result<(), DbError>
             }
             if let Some(old) = decode_old(existing.as_deref())? {
                 update_index_entries(txn, &def, &key, Some(&old), None)?;
+                super::adjust_item_count(txn, &def.name, true, false)?;
                 txn.delete(&def.name, &key)?;
             }
             Ok(())

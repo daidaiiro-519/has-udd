@@ -226,6 +226,15 @@ class TestLoomDB(unittest.TestCase):
         for item in page["items"]:
             self.assertEqual(list(item.keys()), ["orderId"])
 
+    def test_stats_and_compact(self):
+        db = orders_db()
+        s = db.stats("orders")
+        self.assertEqual(s["itemCount"], 3)
+        self.assertGreater(s["storageBytes"], 0)
+        db.delete("orders", {"userId": "u1", "orderId": "o1"})
+        self.assertEqual(db.stats("orders")["itemCount"], 2)
+        self.assertIsInstance(db.compact(), bool)
+
     def test_persistence_with_close(self):
         path = fresh_path()
         db = LoomDB(path)

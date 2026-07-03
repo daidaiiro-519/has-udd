@@ -30,6 +30,7 @@ pub fn sweep_expired<E: StorageEngine>(
             rmp_serde::from_slice(&value).map_err(|e| DbError::Serialization(e.to_string()))?;
         if ttl::is_expired(&def, &item, now) {
             update_index_entries(&mut *txn, &def, &key, Some(&item), None)?;
+            super::adjust_item_count(&mut *txn, &def.name, true, false)?;
             txn.delete(&def.name, &key)?;
             removed += 1;
         }

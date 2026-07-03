@@ -48,15 +48,11 @@ JOIN で差別化する。詳細は README.md と docs/00〜05 を参照。
 4. 配布パッケージング（npm: @napi-rs/cli / PyPI: maturin のマルチプラットフォーム
    ビルド・CI）← 公開の前提
 5. ワイヤ層（任意・drop-in 互換の入口）
-6. コア残タスク: ~~transact_write/batch~~ ✅（TransactWriteOp 4種・原子性プロパティ
-   検証済み・150 ops 無制限実証）・~~TTL~~ ✅（読取時失効＋sweep_expired・Clock port）・
-   ~~transact/batch/sweep のブリッジ＋ node/py 公開~~ ✅（transactWrite/transactGet/
-   batchGet/batchWrite/sweepExpired・JS/Python 実テスト green）・
-   ~~集合型 SS/NS/BS~~ ✅（正規化構築子・ADD 和/DELETE 差・ブリッジ $ss/$ns/$bs・
-   Python は素の set）・~~Projection~~ ✅（§5.4・get/query/scan・入れ子/添字/#name・
-   重複パス拒否・全層公開）・~~JOIN ページング~~ ✅（§10.7・root ストリーミング・
-   LEK = root キー＋展開オフセット・全層公開）・
-   §13 運用 API（compact/stats/format_version）
+6. ~~コア残タスク~~ ✅ **すべて完了**: transact_write/batch・TTL・
+   ブリッジ＋node/py 公開（transact/batch/sweep/stats/compact）・
+   集合型 SS/NS/BS・Projection（§5.4）・JOIN ページング（§10.7）・
+   §13 運用 API（format_version は Bridge::new で検証・stats は O(1) カウンタ・
+   compact は redb 委譲。カウンタは全書込パスが同一 txn で維持）
 
 ## 開発プロセス（must）
 

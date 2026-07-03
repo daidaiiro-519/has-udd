@@ -14,6 +14,7 @@ pub fn delete_table<E: StorageEngine>(engine: &E, name: &str) -> Result<(), DbEr
     // 定義は削除より先に読む（索引一覧が要る）
     let def = meta::load_def_write(&*txn, name)?;
     txn.delete(meta::META_TABLE, &key)?;
+    txn.delete(meta::META_TABLE, &meta::count_key(name))?; // item_count も消す（spec §13）
 
     let item_keys: Vec<Vec<u8>> = txn
         .scan_prefix(name, b"")?

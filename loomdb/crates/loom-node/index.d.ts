@@ -184,4 +184,9 @@ export class LoomDB {
   batchWrite(params: BatchWriteParams): void;
   /** TTL 失効項目を budget 件まで物理削除し、削除数を返す。 */
   sweepExpired(table: string, budget: number): number;
+
+  /** itemCount は O(1)（書込パスで維持されるカウンタ）・storageBytes はファイルサイズ。 */
+  stats(table: string): { itemCount: number; storageBytes: number };
+  /** 空き領域の回収（redb の compact）。回収を実行したら true。 */
+  compact(): boolean;
 }

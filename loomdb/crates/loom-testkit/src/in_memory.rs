@@ -56,6 +56,15 @@ impl StorageEngine for InMemoryStorage {
     fn clock(&self) -> &dyn Clock {
         &*self.clock
     }
+
+    /// 論理サイズの概算（テーブル名＋キー＋値のバイト合計）。
+    fn storage_bytes(&self) -> Result<u64, DbError> {
+        let map = self.inner.lock().expect("testkit: lock poisoned");
+        Ok(map
+            .iter()
+            .map(|((t, k), v)| (t.len() + k.len() + v.len()) as u64)
+            .sum())
+    }
 }
 
 struct MemWrite<'a> {

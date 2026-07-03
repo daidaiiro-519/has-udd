@@ -15,7 +15,7 @@ use loom_testkit::InMemoryStorage;
 use serde_json::{json, Value};
 
 fn bridge() -> Bridge<InMemoryStorage> {
-    let b = Bridge::new(InMemoryStorage::new());
+    let b = Bridge::new(InMemoryStorage::new()).expect("open");
     b.create_table(&json!({
         "name": "orders",
         "key": { "pk": "userId", "sk": "orderId" },
@@ -462,7 +462,7 @@ fn batch_write_puts_and_deletes() {
 /// TTL: 失効項目は読取時点で隠れ、sweep_expired が物理削除数を返す（§8）
 #[test]
 fn sweep_expired_via_bridge() {
-    let b = Bridge::new(InMemoryStorage::new());
+    let b = Bridge::new(InMemoryStorage::new()).expect("open");
     b.create_table(&json!({
         "name": "sessions", "key": { "pk": "id" }, "ttlAttr": "expiresAt"
     }))
@@ -638,4 +638,21 @@ fn sets_via_bridge() {
         None,
     );
     assert!(matches!(r, Err(DbError::Validation(_))), "got {r:?}");
+}
+
+/// 運用 API（§13）: stats は O(1) の itemCount と storageBytes・compact は bool
+#[test]
+fn stats_and_compact_via_bridge() {
+    let mut b = bridge();
+    seed(&b);
+    let s = b.stats("orders").expect("stats");
+    assert_eq!(s["itemCount"], json!(3));
+    assert!(s["storageBytes"].as_u64().unwrap() > 0);
+    // in-memory fake は compact 非対応 = false
+    assert!(!b.compact().expect("compact"));
+    // 未知テーブルは ResourceNotFound
+    assert!(matches!(
+        b.stats("ghost"),
+        Err(DbError::ResourceNotFound(_))
+    ));
 }

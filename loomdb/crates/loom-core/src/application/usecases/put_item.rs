@@ -19,12 +19,8 @@ pub fn put_item<E: StorageEngine>(
     let def = meta::load_def_write(&*txn, table)?;
     let key = encode_item_key(&def, item)?;
 
-    // condition 評価と索引の差分更新のどちらにも現行 item が要る
-    let existing = if condition.is_some() || !def.indexes.is_empty() {
-        txn.get(&def.name, &key)?
-    } else {
-        None
-    };
+    // condition 評価・索引の差分更新・item_count 維持のすべてに現行 item が要る
+    let existing = txn.get(&def.name, &key)?;
     if let Some(cond) = condition {
         let current = decode_item_or_empty(existing.as_deref())?;
         check_condition(cond, &current)?; // 不成立 → txn drop = ロールバック
@@ -38,6 +34,7 @@ pub fn put_item<E: StorageEngine>(
         None => None,
     };
     update_index_entries(&mut *txn, &def, &key, old_item.as_ref(), Some(item))?;
+    super::adjust_item_count(&mut *txn, &def.name, old_item.is_some(), true)?;
 
     let value = rmp_serde::to_vec(item).map_err(|e| DbError::Serialization(e.to_string()))?;
     txn.put(&def.name, &key, &value)?;

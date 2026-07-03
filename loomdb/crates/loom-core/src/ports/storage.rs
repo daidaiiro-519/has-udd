@@ -19,6 +19,15 @@ pub trait StorageEngine {
     fn clock(&self) -> &dyn Clock {
         &SYSTEM_CLOCK
     }
+
+    /// 空き領域の回収（spec §13）。回収を実行したら true。
+    /// 対応しないエンジン（in-memory fake 等）は false を返す。
+    fn compact(&mut self) -> Result<bool, DbError> {
+        Ok(false)
+    }
+
+    /// 物理ストレージのサイズ（bytes・spec §13 の stats 用）。
+    fn storage_bytes(&self) -> Result<u64, DbError>;
 }
 
 /// 実時刻の Clock（既定実装・tech-stack §6: std::time を port 越しに使う）。

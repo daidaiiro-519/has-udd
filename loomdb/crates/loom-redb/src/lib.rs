@@ -7,7 +7,7 @@
 use loom_core::domain::error::DbError;
 use loom_core::ports::{KvEntries, ReadTxn, StorageEngine, WriteTxn};
 use redb::{Database, ReadableTable, TableDefinition};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// 主データを収める単一物理テーブル。
 const MAIN: TableDefinition<&[u8], &[u8]> = TableDefinition::new("loom_main");
@@ -28,16 +28,20 @@ fn phys_key(table: &str, key: &[u8]) -> Vec<u8> {
 
 pub struct RedbStorage {
     db: Database,
+    path: PathBuf,
 }
 
 impl RedbStorage {
     /// 新規作成（既存ファイルがあれば開く）。空でも `loom_main` を作っておく。
     pub fn create(path: impl AsRef<Path>) -> Result<Self, DbError> {
-        let db = store(Database::create(path))?;
+        let db = store(Database::create(&path))?;
         let w = store(db.begin_write())?;
         store(w.open_table(MAIN))?; // 作成のみ（ハンドルは即 drop）
         store(w.commit())?;
-        Ok(Self { db })
+        Ok(Self {
+            db,
+            path: path.as_ref().to_path_buf(),
+        })
     }
 }
 
@@ -50,6 +54,16 @@ impl StorageEngine for RedbStorage {
     fn begin_read(&self) -> Result<Box<dyn ReadTxn + '_>, DbError> {
         let txn = store(self.db.begin_read())?;
         Ok(Box::new(RedbRead { txn }))
+    }
+
+    /// 空き領域の回収（redb の compact に委譲・spec §13）。
+    fn compact(&mut self) -> Result<bool, DbError> {
+        store(self.db.compact())
+    }
+
+    /// DB ファイルの実サイズ。
+    fn storage_bytes(&self) -> Result<u64, DbError> {
+        Ok(store(std::fs::metadata(&self.path))?.len())
     }
 }
 

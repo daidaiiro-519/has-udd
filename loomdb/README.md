@@ -38,6 +38,7 @@
 | 03 | [architecture](docs/03-architecture.md) | ヘキサゴナル構成・crate 分割・ポート定義 |
 | 04 | [coding-standard](docs/04-coding-standard.md) | コーディング規約 |
 | 05 | [test-standard](docs/05-test-standard.md) | テスト規約（property test・サイズ回帰） |
+| 06 | [test-plan](docs/06-test-plan.md) | 機能面・非機能面のテスト計画（fuzz・障害注入・CI・性能/サイズ回帰の実行計画） |
 
 ## ワークスペース構成（サンプル雛形）
 

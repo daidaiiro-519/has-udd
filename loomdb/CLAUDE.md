@@ -42,9 +42,13 @@ JOIN で差別化する。詳細は README.md と docs/00〜05 を参照。
    close() でファイルロック解放（better-sqlite3 流）。Bridge<E> がジェネリック
    なので backend 差替の縫い目は確保済み。npm 公開は @napi-rs/cli の
    マルチプラットフォームビルド整備後（未着手）
-3. `loom-py`（PyO3 → PyPI "loomdb"）← 次
-4. ワイヤ層（任意・drop-in 互換の入口）
-5. コア残タスク: transact_write/batch・TTL・集合型 SS/NS/BS・Projection・
+3. ~~loom-py~~ ✅ 完了 — PyO3(0.22・abi3-py38) シェル（crates/loom-py）。Python 3.11 で
+   全操作＋JOIN が動作（unittest 8本 green）。int は任意精度で i64/u64 まで正確
+   （u64 超は OverflowError）・bytes ↔ B。PyPI 公開は maturin ビルド整備後
+4. 配布パッケージング（npm: @napi-rs/cli / PyPI: maturin のマルチプラットフォーム
+   ビルド・CI）← 公開の前提
+5. ワイヤ層（任意・drop-in 互換の入口）
+6. コア残タスク: transact_write/batch・TTL・集合型 SS/NS/BS・Projection・
    JOIN ページング・§13 運用 API（compact/stats/format_version）
 
 ## 開発プロセス（must）

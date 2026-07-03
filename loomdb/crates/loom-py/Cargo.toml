@@ -1,0 +1,20 @@
+[package]
+name = "loom-py"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+description = "LoomDB Python binding (PyO3 shell over loom-bridge). Published to PyPI as \"loomdb\"."
+
+[lib]
+name = "loom_py"
+crate-type = ["cdylib"]
+
+[dependencies]
+loom-bridge.workspace = true
+loom-core.workspace = true
+loom-redb.workspace = true
+serde_json.workspace = true
+pyo3 = { version = "0.22", features = ["extension-module", "abi3-py38"] }

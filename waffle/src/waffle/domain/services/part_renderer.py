@@ -38,9 +38,9 @@ def render_part(part: dict, data: dict, level: int) -> str:
     elif kind == "code":
         out.append(_code(src, part.get("lang")))
     elif kind == "sequence":
-        out.append(_sequence(src))
+        out.append(_sequence(src, data.get(part.get("participantsFrom", "")) if part.get("participantsFrom") else None))
     elif kind == "statediagram":
-        out.append(_statediagram(src))
+        out.append(_statediagram(src, data.get(part.get("pseudoStatesFrom", "")) if part.get("pseudoStatesFrom") else None))
     elif kind == "divider":
         out.append("---")
     elif kind == "section":
@@ -120,31 +120,63 @@ def _code(text, lang):
     return "\n\n".join(f"```{lang or ''}\n{t}\n```" for t in items)
 
 def _seq_token(name: str) -> str:
-    """Mermaid の participant 識別子向けに空白を除く（ドメイン役者名は単語想定）。"""
-    return str(name).replace(" ", "_")
+    """Mermaid の participant/状態 識別子向けに空白・ハイフンを除く（documentId(kebab-case)も識別子になりうる）。"""
+    return str(name).replace(" ", "_").replace("-", "_")
 
-def _sequence(steps):
-    """構造化ステップ（from/to/message/kind）→ Mermaid sequenceDiagram。"""
+def _sequence(steps, participants=None):
+    """構造化ステップ（from/to/message/kind・loop/altは再帰的にsteps/branchesを持つ）→ Mermaid sequenceDiagram。
+    participants（{id, kind: actor|participant, label}[]）が渡されれば、actor/participant宣言を先頭に出す。
+    """
     lines = ["sequenceDiagram"]
-    for s in steps:
-        if not isinstance(s, dict):
-            continue
-        frm = _seq_token(s.get("from", ""))
-        to = _seq_token(s.get("to", "") or s.get("from", ""))
-        msg = str(s.get("message", "")).replace("\n", " ")
-        kind = s.get("kind", "command")
-        if kind == "event":
-            lines.append(f"    Note over {frm}: {msg}")
-        elif kind == "return":
-            lines.append(f"    {frm}-->>{to}: {msg}")
-        else:  # command / self
-            lines.append(f"    {frm}->>{to}: {msg}")
+    for p in (participants or []):
+        pid = _seq_token(p.get("id", ""))
+        pkind = p.get("kind", "participant")
+        label = p.get("label")
+        suffix = f" as {label}" if label else ""
+        lines.append(f"    {pkind} {pid}{suffix}")
+    lines.extend(_sequence_lines(steps, indent=1))
     diagram = "\n".join(lines)
     return f"```mermaid\n{diagram}\n```"
 
-def _statediagram(transitions):
-    """状態遷移配列（from/to/command）→ Mermaid stateDiagram-v2。状態名の空白は _ に。"""
+def _sequence_lines(steps, indent):
+    pad = "    " * indent
+    lines = []
+    for s in steps:
+        if not isinstance(s, dict):
+            continue
+        kind = s.get("kind", "command")
+        if kind == "loop":
+            lines.append(f"{pad}loop {s.get('message', '')}".rstrip())
+            lines.extend(_sequence_lines(s.get("steps", []), indent + 1))
+            lines.append(f"{pad}end")
+        elif kind == "alt":
+            branches = s.get("branches", [])
+            for i, b in enumerate(branches):
+                kw = "alt" if i == 0 else "else"
+                lines.append(f"{pad}{kw} {b.get('label', '')}".rstrip())
+                lines.extend(_sequence_lines(b.get("steps", []), indent + 1))
+            lines.append(f"{pad}end")
+        else:
+            frm = _seq_token(s.get("from", ""))
+            to = _seq_token(s.get("to", "") or s.get("from", ""))
+            msg = str(s.get("message", "")).replace("\n", " ")
+            act = "+" if s.get("activate") else ("-" if s.get("deactivate") else "")
+            if kind == "event":
+                lines.append(f"{pad}Note over {frm}: {msg}")
+            elif kind == "return":
+                lines.append(f"{pad}{frm}-->>{act}{to}: {msg}")
+            else:  # command / self
+                lines.append(f"{pad}{frm}->>{act}{to}: {msg}")
+    return lines
+
+def _statediagram(transitions, pseudo_states=None):
+    """状態遷移配列（from/to/command）→ Mermaid stateDiagram-v2。状態名の空白は _ に。
+    pseudo_states（{id, kind: choice|fork|join}[]）が渡されれば、疑似状態宣言を先頭に出す。
+    """
     lines = ["stateDiagram-v2"]
+    for ps in (pseudo_states or []):
+        pid = _seq_token(ps.get("id", ""))
+        lines.append(f"    state {pid} <<{ps.get('kind', 'choice')}>>")
     for t in transitions:
         if not isinstance(t, dict):
             continue

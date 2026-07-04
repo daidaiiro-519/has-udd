@@ -93,6 +93,61 @@ def test_statediagram_md():
     assert "open_state --> C: go" in md
 
 
+def test_sequence_participants_actor_vs_participant():
+    parts = [{"as": "sequence", "from": "items", "participantsFrom": "participants"}]
+    data = {
+        "participants": [
+            {"id": "顧客", "kind": "actor"},
+            {"id": "uc-place-order", "kind": "participant", "label": "uc-place-order"},
+        ],
+        "items": [{"from": "顧客", "to": "uc-place-order", "message": "注文する", "kind": "command"}],
+    }
+    md = render_parts(parts, data, 3)
+    assert "actor 顧客" in md
+    assert "participant uc_place_order as uc-place-order" in md
+    assert "顧客->>uc_place_order: 注文する" in md
+
+
+def test_sequence_loop_and_alt_nesting():
+    parts = [{"as": "sequence", "from": "items"}]
+    data = {"items": [
+        {"kind": "loop", "message": "3件分", "steps": [
+            {"from": "A", "to": "B", "message": "処理", "kind": "command"},
+        ]},
+        {"kind": "alt", "branches": [
+            {"label": "成功", "steps": [{"from": "B", "to": "A", "message": "OK", "kind": "return"}]},
+            {"label": "失敗", "steps": [{"from": "B", "to": "A", "message": "NG", "kind": "return"}]},
+        ]},
+    ]}
+    md = render_parts(parts, data, 3)
+    assert "loop 3件分" in md
+    assert "alt 成功" in md
+    assert "else 失敗" in md
+    assert md.count("end") == 2
+
+
+def test_sequence_activate_deactivate():
+    parts = [{"as": "sequence", "from": "items"}]
+    data = {"items": [
+        {"from": "A", "to": "B", "message": "呼出", "kind": "command", "activate": True},
+        {"from": "B", "to": "A", "message": "応答", "kind": "return", "deactivate": True},
+    ]}
+    md = render_parts(parts, data, 3)
+    assert "A->>+B: 呼出" in md
+    assert "B-->>-A: 応答" in md
+
+
+def test_statediagram_pseudo_states():
+    parts = [{"as": "statediagram", "from": "transitions", "pseudoStatesFrom": "pseudoStates"}]
+    data = {
+        "pseudoStates": [{"id": "判定", "kind": "choice"}],
+        "transitions": [{"from": "A", "to": "判定", "command": "check"}],
+    }
+    md = render_parts(parts, data, 3)
+    assert "state 判定 <<choice>>" in md
+    assert "A --> 判定: check" in md
+
+
 def test_kvtable_single_row():
     parts = [{"as": "kvtable", "columns": [
         {"field": "category", "header": "分類"},

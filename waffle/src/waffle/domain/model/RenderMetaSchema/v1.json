@@ -103,6 +103,14 @@
         "lang": {
           "type": "string",
           "description": "code: 言語識別子（任意）"
+        },
+        "participantsFrom": {
+          "type": "string",
+          "description": "sequence: 参加者宣言（{id, kind: actor|participant, label}[]）を持つ block フィールドのキー（任意・fromと同階層の別フィールド）。指定が無ければ全員 participant として扱う。"
+        },
+        "pseudoStatesFrom": {
+          "type": "string",
+          "description": "statediagram: 疑似状態宣言（{id, kind: choice|fork|join}[]）を持つ block フィールドのキー（任意・fromと同階層の別フィールド）。"
         }
       },
       "allOf": [

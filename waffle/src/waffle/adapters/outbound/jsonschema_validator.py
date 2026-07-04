@@ -13,8 +13,8 @@ from waffle.application.ports.validator import Validator
 
 class JsonSchemaValidator(Validator):
     def validate(self, document: dict, schema: dict) -> list[str]:
-        # has-udd:impl-start
+        # waffle:impl-start
         v = Draft202012Validator(schema)
         errors = sorted(v.iter_errors(document), key=lambda e: list(e.path))
         return [f"{list(e.path)}: {e.message}" for e in errors]
-        # has-udd:impl-end
+        # waffle:impl-end

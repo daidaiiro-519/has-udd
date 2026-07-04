@@ -28,17 +28,17 @@ class ScaffoldEngine:
         self._schemas = schemas
 
     def run(self, operation: str, params: dict | None = None) -> Result[dict]:
-        # has-udd:impl-start
+        # waffle:impl-start
         params = params or {}
         if operation == "create":
             return self._create(params)
         if operation == "fill":
             return self._fill(params)
         return _err("INVALID_OPERATION", f"未知の operation: {operation}")
-        # has-udd:impl-end
+        # waffle:impl-end
 
     def _create(self, params: dict) -> Result[dict]:
-        # has-udd:impl-start
+        # waffle:impl-start
         schema_ref = params.get("schemaRef")
         document_id = params.get("documentId")
         if not schema_ref or not document_id:
@@ -62,10 +62,10 @@ class ScaffoldEngine:
         if path:
             self._documents.save(path, skeleton)
         return Ok({"skeleton": skeleton, "fillTemplate": fill_template, "path": path})
-        # has-udd:impl-end
+        # waffle:impl-end
 
     def _fill(self, params: dict) -> Result[dict]:
-        # has-udd:impl-start
+        # waffle:impl-start
         document_path = params.get("documentPath")
         values = params.get("values")
         if not document_path or values is None:
@@ -101,7 +101,7 @@ class ScaffoldEngine:
                 skipped.append(path)  # 未知 / const / discriminator / 構造改変は拒否
         self._documents.save(document_path, doc)
         return Ok({"documentPath": document_path, "written": written, "skipped": skipped})
-        # has-udd:impl-end
+        # waffle:impl-end
 
 
 # --- schema 走査ヘルパ（純ロジック・機械的） ---

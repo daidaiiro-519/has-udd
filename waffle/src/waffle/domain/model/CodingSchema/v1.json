@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "CodingSchema/v1",
   "title": "CodingSchema v1",
-  "description": "has-udd Coding 集約の Schema。What(Spec)→How(コード) の橋渡し。codingKind で tech-stack / code-template / test-template を判別",
+  "description": "waffle Coding 集約の Schema。What(Spec)→How(コード) の橋渡し。codingKind で tech-stack / code-template / test-template を判別",
 
   "x-coding-contract": {
     "specTag":  "@spec:{specId}",
     "stackTag": "@stack:{capability}",
-    "genGap":   { "start": "has-udd:impl-start", "end": "has-udd:impl-end" },
+    "genGap":   { "start": "waffle:impl-start", "end": "waffle:impl-end" },
     "note": "全 codingKind 共通の契約定数。コードの DocComment に埋める固定書式。逆引き(ripgrep)はこの固定書式に依存する"
   },
   "x-render-target": {
@@ -44,7 +44,7 @@
     "updatedAt": { "type": "string", "format": "date-time" },
 
     "_index": {
-      "description": "has-udd が x-prompt-query から自動生成する。AI は直接書かない。",
+      "description": "waffle が x-prompt-query から自動生成する。AI は直接書かない。",
       "readOnly": true,
       "type": "object",
       "properties": {

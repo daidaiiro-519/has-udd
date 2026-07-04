@@ -5,7 +5,7 @@ Feature: document を schema 適合検証する (uc-validate-document)
   Background:
     Given validate engine
 
-  # --- 適合（dogfood: has-udd 自身の全 document） ---
+  # --- 適合（dogfood: waffle 自身の全 document） ---
 
   Scenario Outline: 既存 document は schema に適合する
     Given 対象は "<path>"

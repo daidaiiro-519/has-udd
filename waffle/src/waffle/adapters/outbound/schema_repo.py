@@ -18,11 +18,11 @@ _MODEL_PACKAGE = "waffle.domain.model"
 class PackageSchemaRepository(SchemaRepository):
     def load(self, schema_ref: str) -> dict:
         # schema_ref 例: "SkillSchema/v1" -> waffle/domain/model/SkillSchema/v1.json
-        # has-udd:impl-start
+        # waffle:impl-start
         ref = resources.files(_MODEL_PACKAGE)
         *dirs, name = schema_ref.split("/")
         for d in dirs:
             ref = ref / d
         text = (ref / f"{name}.json").read_text(encoding="utf-8")
         return json.loads(text)
-        # has-udd:impl-end
+        # waffle:impl-end

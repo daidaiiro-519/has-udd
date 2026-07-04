@@ -13,13 +13,13 @@ from __future__ import annotations
 
 def render_parts(parts: list[dict], data: dict, level: int) -> str:
     """parts(宣言の配列) を data(block の値) から Markdown に描画する。level=小見出しの基準レベル。"""
-    # has-udd:impl-start
+    # waffle:impl-start
     return _join((render_part(p, data, level)) for p in parts)
-    # has-udd:impl-end
+    # waffle:impl-end
 
 
 def render_part(part: dict, data: dict, level: int) -> str:
-    # has-udd:impl-start
+    # waffle:impl-start
     kind = part["as"]
     # kvtable は from を取らず現在の data 自身を1行として描く
     src = data.get(part["from"]) if "from" in part else None
@@ -62,7 +62,7 @@ def render_part(part: dict, data: dict, level: int) -> str:
                 out.append(body)
 
     return _join(out)
-    # has-udd:impl-end
+    # waffle:impl-end
 
 
 # --- 整形ヘルパ ---

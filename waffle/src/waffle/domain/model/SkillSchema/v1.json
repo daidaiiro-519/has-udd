@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "SkillSchema/v1",
   "title": "SkillSchema v1",
-  "description": "has-udd Skill document の Schema（engine / custom 両対応）",
+  "description": "waffle Skill document の Schema（engine / custom 両対応）",
   "x-render-target": {
     "formats": ["md"],
     "path": ".has-udd/skills/{documentId}/SKILL.md",
@@ -40,7 +40,7 @@
     "createdAt": { "type": "string", "format": "date-time" },
     "updatedAt":  { "type": "string", "format": "date-time" },
     "_index": {
-      "description": "has-udd が x-prompt-query から自動生成する。AI は直接書かない。",
+      "description": "waffle が x-prompt-query から自動生成する。AI は直接書かない。",
       "readOnly": true,
       "type": "object",
       "properties": {

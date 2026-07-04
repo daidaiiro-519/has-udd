@@ -35,7 +35,7 @@ class RenderEngine:
         self._schemas = schemas
 
     def run(self, document_path: str, deploy: bool = True) -> Result[dict]:
-        # has-udd:impl-start
+        # waffle:impl-start
         # G6: パストラバーサル拒否
         if ".." in Path(document_path).parts:
             return _err("INVALID_PATH", f"パストラバーサルは許可されません: {document_path}")
@@ -89,7 +89,7 @@ class RenderEngine:
             "path": canonical, "deployed": deployed, "format": fmt, "content": output,
             "feature": feature, "featurePath": feature_path or None,
         })
-        # has-udd:impl-end
+        # waffle:impl-end
 
     def _render_frontmatter(self, doc: dict, schema: dict) -> str:
         fm = schema.get("x-frontmatter")
@@ -129,7 +129,7 @@ def _extract_feature(doc: dict, defs: dict):
 
     .feature は仕様内 Gherkin を実行可能形に書き出すだけ（render は内容を作らない・SP-6）。
     """
-    # has-udd:impl-start
+    # waffle:impl-start
     for block in doc.get("content", {}).values():
         if not isinstance(block, dict):
             continue
@@ -151,7 +151,7 @@ def _extract_feature(doc: dict, defs: dict):
                 lines.extend("  " + ln for ln in g.splitlines())
             return "\n".join(lines) + "\n"
     return None
-    # has-udd:impl-end
+    # waffle:impl-end
 
 
 def _resolve_path(root: dict, path: str):
@@ -160,9 +160,9 @@ def _resolve_path(root: dict, path: str):
     x-frontmatter は各 schema が『フィールド→パス』を宣言する（ロジックはデータに置かず
     描画は engine が担う＝Harness 原則）。新しい frontmatter パターンはこの宣言を増やすだけで対応する。
     """
-    # has-udd:impl-start
+    # waffle:impl-start
     cur = root
     for part in path.split("."):
         cur = cur[part]
     return cur
-    # has-udd:impl-end
+    # waffle:impl-end

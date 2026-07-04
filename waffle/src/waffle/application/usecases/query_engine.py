@@ -46,7 +46,7 @@ class QueryEngine:
         self._schemas = schemas
 
     def run(self, operation: str, path: str, params: dict | None = None) -> Result[dict]:
-        # has-udd:impl-start
+        # waffle:impl-start
         params = params or {}
         if operation not in _REQUIRED:
             return _err("INVALID_OPERATION", f"未知の operation: {operation}")
@@ -81,12 +81,12 @@ class QueryEngine:
 
         schema = self._schemas.load(doc["schemaRef"])
         return self._dispatch(operation, doc, schema, params)
-        # has-udd:impl-end
+        # waffle:impl-end
 
     # --- ディスパッチ ---
 
     def _dispatch(self, operation: str, doc: dict, schema: dict, params: dict) -> Result[dict]:
-        # has-udd:impl-start
+        # waffle:impl-start
         if operation == "get_meta":
             return Ok({"prompt": None, "value": {k: doc[k] for k in _META_FIELDS if k in doc}})
         if operation == "index_scan":
@@ -171,7 +171,7 @@ class QueryEngine:
             if isinstance(doc, dict) and "schemaRef" in doc:
                 out[p] = _index(doc, self._schemas.load(doc["schemaRef"]))
         return Ok({"prompt": None, "value": out})
-        # has-udd:impl-end
+        # waffle:impl-end
 
 
 # --- 純ヘルパ ---
@@ -181,42 +181,42 @@ def _err(code: str, message: str) -> Err:
 
 
 def _eq(a, b) -> bool:
-    # has-udd:impl-start
+    # waffle:impl-start
     return a == b or str(a).lower() == str(b).lower()
-    # has-udd:impl-end
+    # waffle:impl-end
 
 
 def _block_prompt(schema: dict, block: dict):
-    # has-udd:impl-start
+    # waffle:impl-start
     bdef = schema.get("$defs", {}).get(f"{block.get('blockType')}Block", {})
     return bdef.get("x-prompt-query")
-    # has-udd:impl-end
+    # waffle:impl-end
 
 
 def _index(doc: dict, schema: dict) -> dict:
     """blockType × schema.x-prompt-query から _index を読み取り時に動的算出する（保存はしない）。"""
-    # has-udd:impl-start
+    # waffle:impl-start
     defs = schema.get("$defs", {})
     out: dict[str, dict] = {}
     for key, block in doc.get("content", {}).items():
         bt = block.get("blockType") if isinstance(block, dict) else None
         out[key] = {"blockType": bt, "prompt": defs.get(f"{bt}Block", {}).get("x-prompt-query")}
     return out
-    # has-udd:impl-end
+    # waffle:impl-end
 
 
 def _find_by_id(arr: list, id_field: str, id_value):
-    # has-udd:impl-start
+    # waffle:impl-start
     for x in arr:
         if isinstance(x, dict) and _eq(x.get(id_field), id_value):
             return x
     return None
-    # has-udd:impl-end
+    # waffle:impl-end
 
 
 def _find_all(node, field: str) -> list:
     """node 配下を再帰走査し field の値を全て集める（全階層検索）。"""
-    # has-udd:impl-start
+    # waffle:impl-start
     out: list = []
     if isinstance(node, dict):
         if field in node:
@@ -227,4 +227,4 @@ def _find_all(node, field: str) -> list:
         for v in node:
             out.extend(_find_all(v, field))
     return out
-    # has-udd:impl-end
+    # waffle:impl-end

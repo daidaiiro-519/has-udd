@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "SpecSchema/v2",
   "title": "SpecSchema v2",
-  "description": "has-udd Spec 集約（UDD の核）。specKind=bounded-context/subdomain/aggregate/usecase（DDD 語彙に整合）。content はドメイン語彙のみ（技術スタック/アーキ構成は CodingTemplate の担当）。集約=Commands/Invariants/Lifecycle、ユースケース=基本フロー(シーケンス)、整合の契約=TestScenarios(Gherkin)。描画は MD を正本とし HTML は viewer 想定（render エンジン MD 改修までは html/feature を出力）。",
+  "description": "waffle Spec 集約（UDD の核）。specKind=bounded-context/subdomain/aggregate/usecase（DDD 語彙に整合）。content はドメイン語彙のみ（技術スタック/アーキ構成は CodingTemplate の担当）。集約=Commands/Invariants/Lifecycle、ユースケース=基本フロー(シーケンス)、整合の契約=TestScenarios(Gherkin)。描画は MD を正本とし HTML は viewer 想定（render エンジン MD 改修までは html/feature を出力）。",
 
   "x-render-target": {
     "formats": ["md", "feature"],
@@ -47,7 +47,7 @@
     "updatedAt": { "type": "string", "format": "date-time" },
 
     "_index": {
-      "description": "has-udd が x-prompt-query から自動生成する。AI は直接書かない。",
+      "description": "waffle が x-prompt-query から自動生成する。AI は直接書かない。",
       "readOnly": true,
       "type": "object",
       "properties": {

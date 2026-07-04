@@ -1,6 +1,6 @@
 # uc-query-document の受け入れシナリオ（What の SSOT・実行可能）。
 # 実装はこのシナリオが緑である限り自由に変えてよい。振る舞いが変わる時だけ仕様を先に更新する（UDD 規律）。
-# 対象は has-udd 自身の query engine document（dogfood）。
+# 対象は waffle 自身の query engine document（dogfood）。
 Feature: document.json へのセマンティック・クエリ (uc-query-document)
 
   Background:

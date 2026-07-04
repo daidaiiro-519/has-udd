@@ -129,4 +129,23 @@
 - `SpecSchema`→`DomainSpecSchema`の全面改名（schema本体・全12 spec instance・features/tests）
 - `PresentationSpecSchema/v1`新設（screen/flow・scaffold→validate→renderの一次実証済み）
 - `agg-schema.json`にKindProfile VO追加・対象範囲を4schema（DomainSpecSchema/PresentationSpecSchema/CodingSchema/SkillSchema）に明記
+- RenderMetaSchema/v2.json・DomainSpecSchema/v2.jsonの説明文に残っていた古い「md/html両形式描画」記述をMD正本（Google OKF整合）に修正
 - pytest 19/19・behave 70/70 全緑
+
+---
+
+## 論点 6: RenderMetaSchema・DocstringSchemaの棲み分け（値オブジェクトとしての宿り先）
+
+### ユーザー見解
+> documentではないにしてもドメイン領域的にはcodingなんですよねぇ。ただ、documentではなく、source codeという集約が存在するならドックストリングはここに属するkindですよね？　render schemaはある種document集約に必須の値オブジェクトだと思う。
+
+### AI 再考見解
+両方とも「値オブジェクト」で説明できるが、**宿る場所が違う**。
+
+- **RenderMetaSchema**: 実データ（`x-render`宣言）はSchema集約が持つ`KindProfile`（値オブジェクト）の、各ブロック定義の内側にネストして存在する。よって**Schema集約の値オブジェクト**（KindProfileのさらに内側の型）。Document本体には`x-render`というフィールド自体が存在しないため、Documentに直接ぶら下がる値オブジェクトではない（Documentの`render`コマンドはSchemaRef経由で間接的に依存する）。
+- **DocstringSchema**: 「SourceCode集約」という枠組みは成立しない——Waffleはソースコードの状態変更を一切コマンドとして持たない（読むだけ）ため、DDDの集約の要件（公開コマンド経由でのみ状態変更）を満たさず、SourceCodeは外部参照（IDのみ）にしかなり得ない。DocstringSchemaは`uc-scan-source-code`という**ドメインサービス（ステートレス・複数集約に跨らない単なる計算）の戻り値の型**であり、どの集約にも属さない。
+
+### 合意決定
+**決定:** RenderMetaSchemaは「Schema集約の値オブジェクト（KindProfileにネストする型）」、DocstringSchemaは「uc-scan-source-codeドメインサービスの戻り値型（集約非依存）」として、agg-schema.json / uc-scan-source-code.jsonにそれぞれ明記する。
+**理由:** 前者はSchema集約の内部データに実際に宿る値、後者はどこにも永続化されずサービス呼び出しの入出力としてのみ存在する値——本のドメインサービスの定義（複数集約を参照する計算・入出力はVOで表現）にそのまま合致する。
+**次のアクション:** `agg-schema.json`のKindProfile VOの説明にRenderMetaSchemaへの言及を追加、`uc-scan-source-code.json`のexternalActorsにDocstringSchemaの役割を明記。

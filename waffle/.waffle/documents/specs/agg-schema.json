@@ -82,7 +82,7 @@
         {
           "name": "KindProfile",
           "represents": "kind（specKind/codingKind/skillKind）1つに対応する、必須 content ブロック集合とその形状",
-          "behavior": "不変。kind 名＋必須ブロック集合の組で識別（同じ値なら同じものとして扱う）。Schema の版が変わらない限り不変（変える場合は publishVersion で新版を発行する。既存版内でその場変更はしない）。"
+          "behavior": "不変。kind 名＋必須ブロック集合の組で識別（同じ値なら同じものとして扱う）。Schema の版が変わらない限り不変（変える場合は publishVersion で新版を発行する。既存版内でその場変更はしない）。各ブロックが持つ x-render 属性は、RenderMetaSchema（ネストした値オブジェクトの型）が形を規定する。"
         }
       ]
     },

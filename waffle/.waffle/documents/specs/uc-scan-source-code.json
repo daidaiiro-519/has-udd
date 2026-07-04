@@ -28,7 +28,7 @@
       "blockType": "ExternalActors",
       "title": "関与する外部",
       "items": [
-        "DocstringSchema（kind ごとの構造宣言・レシピとして参照）"
+        "DocstringSchema（本ユースケースというドメインサービスの戻り値の型。どの集約にも属さず、どこにも永続化されない）"
       ]
     },
     "preconditions": {

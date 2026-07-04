@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "DocCommentSchema/v1",
+  "title": "DocComment Schema v1",
+  "description": "code_scan（uc-scan-source-code）の出力を検証するメタ schema。RenderMetaSchema と同格（Document 本体でなく、ソースコードから構造化抽出した別のアウトプットを検証する）。出力 JSON の形は kind によらず単一（抽出方法だけが言語ごとの outbound adapter で異なる）。godoc/rustdoc は各言語の公式規約に args/returns/raises に相当する構造化記法が存在しないため、この2 kind では args/returns/raises は常に空になる（無理に構造を作らない）。",
+
+  "type": "object",
+  "required": ["path", "kind", "elementKind", "name", "hasDocstring", "signatureParams", "summary", "body", "args", "returns", "raises"],
+  "additionalProperties": false,
+  "properties": {
+    "path": { "type": "string", "description": "抽出元ファイルのパス。" },
+    "kind": {
+      "type": "string",
+      "enum": ["google", "tsdoc", "javadoc", "godoc", "rustdoc"],
+      "description": "docstring スタイル（対象言語ごとに一意に決まる）。google=Python、tsdoc=TypeScript/JavaScript、javadoc=Java、godoc=Go、rustdoc=Rust。"
+    },
+    "elementKind": { "type": "string", "enum": ["module", "class", "function"] },
+    "name": { "type": "string", "description": "要素名。module の場合はファイル名。" },
+    "hasDocstring": { "type": "boolean", "description": "docstring が存在するか（MISSING_DOC_COMMENT 判定に使う）。" },
+    "signatureParams": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "実シグネチャの引数名（docstring でなくコードから取得）。module/class は空配列。"
+    },
+    "summary": { "type": "string", "description": "要約。docstring が無い、または要約が空なら空文字。境界は x-extraction-rules[kind].summaryBoundary に従う。" },
+    "body": { "type": "string", "description": "要約を除く本文。無ければ空文字。" },
+    "args": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      },
+      "description": "docstring に書かれた引数説明。godoc/rustdoc は常に空配列。"
+    },
+    "returns": { "type": "string", "description": "戻り値の説明。無ければ空文字。" },
+    "raises": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["exceptionType", "condition"],
+        "additionalProperties": false,
+        "properties": {
+          "exceptionType": { "type": "string" },
+          "condition": { "type": "string" }
+        }
+      },
+      "description": "送出しうる例外の説明。godoc/rustdoc は常に空配列。"
+    }
+  },
+
+  "x-extraction-rules": {
+    "description": "kind ごとの「docstring テキスト → 出力フィールド」への機械的な変換規則。抽出エンジンはこの宣言を読んで汎用的にパースし、言語ごとにマーカー文字列をハードコードしない。各規則は公式仕様（Google Python Style Guide / tsdoc.org / Oracle Javadoc doc-comment spec）で裏付け済み。",
+    "google": {
+      "summaryBoundary": "line",
+      "sections": [
+        { "field": "args",    "marker": "Args:",    "itemPattern": "{name}: {description}" },
+        { "field": "returns", "marker": "Returns:",  "itemPattern": null },
+        { "field": "raises",  "marker": "Raises:",   "itemPattern": "{exceptionType}: {condition}" }
+      ]
+    },
+    "tsdoc": {
+      "summaryBoundary": "first-block-tag",
+      "body": { "marker": "@remarks" },
+      "sections": [
+        { "field": "args",    "marker": "@param",   "itemPattern": "@param {name} - {description}" },
+        { "field": "returns", "marker": "@returns",  "itemPattern": "@returns {description}" },
+        { "field": "raises",  "marker": "@throws",  "itemPattern": "@throws {{@link exceptionType}}\n{condition}" }
+      ]
+    },
+    "javadoc": {
+      "summaryBoundary": "sentence",
+      "sections": [
+        { "field": "args",    "marker": "@param",  "itemPattern": "@param {name} {description}" },
+        { "field": "returns", "marker": "@return",  "itemPattern": null },
+        { "field": "raises",  "marker": "@throws",  "itemPattern": "@throws {exceptionType} {description}" }
+      ]
+    },
+    "godoc": {
+      "summaryBoundary": "line",
+      "sections": [],
+      "note": "公式規約に args/returns/raises の構造化記法が無い（自由文のみ）。args/returns/raises は常に空。"
+    },
+    "rustdoc": {
+      "summaryBoundary": "line",
+      "sections": [],
+      "note": "公式規約に引数ごとの構造化記法が無い（# Panics 等の見出しのみ）。args/returns/raises は常に空。"
+    }
+  }
+}

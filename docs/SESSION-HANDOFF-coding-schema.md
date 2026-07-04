@@ -72,7 +72,31 @@
 
 ---
 
-## 3. ★中断中の議論：DocCommentSchema（要再開）
+## 3. DocCommentSchema：全論点 CLOSED（`docs/brainstorm/brainstorm-doc-comment-schema.md`）
+
+中断していたこの議論は**再開・完全決着**した。詳細は `brainstorm-doc-comment-schema.md`（DC-1〜6）参照。
+
+**要点：**
+- `uc-scan-source-code`（index・sd-harness-core）/`uc-lint-doc-comment`（適合判定・sd-validation）の
+  2 usecase 分割は確定のまま、postconditions/acceptanceCriteria を**具体的フィールドまで書き下し済み**。
+- `DocCommentSchema/v1.json`（`waffle/src/waffle/domain/model/`）を実装。**普通の JSON Schema**（RenderMetaSchema
+  と同格のメタ schema）＋**`x-extraction-rules`**（テキスト→JSON のマーカー対応規則を宣言データ化。
+  `summaryBoundary` + `sections[].marker/itemPattern`）。google/tsdoc/javadoc/godoc/rustdoc の**5 kind すべて
+  公式仕様（Google styleguide/tsdoc.org/Oracle Javadoc spec）で裏付け済み**。
+- Python(google)・TypeScript(tsdoc) は実ソースから抽出→schema検証まで実証済み（エラー0件）。
+- **`uc-lint-doc-comment` は自前実装でなく既存 lint ツールを呼ぶアダプタに設計変更**：
+  google→**pydoclint**／tsdoc→**eslint-plugin-jsdoc**／javadoc→**Checkstyle JavadocMethod**／
+  godoc→**revive**（有無のみ）／rustdoc→**rustc 組み込み missing_docs**（有無のみ）。
+- 全 spec validate/render 済み・pytest 15/15・behave 69/69 緑。
+
+**残作業：**
+1. `code_scan`/`lint` を `waffle` の query engine 拡張として正式実装（`x-extraction-rules` を読む汎用パーサ・
+   既存ツール呼び出しアダプタ）。
+2. **DC-3（未決着のまま）**：「各 schema の具体フィールドは spec で裏付けるべき」という原則は合意したが、
+   **CodingSchema/SkillSchema/RenderMetaSchema への遡及適用は引き続きバックログ**。今回は
+   「DocCommentSchema だけ正しい手順で進める」（選択肢A）で進行した。
+
+## 3'. （旧・以下は歴史的経緯として残す）当初の中断メモ
 
 サンプルの docstring を「機械的に構造検証できるか」を突き詰めていく中で、長い DDD 論争になった。
 

@@ -2,10 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "DocCommentSchema/v1",
   "title": "DocComment Schema v1",
-  "description": "code_scan（uc-scan-source-code）の出力を検証するメタ schema。RenderMetaSchema と同格（Document 本体でなく、ソースコードから構造化抽出した別のアウトプットを検証する）。出力 JSON の形は kind によらず単一（抽出方法だけが言語ごとの outbound adapter で異なる）。godoc/rustdoc は各言語の公式規約に args/returns/raises に相当する構造化記法が存在しないため、この2 kind では args/returns/raises は常に空になる（無理に構造を作らない）。",
+  "description": "code_scan（uc-scan-source-code）の出力を検証するメタ schema。RenderMetaSchema と同格（Document 本体でなく、ソースコードから構造化抽出した別のアウトプットを検証する）。出力 JSON の形は kind によらず単一（抽出方法だけが言語ごとの outbound adapter で異なる）。godoc/rustdoc は各言語の公式規約に args/returns/raises/attributes に相当する構造化記法が存在しないため、この2 kind ではこれらのフィールドは常に空になる（無理に構造を作らない）。",
 
   "type": "object",
-  "required": ["path", "kind", "elementKind", "name", "hasDocstring", "signatureParams", "summary", "body", "args", "returns", "raises"],
+  "required": ["path", "kind", "elementKind", "name", "hasDocstring", "signatureParams", "summary", "body", "args", "returns", "raises", "attributes"],
   "additionalProperties": false,
   "properties": {
     "path": { "type": "string", "description": "抽出元ファイルのパス。" },
@@ -35,9 +35,12 @@
           "description": { "type": "string" }
         }
       },
-      "description": "docstring に書かれた引数説明。godoc/rustdoc は常に空配列。"
+      "description": "docstring に書かれた引数説明。elementKind=function のみ意味を持つ。godoc/rustdoc は常に空配列。"
     },
-    "returns": { "type": "string", "description": "戻り値の説明。無ければ空文字。" },
+    "returns": {
+      "type": "string",
+      "description": "戻り値の説明。google kind ではジェネレータの場合 Yields: の内容もここに入る（Returns/Yields は同じフィールドの排他的なマーカー）。無ければ空文字。"
+    },
     "raises": {
       "type": "array",
       "items": {
@@ -50,6 +53,19 @@
         }
       },
       "description": "送出しうる例外の説明。godoc/rustdoc は常に空配列。"
+    },
+    "attributes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      },
+      "description": "公開属性の説明（google スタイルの Attributes: セクション）。elementKind=class のみ意味を持つ。tsdoc/javadoc は慣習上フィールドごとに個別 docstring を持つため常に空配列（将来 elementKind に property/field を追加すれば対応可能）。godoc/rustdoc も常に空配列。"
     }
   },
 
@@ -58,9 +74,11 @@
     "google": {
       "summaryBoundary": "line",
       "sections": [
-        { "field": "args",    "marker": "Args:",    "itemPattern": "{name}: {description}" },
-        { "field": "returns", "marker": "Returns:",  "itemPattern": null },
-        { "field": "raises",  "marker": "Raises:",   "itemPattern": "{exceptionType}: {condition}" }
+        { "field": "args",       "marker": "Args:",       "itemPattern": "{name}: {description}" },
+        { "field": "returns",    "marker": "Returns:",    "itemPattern": null },
+        { "field": "returns",    "marker": "Yields:",     "itemPattern": null },
+        { "field": "raises",     "marker": "Raises:",     "itemPattern": "{exceptionType}: {condition}" },
+        { "field": "attributes", "marker": "Attributes:", "itemPattern": "{name}: {description}" }
       ]
     },
     "tsdoc": {
@@ -70,7 +88,8 @@
         { "field": "args",    "marker": "@param",   "itemPattern": "@param {name} - {description}" },
         { "field": "returns", "marker": "@returns",  "itemPattern": "@returns {description}" },
         { "field": "raises",  "marker": "@throws",  "itemPattern": "@throws {{@link exceptionType}}\n{condition}" }
-      ]
+      ],
+      "note": "attributes は対象外（TSDoc の慣習ではクラスの各プロパティに個別の docstring を書き、クラス docstring 内に集約しない）。"
     },
     "javadoc": {
       "summaryBoundary": "sentence",
@@ -78,17 +97,18 @@
         { "field": "args",    "marker": "@param",  "itemPattern": "@param {name} {description}" },
         { "field": "returns", "marker": "@return",  "itemPattern": null },
         { "field": "raises",  "marker": "@throws",  "itemPattern": "@throws {exceptionType} {description}" }
-      ]
+      ],
+      "note": "attributes は対象外（Javadoc の慣習ではフィールドごとに個別の doc comment を書く）。"
     },
     "godoc": {
       "summaryBoundary": "line",
       "sections": [],
-      "note": "公式規約に args/returns/raises の構造化記法が無い（自由文のみ）。args/returns/raises は常に空。"
+      "note": "公式規約に args/returns/raises/attributes の構造化記法が無い（自由文のみ）。これらは常に空。"
     },
     "rustdoc": {
       "summaryBoundary": "line",
       "sections": [],
-      "note": "公式規約に引数ごとの構造化記法が無い（# Panics 等の見出しのみ）。args/returns/raises は常に空。"
+      "note": "公式規約に引数ごとの構造化記法が無い（# Panics 等の見出しのみ）。args/returns/raises/attributes は常に空。"
     }
   }
 }

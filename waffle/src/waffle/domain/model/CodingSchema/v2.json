@@ -6,9 +6,9 @@
 
   "x-render-target": {
     "formats": ["md"],
-    "path": ".has-udd/coding/{documentId}.md"
+    "path": ".waffle/coding/{documentId}.md"
   },
-  "x-source-target": ".has-udd/documents/coding/{documentId}.json",
+  "x-source-target": ".waffle/documents/coding/{documentId}.json",
 
   "type": "object",
   "required": ["documentId", "documentType", "schemaRef", "codingKind", "stack", "status", "content"],
@@ -22,7 +22,7 @@
     "codingKind": {
       "type": "string",
       "enum": ["tech-stack", "architecture", "coding-standard", "test-standard"],
-      "x-prompt-write": "tech-stack（技術選択＋非ドメイン能力）/ architecture（技術方式・配置・依存方向）/ coding-standard（命名・スタイル・DocComment 規約）/ test-standard（テスト方針・種別・シナリオ束ね）のいずれか。"
+      "x-prompt-write": "tech-stack（技術選択＋非ドメイン能力）/ architecture（技術方式・配置・依存方向）/ coding-standard（命名・スタイル・docstring 規約）/ test-standard（テスト方針・種別・シナリオ束ね）のいずれか。"
     },
     "stack": {
       "type": "string",
@@ -486,13 +486,13 @@
 
     "CodingStandardContent": {
       "type": "object",
-      "required": ["title", "naming", "style", "docComment", "rules"],
+      "required": ["title", "naming", "style", "docstring", "rules"],
       "additionalProperties": false,
       "properties": {
         "title":       { "$ref": "#/$defs/TitleBlock" },
         "naming":      { "$ref": "#/$defs/NamingBlock" },
         "style":       { "$ref": "#/$defs/StyleBlock" },
-        "docComment":  { "$ref": "#/$defs/DocCommentBlock" },
+        "docstring":   { "$ref": "#/$defs/DocstringBlock" },
         "rules":       { "$ref": "#/$defs/CodingRulesBlock" }
       }
     },
@@ -557,7 +557,7 @@
       }
     },
 
-    "DocCommentBlock": {
+    "DocstringBlock": {
       "type": "object",
       "required": ["blockType", "title", "style", "summaryGuidance", "target", "example"],
       "x-render-order": 3,
@@ -572,8 +572,8 @@
         { "as": "code", "from": "example" }
       ],
       "properties": {
-        "blockType":       { "type": "string", "const": "DocComment" },
-        "title":           { "type": "string", "const": "ドキュメントコメント" },
+        "blockType":       { "type": "string", "const": "Docstring" },
+        "title":           { "type": "string", "const": "docstring" },
         "style":           { "type": "string", "x-prompt-write": "言語標準の docstring スタイル。例: Google スタイル docstring" },
         "summaryGuidance": { "type": "string", "x-prompt-write": "要約行（1行目）の書き方の指針。「何をするか・いつ使うか」を検索と判断に効く語で、の旨。" },
         "target":          { "type": "string", "x-prompt-write": "docstring を必須にする対象。例: 公開要素（module / 公開 class / 公開 function）。private は任意。" },

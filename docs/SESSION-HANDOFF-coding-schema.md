@@ -10,6 +10,10 @@
 > 移行した（`HANDOFF.md` 参照）。このため、以下で `.has-udd/documents/coding/...` 等と書いている
 > 箇所は、現在は **`waffle/.waffle/documents/coding/...`** に対応する。ソースは `waffle/` 配下、
 > パッケージ名は `waffle`（旧 `has_udd`）。
+>
+> ⚠️ **用語変更**: 「DocComment」は一般的でないため `DocCommentSchema` → **`DocstringSchema`**、
+> `uc-lint-doc-comment` → **`uc-lint-docstring`** に改名済み（CodingSchema の `docComment` ブロックも
+> `docstring` に統一）。以下の本文中の旧名称は当時の記録として残す。
 
 ---
 

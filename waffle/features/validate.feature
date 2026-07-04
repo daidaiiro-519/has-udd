@@ -32,7 +32,7 @@ Feature: document を schema 適合検証する (uc-validate-document)
       | .waffle/documents/specs/uc-validate-document.json   |
       | .waffle/documents/specs/uc-scaffold-document.json   |
       | .waffle/documents/specs/uc-scan-source-code.json    |
-      | .waffle/documents/specs/uc-lint-doc-comment.json    |
+      | .waffle/documents/specs/uc-lint-docstring.json    |
 
   # --- 不適合 ---
 

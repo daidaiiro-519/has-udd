@@ -32,7 +32,7 @@
       "items": [
         { "kind": "subdomain", "members": "sd-harness-core / sd-validation / sd-rendering" },
         { "kind": "aggregate", "members": "agg-document / agg-schema" },
-        { "kind": "usecase", "members": "uc-scaffold-document / uc-query-document / uc-validate-document / uc-render-document / uc-scan-source-code / uc-lint-doc-comment" }
+        { "kind": "usecase", "members": "uc-scaffold-document / uc-query-document / uc-validate-document / uc-render-document / uc-scan-source-code / uc-lint-docstring" }
       ]
     }
   }

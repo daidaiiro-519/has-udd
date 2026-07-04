@@ -1,5 +1,8 @@
 # ブレインストーミング: 動く最小サンプル（examples/）
 
+> ★用語変更（2026-07）: 「DocComment」は一般的でないため `DocCommentSchema` → **`DocstringSchema`**、
+> `uc-lint-doc-comment` → **`uc-lint-docstring`** に改名済み。本文中の旧名称は当時の記録として残す。
+
 **目的:** CodingSchema（規約＝決定ルール）と対をなす「正確な形」の担い手＝動く最小サンプル（examples/）を、**何を・どう作るか（プロセス込み）**で確定する。
 **モード:** 設計判断（論点 → 見解 → 合意）
 

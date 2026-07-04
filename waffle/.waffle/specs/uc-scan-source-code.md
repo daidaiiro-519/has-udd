@@ -4,7 +4,7 @@
 
 ## 概要
 
-AI がソースコード本体を直接読まずに、DocCommentSchema の kind に従って docstring を構造化抽出したインデックスビューを取得する。
+AI がソースコード本体を直接読まずに、DocstringSchema の kind に従って docstring を構造化抽出したインデックスビューを取得する。
 
 ---
 
@@ -17,14 +17,14 @@ AI がソースコード本体を直接読まずに、DocCommentSchema の kind 
 
 ## 関与する外部
 
-- DocCommentSchema（kind ごとの構造宣言・レシピとして参照）
+- DocstringSchema（kind ごとの構造宣言・レシピとして参照）
 
 ---
 
 ## 事前条件
 
 - 対象コードベース（ディレクトリ）のパスが要望テキストで与えられている
-- 対象言語に対応する DocCommentSchema の kind が解決できる
+- 対象言語に対応する DocstringSchema の kind が解決できる
 
 ---
 
@@ -41,7 +41,7 @@ sequenceDiagram
 
 ## 事後条件
 
-- 公開要素ごとに、次のフィールドを持つオブジェクトの配列が返る: path（ファイルパス）・kind（DocCommentSchema の kind）・elementKind（module/class/function のいずれか）・name（要素名）・hasDocstring（docstring が存在するか。真偽値）・signatureParams（実シグネチャの引数名の配列。function/method 以外は空配列）・summary（要約行。無ければ空文字）・body（本文。無ければ空文字）・args（docstring の引数説明。{name, description} の配列。無ければ空配列）・returns（戻り値の説明。ジェネレータの Yields も含む。無ければ空文字）・raises（{exceptionType, condition} の配列。無ければ空配列）・attributes（クラスの公開属性説明。{name, description} の配列。elementKind=class 以外は空配列）
+- 公開要素ごとに、次のフィールドを持つオブジェクトの配列が返る: path（ファイルパス）・kind（DocstringSchema の kind）・elementKind（module/class/function のいずれか）・name（要素名）・hasDocstring（docstring が存在するか。真偽値）・signatureParams（実シグネチャの引数名の配列。function/method 以外は空配列）・summary（要約行。無ければ空文字）・body（本文。無ければ空文字）・args（docstring の引数説明。{name, description} の配列。無ければ空配列）・returns（戻り値の説明。ジェネレータの Yields も含む。無ければ空文字）・raises（{exceptionType, condition} の配列。無ければ空配列）・attributes（クラスの公開属性説明。{name, description} の配列。elementKind=class 以外は空配列）
 - signatureParams は docstring でなく実際の関数シグネチャから取得する（args との突合に使うため）
 - private 要素（言語の慣例で非公開とされるもの。例: Python の先頭 `_`）は既定では対象外になる
 - インデックスは保存されない（読み取りのたびに再計算する）
@@ -55,7 +55,7 @@ sequenceDiagram
 - When 要素が module/class であるとき、エンジンは signatureParams を空配列で返す shall。
 - When 要素が class であるとき、エンジンは公開属性の説明（Attributes 相当のセクション）を attributes に含める shall。class 以外は attributes を空配列で返す shall。
 - When 要素に docstring が無いとき、エンジンは summary/body/args/returns/raises/attributes を空値（空文字・空配列）で返し、走査全体は失敗させない shall。
-- While 対象言語に対応する DocCommentSchema の kind が無いとき、エンジンは UNSUPPORTED_KIND エラーを返す shall。
+- While 対象言語に対応する DocstringSchema の kind が無いとき、エンジンは UNSUPPORTED_KIND エラーを返す shall。
 - If 対象パスが存在しないとき、エンジンは INVALID_PATH エラーを返す shall。
 - When ソースコードの本体（docstring 以外の行）を返す必要がないとき、エンジンは本体を読み込んだ上でも構造化データ以外を出力に含めない shall。
 
@@ -66,7 +66,7 @@ sequenceDiagram
 | コード | 条件 |
 |---|---|
 | `INVALID_PATH` | 対象パスが存在しない |
-| `UNSUPPORTED_KIND` | 対象言語に対応する DocCommentSchema の kind が無い |
+| `UNSUPPORTED_KIND` | 対象言語に対応する DocstringSchema の kind が無い |
 | `INVALID_SOURCE` | 対象ファイルが構文解析できない（言語のパーサでエラー） |
 
 ---
@@ -107,7 +107,7 @@ Scenario: docstring が無い要素も走査全体を失敗させない
 
 ```gherkin
 Scenario: 対応する kind が無い言語は UNSUPPORTED_KIND
-  Given DocCommentSchema に定義の無い言語のコードベース
+  Given DocstringSchema に定義の無い言語のコードベース
   When 対象パスを走査する
   Then UNSUPPORTED_KIND エラーが返る
 ```

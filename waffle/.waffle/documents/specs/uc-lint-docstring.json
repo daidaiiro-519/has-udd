@@ -1,5 +1,5 @@
 {
-  "documentId": "uc-lint-doc-comment",
+  "documentId": "uc-lint-docstring",
   "documentType": "Spec",
   "schemaRef": "SpecSchema/v2",
   "specKind": "usecase",
@@ -11,7 +11,7 @@
   "content": {
     "title": {
       "blockType": "Title",
-      "title": "uc-lint-doc-comment"
+      "title": "uc-lint-docstring"
     },
     "summary": {
       "blockType": "Summary",
@@ -37,7 +37,7 @@
       "title": "事前条件",
       "items": [
         "対象コードベース（ディレクトリ）のパスが要望テキストで与えられている",
-        "対象言語に対応する DocCommentSchema の kind が解決できる"
+        "対象言語に対応する DocstringSchema の kind が解決できる"
       ]
     },
     "mainFlow": {
@@ -97,7 +97,7 @@
         "When 既存 lint ツールが「引数の記載漏れ・余分な記載」を報告したとき、エンジンはこれを code=ARGS_MISMATCH として正規化する shall。",
         "When 要素の hasDocstring が false のとき、エンジンは code=MISSING_DOC_COMMENT の違反として報告する shall。",
         "While 全要素が適合しているとき、エンジンは空配列を返す（正常系）shall。",
-        "If 対象言語に対応する DocCommentSchema の kind が無いとき、エンジンは UNSUPPORTED_KIND エラーを返す shall。",
+        "If 対象言語に対応する DocstringSchema の kind が無いとき、エンジンは UNSUPPORTED_KIND エラーを返す shall。",
         "If kind に対応する既存 lint ツールが実行環境に存在しないとき、エンジンは TOOL_NOT_AVAILABLE エラーを返す shall。"
       ]
     },
@@ -107,7 +107,7 @@
       "items": [
         {
           "code": "UNSUPPORTED_KIND",
-          "condition": "対象言語に対応する DocCommentSchema の kind が無い"
+          "condition": "対象言語に対応する DocstringSchema の kind が無い"
         },
         {
           "code": "INVALID_PATH",
@@ -128,7 +128,7 @@
           "name": "全要素が規約に適合するとき違反なしと判定する",
           "category": "正常系",
           "viewpoint": "適合：違反ゼロは正常系（空配列）",
-          "gherkin": "Scenario: 全要素が規約に適合するとき違反なしと判定する\n  Given DocCommentSchema の google kind に適合する docstring だけを持つコードベース\n  When 適合判定を実行する\n  Then 違反は空配列で返り、エラーにはならない",
+          "gherkin": "Scenario: 全要素が規約に適合するとき違反なしと判定する\n  Given DocstringSchema の google kind に適合する docstring だけを持つコードベース\n  When 適合判定を実行する\n  Then 違反は空配列で返り、エラーにはならない",
           "covers": "受け入れ基準: 適合時は空配列"
         },
         {
@@ -149,7 +149,7 @@
           "name": "対応する kind が無い言語は UNSUPPORTED_KIND",
           "category": "異常系",
           "viewpoint": "エラー：未対応言語の扱い",
-          "gherkin": "Scenario: 対応する kind が無い言語は UNSUPPORTED_KIND\n  Given DocCommentSchema に定義の無い言語のコードベース\n  When 適合判定を実行する\n  Then UNSUPPORTED_KIND エラーが返る",
+          "gherkin": "Scenario: 対応する kind が無い言語は UNSUPPORTED_KIND\n  Given DocstringSchema に定義の無い言語のコードベース\n  When 適合判定を実行する\n  Then UNSUPPORTED_KIND エラーが返る",
           "covers": "エラー: UNSUPPORTED_KIND"
         },
         {

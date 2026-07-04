@@ -1,7 +1,7 @@
-Feature: uc-lint-doc-comment
+Feature: uc-lint-docstring
 
   Scenario: 全要素が規約に適合するとき違反なしと判定する
-    Given DocCommentSchema の google kind に適合する docstring だけを持つコードベース
+    Given DocstringSchema の google kind に適合する docstring だけを持つコードベース
     When 適合判定を実行する
     Then 違反は空配列で返り、エラーにはならない
 
@@ -16,7 +16,7 @@ Feature: uc-lint-doc-comment
     Then その要素について ARGS_MISMATCH 違反が報告される
 
   Scenario: 対応する kind が無い言語は UNSUPPORTED_KIND
-    Given DocCommentSchema に定義の無い言語のコードベース
+    Given DocstringSchema に定義の無い言語のコードベース
     When 適合判定を実行する
     Then UNSUPPORTED_KIND エラーが返る
 

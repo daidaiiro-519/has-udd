@@ -11,7 +11,7 @@ Feature: uc-scan-source-code
     Then 走査は成功し、docstring が無い要素は summary 等が空の値で返る
 
   Scenario: 対応する kind が無い言語は UNSUPPORTED_KIND
-    Given DocCommentSchema に定義の無い言語のコードベース
+    Given DocstringSchema に定義の無い言語のコードベース
     When 対象パスを走査する
     Then UNSUPPORTED_KIND エラーが返る
 

@@ -61,9 +61,9 @@
         }
       ]
     },
-    "docComment": {
-      "blockType": "DocComment",
-      "title": "ドキュメントコメント",
+    "docstring": {
+      "blockType": "Docstring",
+      "title": "docstring",
       "style": "Google スタイル docstring",
       "summaryGuidance": "「何をするか・いつ使うか」を1行の平叙文で。インデックスに載る前提で、検索と判断に効く語を選ぶ。",
       "target": "公開要素（module / 公開 class / 公開 function）は必須・private は任意",

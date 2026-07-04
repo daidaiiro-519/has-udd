@@ -1,5 +1,10 @@
 # ブレインストーミング: DocCommentSchema（構造化 docstring 検証・多言語対応）
 
+> ★用語変更（2026-07・本ブレスト完了後）: 「DocComment」は一般的な用語でないため、
+> `DocCommentSchema` → **`DocstringSchema`**、`uc-lint-doc-comment` → **`uc-lint-docstring`** に改名済み。
+> CodingSchema の `docComment`/`DocCommentBlock` も `docstring`/`DocstringBlock` に統一済み。
+> 以下の本文は当時の名称のまま（歴史的記録として）残す。
+
 **目的:** サンプル実装中に発覚した「docstring は機械検証できる構造になっているか」という指摘を起点に、
 `DocCommentSchema`（code_scan の出力を検証する schema）と `uc-lint-doc-comment`（適合判定）の設計を確定する。
 **モード:** 設計判断（論点 → 見解 → 合意）

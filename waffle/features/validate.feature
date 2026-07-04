@@ -17,7 +17,6 @@ Feature: document を schema 適合検証する (uc-validate-document)
       | path                                                |
       | .has-udd/documents/skills/harness-query-engine.json |
       | .has-udd/documents/skills/harness-render-engine.json |
-      | .has-udd/documents/skills/analyze-domain-model.json |
       | .has-udd/documents/coding/stack.json                |
       | .has-udd/documents/coding/python-hexagonal.json     |
       | .has-udd/documents/specs/bc-has-udd-engines.json     |

@@ -67,17 +67,17 @@ document.json および通常ファイルに対してセマンティック操作
 ### Skills（CLI）
 
 ```
-waffle query --operation <operation> --path <path> [--<param> <value> ...]
+uv run --project waffle waffle query --operation <operation> --path <path> [--<param> <value> ...]
 ```
 
 例:
 
 ```
-waffle query --operation get_block --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface
+uv run --project waffle waffle query --operation get_block --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface
 ```
 
 ```
-waffle query --operation filter_items --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface --arrayField input --key required --value true
+uv run --project waffle waffle query --operation filter_items --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface --arrayField input --key required --value true
 ```
 
 ### MCP
@@ -92,7 +92,7 @@ query_document({ "operation": "<operation>", "path": "<path>", ...<param>: <valu
 query_document({"operation": "get_block", "path": ".has-udd/documents/skills/harness-query-engine.json", "blockKey": "interface"})
 ```
 
-MCP は waffle serve 起動後に利用可。
+MCP は uv run --project waffle waffle serve 起動後に利用可。
 
 ---
 

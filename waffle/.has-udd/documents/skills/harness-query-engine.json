@@ -178,16 +178,16 @@
     "invocationSpec": {
       "blockType": "InvocationSpec",
       "title": "呼び出し",
-      "cliTemplate": "uv run --project waffle waffle query --operation <operation> --path <path> [--<param> <value> ...]",
+      "cliTemplate": "waffle query --operation <operation> --path <path> [--<param> <value> ...]",
       "cliExamples": [
-        "uv run --project waffle waffle query --operation get_block --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface",
-        "uv run --project waffle waffle query --operation filter_items --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface --arrayField input --key required --value true"
+        "waffle query --operation get_block --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface",
+        "waffle query --operation filter_items --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface --arrayField input --key required --value true"
       ],
       "mcpTemplate": "query_document({ \"operation\": \"<operation>\", \"path\": \"<path>\", ...<param>: <value> })",
       "mcpExamples": [
         "query_document({\"operation\": \"get_block\", \"path\": \".has-udd/documents/skills/harness-query-engine.json\", \"blockKey\": \"interface\"})"
       ],
-      "note": "MCP は uv run --project waffle waffle serve 起動後に利用可。"
+      "note": "MCP は waffle serve 起動後に利用可。"
     },
     "title": {
       "blockType": "Title",

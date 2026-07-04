@@ -72,15 +72,15 @@
     "invocationSpec": {
       "blockType": "InvocationSpec",
       "title": "呼び出し",
-      "cliTemplate": "uv run --project waffle waffle render --path <document.json> [--no-deploy]",
+      "cliTemplate": "waffle render --path <document.json> [--no-deploy]",
       "cliExamples": [
-        "uv run --project waffle waffle render --path .has-udd/documents/skills/harness-query-engine.json"
+        "waffle render --path .has-udd/documents/skills/harness-query-engine.json"
       ],
       "mcpTemplate": "render_document({ \"path\": \"<document.json>\", \"deploy\": true })",
       "mcpExamples": [
         "render_document({\"path\": \".has-udd/documents/skills/harness-query-engine.json\"})"
       ],
-      "note": "MCP は uv run --project waffle waffle serve 起動後に利用可。"
+      "note": "MCP は waffle serve 起動後に利用可。"
     },
     "title": {
       "blockType": "Title",

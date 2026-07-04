@@ -51,13 +51,13 @@ document.json の x-render テンプレートをもとに Markdown・HTML 形式
 ### Skills（CLI）
 
 ```
-waffle render --path <document.json> [--no-deploy]
+uv run --project waffle waffle render --path <document.json> [--no-deploy]
 ```
 
 例:
 
 ```
-waffle render --path .has-udd/documents/skills/harness-query-engine.json
+uv run --project waffle waffle render --path .has-udd/documents/skills/harness-query-engine.json
 ```
 
 ### MCP
@@ -72,7 +72,7 @@ render_document({ "path": "<document.json>", "deploy": true })
 render_document({"path": ".has-udd/documents/skills/harness-query-engine.json"})
 ```
 
-MCP は waffle serve 起動後に利用可。
+MCP は uv run --project waffle waffle serve 起動後に利用可。
 
 ---
 

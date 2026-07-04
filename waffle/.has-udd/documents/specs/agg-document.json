@@ -1,0 +1,150 @@
+{
+  "documentId": "agg-document",
+  "documentType": "Spec",
+  "schemaRef": "SpecSchema/v2",
+  "specKind": "aggregate",
+  "status": "CREATED",
+  "tags": ["context:has-udd-engines"],
+  "content": {
+    "title": { "blockType": "Title", "title": "agg-document" },
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
+      "text": "構造化された成果物（Document）の一貫性とライフサイクルを表す集約。状態は生成→検証→描画の順にのみ進み、後続版で置換される。"
+    },
+    "aggregateRoot": {
+      "blockType": "AggregateRoot",
+      "title": "集約ルート",
+      "name": "Document",
+      "externalRefs": ["Schema"]
+    },
+    "entities": {
+      "blockType": "Entities",
+      "title": "エンティティ",
+      "items": [
+        {
+          "name": "Document",
+          "role": "構造化された成果物の一貫性単位",
+          "isRoot": true,
+          "attributes": [
+            { "name": "documentId", "type": "DocumentId", "isId": true },
+            { "name": "schemaRef", "type": "SchemaRef" },
+            { "name": "status", "type": "Status" },
+            { "name": "content", "type": "構造化データ（schema 準拠）" },
+            { "name": "tags", "type": "文字列配列" }
+          ]
+        }
+      ]
+    },
+    "valueObjects": {
+      "blockType": "ValueObjects",
+      "title": "値オブジェクト",
+      "items": [
+        { "name": "DocumentId", "represents": "一意な識別子", "behavior": "不変。kebab-case。value が等しければ等価。" },
+        { "name": "SchemaRef", "represents": "適合する Schema への参照", "behavior": "name と version の組。両方が等しければ等価。" },
+        { "name": "Status", "represents": "ライフサイクル状態", "behavior": "enum: CREATED/VALIDATED/RENDERED/SUPERSEDED。値が等しければ等価。遷移は不変条件で守る。" }
+      ]
+    },
+    "invariants": {
+      "blockType": "Invariants",
+      "title": "不変条件",
+      "items": [
+        { "rule": "status は CREATED→VALIDATED→RENDERED→SUPERSEDED の順にのみ進み、逆行・飛ばしをしない", "enforcement": "guard", "rationale": "成果物の状態の一貫性を保つ" },
+        { "rule": "schemaRef は常に存在する", "enforcement": "schema", "rationale": "型が無ければ検証も描画もできない" },
+        { "rule": "content が schema に適合しない限り VALIDATED へ進めない", "enforcement": "guard", "rationale": "不正な成果物を後段（render/deploy）に流さない" },
+        { "rule": "SUPERSEDED は終端であり、以後どのコマンドも受け付けない", "enforcement": "guard", "rationale": "置換後の変更を防ぐ" }
+      ]
+    },
+    "lifecycle": {
+      "blockType": "Lifecycle",
+      "title": "ライフサイクル",
+      "states": ["CREATED", "VALIDATED", "RENDERED", "SUPERSEDED"],
+      "transitions": [
+        { "from": "[*]",       "to": "CREATED",    "command": "create",    "condition": "" },
+        { "from": "CREATED",   "to": "VALIDATED",  "command": "validate",  "condition": "schema に適合" },
+        { "from": "VALIDATED", "to": "RENDERED",   "command": "render",    "condition": "" },
+        { "from": "VALIDATED", "to": "SUPERSEDED", "command": "supersede", "condition": "" },
+        { "from": "RENDERED",  "to": "SUPERSEDED", "command": "supersede", "condition": "" }
+      ]
+    },
+    "commands": {
+      "blockType": "Commands",
+      "title": "コマンド",
+      "items": [
+        {
+          "name": "create",
+          "description": "schemaRef と documentId から schema 準拠の骨格を生成する（schemaRef 常在の不変条件を満たす）。",
+          "requiresState": "（新規）",
+          "postState": "CREATED",
+          "params": [
+            { "name": "schemaRef", "meaning": "適用する schema" },
+            { "name": "documentId", "meaning": "新しい識別子" }
+          ],
+          "emits": ["DocumentCreated"]
+        },
+        {
+          "name": "validate",
+          "description": "content が schema に適合するか検証する（適合判定の不変条件を守る・副作用なし）。",
+          "requiresState": "CREATED",
+          "postState": "VALIDATED",
+          "params": [],
+          "emits": ["DocumentValidated"]
+        },
+        {
+          "name": "render",
+          "description": "x-render に従い成果物に描画し配置先へ反映する（VALIDATED 前提の不変条件を守る）。",
+          "requiresState": "VALIDATED",
+          "postState": "RENDERED",
+          "params": [],
+          "emits": ["DocumentRendered", "DocumentDeployed"]
+        },
+        {
+          "name": "supersede",
+          "description": "後続版に置き換えて終端化する（終端の不変条件を確立する）。",
+          "requiresState": "VALIDATED / RENDERED",
+          "postState": "SUPERSEDED",
+          "params": [ { "name": "successorId", "meaning": "後継 Document の識別子" } ],
+          "emits": ["DocumentSuperseded"]
+        }
+      ]
+    },
+    "domainEvents": {
+      "blockType": "DomainEvents",
+      "title": "ドメインイベント",
+      "items": [
+        { "name": "DocumentValidated", "raisedBy": "validate 成功時", "payload": [ { "name": "documentId", "meaning": "対象の識別子" }, { "name": "schemaRef", "meaning": "適合した schema" } ] },
+        { "name": "DocumentRendered", "raisedBy": "render 成功時", "payload": [ { "name": "documentId", "meaning": "対象の識別子" }, { "name": "outputs", "meaning": "生成された成果物のパス一覧" } ] },
+        { "name": "DocumentDeployed", "raisedBy": "render が deploy 先を持つ Document を描画した時", "payload": [ { "name": "documentId", "meaning": "対象の識別子" }, { "name": "targets", "meaning": "反映された各ツールの配置先" } ] },
+        { "name": "DocumentSuperseded", "raisedBy": "supersede 成功時", "payload": [ { "name": "documentId", "meaning": "対象の識別子" }, { "name": "successorId", "meaning": "後継の識別子" } ] }
+      ]
+    },
+    "unitTestScenarios": {
+      "blockType": "TestScenarios",
+      "title": "テストシナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "status は逆行できない",
+          "category": "異常系",
+          "viewpoint": "状態遷移：前進のみの不変条件が効く",
+          "gherkin": "Scenario: status は逆行できない\n  Given RENDERED 状態の Document\n  When validate へ戻そうとする\n  Then 状態遷移は拒否され、状態は RENDERED のままである",
+          "covers": "不変条件: status は前進のみ"
+        },
+        {
+          "name": "未検証では render できない",
+          "category": "異常系",
+          "viewpoint": "状態遷移：VALIDATED 前提が効く",
+          "gherkin": "Scenario: 未検証では render できない\n  Given CREATED 状態の Document\n  When render する\n  Then 拒否され、状態は CREATED のままである",
+          "covers": "不変条件: 適合前は後段に進めない"
+        },
+        {
+          "name": "SUPERSEDED は終端",
+          "category": "異常系",
+          "viewpoint": "状態遷移：終端状態は不変",
+          "gherkin": "Scenario: SUPERSEDED は終端\n  Given SUPERSEDED 状態の Document\n  When 任意のコマンドを実行する\n  Then 拒否される",
+          "covers": "不変条件: SUPERSEDED は終端"
+        }
+      ]
+    }
+  }
+}

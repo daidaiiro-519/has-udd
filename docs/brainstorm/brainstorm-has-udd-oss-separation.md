@@ -145,18 +145,34 @@
   失わない、というLoomDBで既に合意済みの方針と一貫性が取れる。
 
 ### ユーザー見解
-> ✏️ _（あなたの考え・反論・追加情報をここに書いてください）_
+> loomdbと同じような形で管理したい。後々リポジトリ分離できるようにしておいてください。
 
 ### AI 再考見解
-**見解:** {{修正・深化された立場}}
+**見解:** 合意通り実行。ただし実行途中で、当初の想定より深い結合が2つ見つかり、それぞれ
+ユーザーとの対話で解決した。
 **根拠:**
-- {{根拠1}}
-- {{根拠2}}
+- **見つかった結合その1**: バンドルされているschema（SkillSchema/SpecSchema/CodingSchema/
+  RenderMetaSchema）を「has-uddの都合でengineに同梱されている外部依存」と誤認していたが、
+  ユーザー指摘により「これらはWaffle自身のschema資産（Waffleというエンジンが定義する
+  ドキュメント型そのもの）」という理解に訂正した。外部化はしない。
+- **見つかった結合その2**: `features/`のテストがhas-uddの実document（`.has-udd/documents/...`）
+  を参照していたのは、has-uddの任意コンテンツではなく「Waffle自身を説明するspec/skill
+  document」（bc-has-udd-engines・uc-query-document等）だったため、これもWaffle自身の
+  資産として`waffle/.has-udd/documents/`にコピーし、Waffle単体でテスト完結するようにした
+  （repo root側の「本物」＝`.claude/skills/`へのdeploy元とは重複するが、render先パス解決の
+  複雑化を避ける現実的な選択として許容）。
+- 汎用skill（`analyze-domain-model.json`）だけはWaffle固有でないため、Waffleのドッグ
+  フーディング対象から正しく除外した。
 
 ### 合意決定
-**決定:** {{合意した内容}}
-**理由:** {{なぜこれに合意したか}}
-**次のアクション:** {{次のステップ}}
+**決定:** `waffle/`を`loomdb/`と同じ自己完結ディレクトリ構成にした（`git subtree split
+--prefix=waffle`で将来切り出し可能）。バンドルschemaは外部化せずWaffle自身の資産として維持。
+repo rootからの呼び出しは`uv run --project waffle waffle <command>`に統一。
+**理由:** LoomDBで実績のある構成をそのまま踏襲でき、Waffle自身を説明するdocumentは実際に
+Waffleの資産だったため、外部依存を作らずに自己完結できたため。
+**次のアクション:** waffle単体のpytest 15件・behave 65シナリオ、repo rootからの実呼び出し
+（`uv run --project waffle waffle validate ...`）の両方でgreenを確認し、コミット・
+プッシュ済み（コミット`92a7651`）。
 
 ---
 

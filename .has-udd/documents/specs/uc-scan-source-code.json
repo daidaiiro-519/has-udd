@@ -1,0 +1,140 @@
+{
+  "documentId": "uc-scan-source-code",
+  "documentType": "Spec",
+  "schemaRef": "SpecSchema/v2",
+  "specKind": "usecase",
+  "status": "CREATED",
+  "subdomainRef": "sd-harness-core",
+  "tags": [
+    "context:has-udd-engines"
+  ],
+  "content": {
+    "title": {
+      "blockType": "Title",
+      "title": "uc-scan-source-code"
+    },
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
+      "text": "AI がソースコード本体を直接読まずに、DocCommentSchema の kind に従って docstring を構造化抽出したインデックスビューを取得する。"
+    },
+    "actorIntent": {
+      "blockType": "ActorIntent",
+      "title": "主アクターと意図",
+      "actor": "Orchestrator（HarnessAgent）",
+      "intent": "対象コードベースから公開要素の docstring を構造化抽出し、本体を読まずに当たりをつけられるインデックスを取得する"
+    },
+    "externalActors": {
+      "blockType": "ExternalActors",
+      "title": "関与する外部",
+      "items": [
+        "DocCommentSchema（kind ごとの構造宣言・レシピとして参照）"
+      ]
+    },
+    "preconditions": {
+      "blockType": "Preconditions",
+      "title": "事前条件",
+      "items": [
+        "対象コードベース（ディレクトリ）のパスが要望テキストで与えられている",
+        "対象言語に対応する DocCommentSchema の kind が解決できる"
+      ]
+    },
+    "mainFlow": {
+      "blockType": "MainFlow",
+      "title": "基本フロー",
+      "steps": [
+        {
+          "from": "Orchestrator",
+          "to": "SourceCode",
+          "message": "対象パスと kind を指定して走査を依頼する",
+          "kind": "command"
+        },
+        {
+          "from": "SourceCode",
+          "to": "SourceCode",
+          "message": "公開要素ごとに docstring を kind の構造宣言に従って {summary, body, args, returns, raises} に分解する",
+          "kind": "self"
+        },
+        {
+          "from": "SourceCode",
+          "to": "Orchestrator",
+          "message": "{path, kind, name, summary, ...} の配列を返す",
+          "kind": "return"
+        }
+      ]
+    },
+    "postconditions": {
+      "blockType": "Postconditions",
+      "title": "事後条件",
+      "items": [
+        "公開要素ごとの構造化 docstring データが配列として返る",
+        "private 要素（言語の慣例で非公開とされるもの）は既定では対象外になる",
+        "インデックスは保存されない（読み取りのたびに再計算する）"
+      ]
+    },
+    "acceptanceCriteria": {
+      "blockType": "AcceptanceCriteria",
+      "title": "受け入れ基準",
+      "items": [
+        "When 対象パスと kind が与えられたとき、エンジンは各公開要素を {path, kind, name, summary, body, args, returns, raises} の構造で返す shall。",
+        "When 要素に docstring が無いとき、エンジンはその旨を示す値（summary 等が空）で返し、走査全体は失敗させない shall。",
+        "While 対象言語に対応する DocCommentSchema の kind が無いとき、エンジンは UNSUPPORTED_KIND エラーを返す shall。",
+        "If 対象パスが存在しないとき、エンジンは INVALID_PATH エラーを返す shall。",
+        "When ソースコードの本体（docstring 以外の行）を返す必要がないとき、エンジンは本体を読み込んだ上でも構造化データ以外を出力に含めない shall。"
+      ]
+    },
+    "errors": {
+      "blockType": "Errors",
+      "title": "エラー",
+      "items": [
+        {
+          "code": "INVALID_PATH",
+          "condition": "対象パスが存在しない"
+        },
+        {
+          "code": "UNSUPPORTED_KIND",
+          "condition": "対象言語に対応する DocCommentSchema の kind が無い"
+        },
+        {
+          "code": "INVALID_SOURCE",
+          "condition": "対象ファイルが構文解析できない（言語のパーサでエラー）"
+        }
+      ]
+    },
+    "testScenarios": {
+      "blockType": "TestScenarios",
+      "title": "テストシナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "公開要素の docstring を構造化抽出する",
+          "category": "正常系",
+          "viewpoint": "抽出：kind の構造宣言に従って summary/body/args/returns/raises に分解する",
+          "gherkin": "Scenario: 公開要素の docstring を構造化抽出する\n  Given code_scan と対象コードベース、および google kind\n  When 対象パスを走査する\n  Then 各公開要素が {summary, body, args, returns, raises} を持つ構造で返る",
+          "covers": "受け入れ基準: 構造化データで返す"
+        },
+        {
+          "name": "docstring が無い要素も走査全体を失敗させない",
+          "category": "正常系",
+          "viewpoint": "頑健性：一部の docstring 欠如でエンジン全体を失敗させない",
+          "gherkin": "Scenario: docstring が無い要素も走査全体を失敗させない\n  Given docstring を持たない公開関数を含む対象コードベース\n  When 対象パスを走査する\n  Then 走査は成功し、docstring が無い要素は summary 等が空の値で返る",
+          "covers": "受け入れ基準: docstring 欠如で走査全体を失敗させない"
+        },
+        {
+          "name": "対応する kind が無い言語は UNSUPPORTED_KIND",
+          "category": "異常系",
+          "viewpoint": "エラー：未対応言語の扱い",
+          "gherkin": "Scenario: 対応する kind が無い言語は UNSUPPORTED_KIND\n  Given DocCommentSchema に定義の無い言語のコードベース\n  When 対象パスを走査する\n  Then UNSUPPORTED_KIND エラーが返る",
+          "covers": "エラー: UNSUPPORTED_KIND"
+        },
+        {
+          "name": "存在しないパスは INVALID_PATH",
+          "category": "異常系",
+          "viewpoint": "エラー：対象パス不在",
+          "gherkin": "Scenario: 存在しないパスは INVALID_PATH\n  When 存在しないパスを走査する\n  Then INVALID_PATH エラーが返る",
+          "covers": "エラー: INVALID_PATH"
+        }
+      ]
+    }
+  }
+}

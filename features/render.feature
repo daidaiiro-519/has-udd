@@ -37,7 +37,7 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
   # --- CodingSchema → Markdown ---
 
   Scenario: CodingSchema は Markdown として描画できる
-    Given 対象は ".has-udd/documents/coding/stack.json"
+    Given 対象は ".has-udd/documents/coding/tech-stack-python-hexagonal.json"
     When deploy なしでレンダリングする
     Then 成功する
     And 出力フォーマットは "md"

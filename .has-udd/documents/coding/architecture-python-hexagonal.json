@@ -1,0 +1,175 @@
+{
+  "documentId": "architecture-python-hexagonal",
+  "documentType": "Coding",
+  "schemaRef": "CodingSchema/v2",
+  "codingKind": "architecture",
+  "stack": "python-hexagonal",
+  "status": "ACTIVE",
+  "tags": [
+    "tier:backend"
+  ],
+  "content": {
+    "title": {
+      "blockType": "Title",
+      "title": "architecture-python-hexagonal"
+    },
+    "layers": {
+      "blockType": "Layers",
+      "title": "レイヤーと依存方向",
+      "style": "ポートとアダプター（ヘキサゴナル）",
+      "items": [
+        {
+          "layer": "domain",
+          "responsibility": "ドメインモデル・不変条件・値",
+          "mayDependOn": []
+        },
+        {
+          "layer": "application",
+          "responsibility": "usecase の調整・トランザクション境界",
+          "mayDependOn": [
+            "domain",
+            "ports"
+          ]
+        },
+        {
+          "layer": "ports",
+          "responsibility": "application が要求する抽象（driven interface）",
+          "mayDependOn": [
+            "domain"
+          ]
+        },
+        {
+          "layer": "inbound adapter",
+          "responsibility": "外部からの入口（driving：API・CLI 等）",
+          "mayDependOn": [
+            "application"
+          ]
+        },
+        {
+          "layer": "outbound adapter",
+          "responsibility": "外部への出口（driven：DB・外部サービス）",
+          "mayDependOn": [
+            "ports"
+          ]
+        }
+      ]
+    },
+    "layout": {
+      "blockType": "Layout",
+      "title": "ディレクトリ構成",
+      "tree": "src/{package}/\n  domain/\n    model/          value-object, entity, aggregate\n    services/       domain-service\n  application/\n    usecases/       1 usecase = 1 module\n    ports/          driven interface の定義\n  adapters/\n    inbound/        driving（api, cli, ...）\n    outbound/       driven（db, external, ...）\n  shared/           共通（エラー・結果型 等）",
+      "compositionRoot": "inbound adapter の起動点にのみ置く"
+    },
+    "conceptPlacement": {
+      "blockType": "ConceptPlacement",
+      "title": "概念 → 実現形",
+      "items": [
+        {
+          "concept": "usecase",
+          "placement": "application/usecases",
+          "pattern": "application service・エントリメソッド1つ・ドメインは port 経由で呼ぶ"
+        },
+        {
+          "concept": "aggregate",
+          "placement": "domain/model",
+          "pattern": "整合性境界を持つクラス・不変条件をメソッド内で強制・コマンドはメソッド・永続化は repository 経由"
+        },
+        {
+          "concept": "entity",
+          "placement": "domain/model",
+          "pattern": "同一性は id・集約の内側でのみ可変"
+        },
+        {
+          "concept": "value-object",
+          "placement": "domain/model",
+          "pattern": "不変（frozen dataclass）・値等価"
+        },
+        {
+          "concept": "domain-service",
+          "placement": "domain/services",
+          "pattern": "ステートレス・複数集約を跨る計算"
+        },
+        {
+          "concept": "repository",
+          "placement": "application/ports（interface）＋adapters/outbound（impl）",
+          "pattern": "aggregate の load/save・集約1つに1リポジトリ"
+        },
+        {
+          "concept": "port",
+          "placement": "application/ports",
+          "pattern": "application が要求する driven インターフェース（ABC / Protocol）"
+        },
+        {
+          "concept": "inbound-adapter",
+          "placement": "adapters/inbound",
+          "pattern": "外部入力を application 呼び出しへ変換・ロジックを持たない"
+        },
+        {
+          "concept": "outbound-adapter",
+          "placement": "adapters/outbound",
+          "pattern": "port / repository を実装・外部ライブラリをここに閉じ込める"
+        }
+      ]
+    },
+    "rules": {
+      "blockType": "ArchitectureRules",
+      "title": "規約（守るべきルール）",
+      "items": [
+        {
+          "level": "必須",
+          "rule": "依存は内向きのみ"
+        },
+        {
+          "level": "必須",
+          "rule": "外部 I/O・外部ライブラリは outbound adapter（port 実装）に閉じ込める"
+        },
+        {
+          "level": "必須",
+          "rule": "合成ルート（結線・DI）は inbound adapter の起動点にのみ置く"
+        },
+        {
+          "level": "必須",
+          "rule": "依存（port / repository）はコンストラクタ注入で受け取る（生成は合成ルートのみ）"
+        },
+        {
+          "level": "必須",
+          "rule": "application 境界は結果型（Result 等）で成否を返す・domain は不変条件違反をドメイン例外で表す"
+        },
+        {
+          "level": "必須",
+          "rule": "失敗は識別可能なエラーコード（定数文字列）を伴う結果型で返す（メッセージ文字列のみは不可）"
+        },
+        {
+          "level": "禁止",
+          "rule": "domain / application が外部ライブラリ（DB・HTTP 等）を直接 import する"
+        },
+        {
+          "level": "禁止",
+          "rule": "domain 層での副作用（I/O・グローバル可変状態）"
+        },
+        {
+          "level": "禁止",
+          "rule": "ドメイン例外の握り潰し（境界で結果型に写像する）"
+        }
+      ]
+    },
+    "thicknessBySubdomain": {
+      "blockType": "ThicknessBySubdomain",
+      "title": "サブドメイン別の厚み",
+      "items": [
+        {
+          "category": "中核",
+          "thickness": "厚い設計（明示的なドメインモデル）"
+        },
+        {
+          "category": "一般",
+          "thickness": "ライブラリを adapter で薄く包む"
+        },
+        {
+          "category": "補完",
+          "thickness": "最小のトランザクションスクリプト"
+        }
+      ]
+    }
+  }
+}

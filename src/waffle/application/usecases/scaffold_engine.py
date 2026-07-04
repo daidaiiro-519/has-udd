@@ -5,8 +5,6 @@ Harness 原則: AI は「値」だけを生成し、document.json の構造は e
   fillTemplate（値フィールドの path × x-prompt-write）を生成し、x-source-target に書く。
 - fill: AI が生成した values を、宣言済み値フィールドにのみ機械的に書き込む（構造保護）。
   値の型/enum 適合検証は uc-validate-document の責務（疎結合）。
-
-@spec:uc-scaffold-document
 """
 from __future__ import annotations
 
@@ -28,17 +26,14 @@ class ScaffoldEngine:
         self._schemas = schemas
 
     def run(self, operation: str, params: dict | None = None) -> Result[dict]:
-        # has-udd:impl-start
         params = params or {}
         if operation == "create":
             return self._create(params)
         if operation == "fill":
             return self._fill(params)
         return _err("INVALID_OPERATION", f"未知の operation: {operation}")
-        # has-udd:impl-end
 
     def _create(self, params: dict) -> Result[dict]:
-        # has-udd:impl-start
         schema_ref = params.get("schemaRef")
         document_id = params.get("documentId")
         if not schema_ref or not document_id:
@@ -62,10 +57,8 @@ class ScaffoldEngine:
         if path:
             self._documents.save(path, skeleton)
         return Ok({"skeleton": skeleton, "fillTemplate": fill_template, "path": path})
-        # has-udd:impl-end
 
     def _fill(self, params: dict) -> Result[dict]:
-        # has-udd:impl-start
         document_path = params.get("documentPath")
         values = params.get("values")
         if not document_path or values is None:
@@ -101,7 +94,6 @@ class ScaffoldEngine:
                 skipped.append(path)  # 未知 / const / discriminator / 構造改変は拒否
         self._documents.save(document_path, doc)
         return Ok({"documentPath": document_path, "written": written, "skipped": skipped})
-        # has-udd:impl-end
 
 
 # --- schema 走査ヘルパ（純ロジック・機械的） ---

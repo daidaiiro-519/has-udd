@@ -1,0 +1,137 @@
+{
+  "documentId": "uc-lint-doc-comment",
+  "documentType": "Spec",
+  "schemaRef": "SpecSchema/v2",
+  "specKind": "usecase",
+  "status": "CREATED",
+  "subdomainRef": "sd-validation",
+  "tags": [
+    "context:has-udd-engines"
+  ],
+  "content": {
+    "title": {
+      "blockType": "Title",
+      "title": "uc-lint-doc-comment"
+    },
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
+      "text": "ソースコードの docstring が DocCommentSchema の kind に定める構造に適合するかを判定する。"
+    },
+    "actorIntent": {
+      "blockType": "ActorIntent",
+      "title": "主アクターと意図",
+      "actor": "Orchestrator（HarnessAgent）",
+      "intent": "対象コードベースの docstring が規約どおりの構造か（必須セクションの有無・引数名と実シグネチャの整合）を確認したい"
+    },
+    "externalActors": {
+      "blockType": "ExternalActors",
+      "title": "関与する外部",
+      "items": [
+        "DocCommentSchema（適合判定の基準）",
+        "uc-scan-source-code（構造化抽出済みデータの入力元）"
+      ]
+    },
+    "preconditions": {
+      "blockType": "Preconditions",
+      "title": "事前条件",
+      "items": [
+        "対象コードベース（ディレクトリ）のパスが要望テキストで与えられている",
+        "対象言語に対応する DocCommentSchema の kind が解決できる"
+      ]
+    },
+    "mainFlow": {
+      "blockType": "MainFlow",
+      "title": "基本フロー",
+      "steps": [
+        {
+          "from": "Orchestrator",
+          "to": "SourceCode",
+          "message": "対象パスと kind を指定して適合判定を依頼する",
+          "kind": "command"
+        },
+        {
+          "from": "SourceCode",
+          "to": "SourceCode",
+          "message": "構造化抽出した docstring データを、kind の必須セクション・実シグネチャの引数名と照合する",
+          "kind": "self"
+        },
+        {
+          "from": "SourceCode",
+          "to": "Orchestrator",
+          "message": "違反一覧（要素ごとの違反コード）を返す",
+          "kind": "return"
+        }
+      ]
+    },
+    "postconditions": {
+      "blockType": "Postconditions",
+      "title": "事後条件",
+      "items": [
+        "違反が無ければ空配列が返る（全要素が適合）",
+        "違反があれば要素ごとに違反コードと箇所が返る",
+        "docstring の“意味”（要約行の語選びの適切さ等）は判定しない（機械判定できない範囲は対象外）"
+      ]
+    },
+    "acceptanceCriteria": {
+      "blockType": "AcceptanceCriteria",
+      "title": "受け入れ基準",
+      "items": [
+        "When 公開要素に docstring が無いとき、エンジンは MISSING_DOC_COMMENT 違反として報告する shall。",
+        "When 要約行が空のとき、エンジンは EMPTY_SUMMARY 違反として報告する shall。",
+        "When Args セクションの引数名が実シグネチャの引数名と一致しないとき、エンジンは ARGS_MISMATCH 違反として報告する shall。",
+        "While 全要素が適合しているとき、エンジンは空配列を返す（正常系）shall。",
+        "If 対象言語に対応する DocCommentSchema の kind が無いとき、エンジンは UNSUPPORTED_KIND エラーを返す shall。"
+      ]
+    },
+    "errors": {
+      "blockType": "Errors",
+      "title": "エラー",
+      "items": [
+        {
+          "code": "UNSUPPORTED_KIND",
+          "condition": "対象言語に対応する DocCommentSchema の kind が無い"
+        },
+        {
+          "code": "INVALID_PATH",
+          "condition": "対象パスが存在しない"
+        }
+      ]
+    },
+    "testScenarios": {
+      "blockType": "TestScenarios",
+      "title": "テストシナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "全要素が規約に適合するとき違反なしと判定する",
+          "category": "正常系",
+          "viewpoint": "適合：違反ゼロは正常系（空配列）",
+          "gherkin": "Scenario: 全要素が規約に適合するとき違反なしと判定する\n  Given DocCommentSchema の google kind に適合する docstring だけを持つコードベース\n  When 適合判定を実行する\n  Then 違反は空配列で返り、エラーにはならない",
+          "covers": "受け入れ基準: 適合時は空配列"
+        },
+        {
+          "name": "docstring が無い公開要素を検出する",
+          "category": "異常系",
+          "viewpoint": "違反：MISSING_DOC_COMMENT",
+          "gherkin": "Scenario: docstring が無い公開要素を検出する\n  Given docstring を持たない公開関数を含むコードベース\n  When 適合判定を実行する\n  Then その要素について MISSING_DOC_COMMENT 違反が報告される",
+          "covers": "受け入れ基準: MISSING_DOC_COMMENT"
+        },
+        {
+          "name": "Args の引数名がシグネチャと不一致な要素を検出する",
+          "category": "異常系",
+          "viewpoint": "違反：ARGS_MISMATCH（構造照合の核）",
+          "gherkin": "Scenario: Args の引数名がシグネチャと不一致な要素を検出する\n  Given Args セクションの引数名が実シグネチャと異なる関数を含むコードベース\n  When 適合判定を実行する\n  Then その要素について ARGS_MISMATCH 違反が報告される",
+          "covers": "受け入れ基準: ARGS_MISMATCH"
+        },
+        {
+          "name": "対応する kind が無い言語は UNSUPPORTED_KIND",
+          "category": "異常系",
+          "viewpoint": "エラー：未対応言語の扱い",
+          "gherkin": "Scenario: 対応する kind が無い言語は UNSUPPORTED_KIND\n  Given DocCommentSchema に定義の無い言語のコードベース\n  When 適合判定を実行する\n  Then UNSUPPORTED_KIND エラーが返る",
+          "covers": "エラー: UNSUPPORTED_KIND"
+        }
+      ]
+    }
+  }
+}

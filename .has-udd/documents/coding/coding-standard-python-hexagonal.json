@@ -1,0 +1,95 @@
+{
+  "documentId": "coding-standard-python-hexagonal",
+  "documentType": "Coding",
+  "schemaRef": "CodingSchema/v2",
+  "codingKind": "coding-standard",
+  "stack": "python-hexagonal",
+  "status": "ACTIVE",
+  "tags": [
+    "tier:backend"
+  ],
+  "content": {
+    "title": {
+      "blockType": "Title",
+      "title": "coding-standard-python-hexagonal"
+    },
+    "naming": {
+      "blockType": "Naming",
+      "title": "命名",
+      "items": [
+        {
+          "target": "モジュール / ファイル",
+          "convention": "スネークケース"
+        },
+        {
+          "target": "クラス",
+          "convention": "パスカルケース"
+        },
+        {
+          "target": "関数・メソッド",
+          "convention": "スネークケース"
+        },
+        {
+          "target": "private（内部限定）",
+          "convention": "先頭 _"
+        },
+        {
+          "target": "語彙",
+          "convention": "仕様（spec）のユビキタス言語に一致させる（勝手な言い換え禁止）"
+        }
+      ]
+    },
+    "style": {
+      "blockType": "Style",
+      "title": "スタイル",
+      "items": [
+        {
+          "level": "必須",
+          "rule": "型注釈を公開関数の引数・戻り値に付ける"
+        },
+        {
+          "level": "必須",
+          "rule": "1関数＝1責務"
+        },
+        {
+          "level": "禁止",
+          "rule": "循環 import"
+        },
+        {
+          "level": "推奨",
+          "rule": "早期 return で条件分岐の入れ子を避ける"
+        }
+      ]
+    },
+    "docComment": {
+      "blockType": "DocComment",
+      "title": "ドキュメントコメント",
+      "style": "Google スタイル docstring",
+      "summaryGuidance": "「何をするか・いつ使うか」を1行の平叙文で。インデックスに載る前提で、検索と判断に効く語を選ぶ。",
+      "target": "公開要素（module / 公開 class / 公開 function）は必須・private は任意",
+      "example": "def render_parts(parts: list[dict], data: dict, level: int = 2) -> str:\n    \"\"\"宣言的 x-render の部品配列を Markdown に描画する。\n\n    schema が宣言した部品（table/section/keyvalue 等）を block の値から\n    決定的に Markdown へ変換する。書式判断はすべて部品定義側にあり、\n    呼び出し側は整形ロジックを持たなくてよい。\n\n    Args:\n        parts: RenderMetaSchema に適合する部品宣言の配列。\n        data: 描画対象 block の値。\n        level: 小見出しの基準レベル。\n\n    Returns:\n        描画済み Markdown（部品間は空行区切り）。\n\n    Raises:\n        RenderError: 部品種別が未知、または from 参照が解決できない場合。\n    \"\"\""
+    },
+    "rules": {
+      "blockType": "CodingRules",
+      "title": "決定ルール",
+      "items": [
+        {
+          "level": "必須",
+          "rule": "公開要素に要約行つき docstring を書く"
+        },
+        {
+          "level": "禁止",
+          "rule": "コードから導出できる情報を docstring に書く（型の列挙・実装手順の逐語説明）"
+        },
+        {
+          "level": "禁止",
+          "rule": "仕様と異なる語彙での命名（ユビキタス言語の言い換え）"
+        },
+        {
+          "level": "推奨",
+          "rule": "コメントは「なぜ」を書く（「何を」は命名と要約行が表現する）"
+        }
+      ]
+    }
+  }
+}

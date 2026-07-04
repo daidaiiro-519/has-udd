@@ -5,21 +5,17 @@ sequence/statediagram/kvtable）を engine 1実装で描画する。table はセ
 bool の ✓/- 整形を一律で行うので、全 block・全 skill のテーブルが崩れず統一される。
 `from` 先が空なら部品ごと省略するので、条件付きセクション（operations / note 等）は
 別ロジック不要で消える。HTML は viewer 側（クライアントサイド）が担うため、ここは MD 正本に統一する。
-
-@spec:uc-render-parts
 """
 from __future__ import annotations
 
 
 def render_parts(parts: list[dict], data: dict, level: int) -> str:
     """parts(宣言の配列) を data(block の値) から Markdown に描画する。level=小見出しの基準レベル。"""
-    # has-udd:impl-start
     return _join((render_part(p, data, level)) for p in parts)
-    # has-udd:impl-end
 
 
 def render_part(part: dict, data: dict, level: int) -> str:
-    # has-udd:impl-start
+    """単一の RenderPart 宣言を Markdown 断片に描画する（対応する data が空なら空文字を返し部品ごと省略する）。"""
     kind = part["as"]
     # kvtable は from を取らず現在の data 自身を1行として描く
     src = data.get(part["from"]) if "from" in part else None
@@ -62,7 +58,6 @@ def render_part(part: dict, data: dict, level: int) -> str:
                 out.append(body)
 
     return _join(out)
-    # has-udd:impl-end
 
 
 # --- 整形ヘルパ ---

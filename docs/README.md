@@ -19,6 +19,6 @@ has-udd のドキュメント。種類ごとにフォルダを分けている。
 
 ## 主要な確定事項の所在
 
-- スキーマ実体: `.has-udd/schemas/`（`SkillSchema/v1.json`, `CodingSchema/v1.json`）
+- スキーマ実体: `src/has_udd/domain/model/`（`SkillSchema/v1.json`, `CodingSchema/v2.json`, `SpecSchema/v2.json`）
 - engine の Skill 文書: `.has-udd/skills/`
 - 横断的な確定事項の要約: ユーザーのメモリ（`MEMORY.md`）

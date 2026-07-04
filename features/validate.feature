@@ -18,8 +18,10 @@ Feature: document を schema 適合検証する (uc-validate-document)
       | .has-udd/documents/skills/harness-query-engine.json |
       | .has-udd/documents/skills/harness-render-engine.json |
       | .has-udd/documents/skills/analyze-domain-model.json |
-      | .has-udd/documents/coding/stack.json                |
-      | .has-udd/documents/coding/python-hexagonal.json     |
+      | .has-udd/documents/coding/tech-stack-python-hexagonal.json      |
+      | .has-udd/documents/coding/architecture-python-hexagonal.json    |
+      | .has-udd/documents/coding/coding-standard-python-hexagonal.json |
+      | .has-udd/documents/coding/test-standard-python-hexagonal.json   |
       | .has-udd/documents/specs/bc-has-udd-engines.json     |
       | .has-udd/documents/specs/sd-harness-core.json        |
       | .has-udd/documents/specs/sd-validation.json          |
@@ -30,6 +32,8 @@ Feature: document を schema 適合検証する (uc-validate-document)
       | .has-udd/documents/specs/uc-render-document.json     |
       | .has-udd/documents/specs/uc-validate-document.json   |
       | .has-udd/documents/specs/uc-scaffold-document.json   |
+      | .has-udd/documents/specs/uc-scan-source-code.json    |
+      | .has-udd/documents/specs/uc-lint-doc-comment.json    |
 
   # --- 不適合 ---
 

@@ -1,0 +1,147 @@
+{
+  "documentId": "test-standard-python-hexagonal",
+  "documentType": "Coding",
+  "schemaRef": "CodingSchema/v2",
+  "codingKind": "test-standard",
+  "stack": "python-hexagonal",
+  "status": "ACTIVE",
+  "tags": [
+    "tier:backend"
+  ],
+  "content": {
+    "title": {
+      "blockType": "Title",
+      "title": "test-standard-python-hexagonal"
+    },
+    "testStrategy": {
+      "blockType": "TestStrategy",
+      "title": "テスト方針",
+      "pyramid": "ピラミッド形（単体テストを重視・統合はやや軽め・E2E は行わない）",
+      "rationale": "業務ロジックの実装方法＝ドメインモデル"
+    },
+    "testPlan": {
+      "blockType": "TestPlan",
+      "title": "テスト計画",
+      "items": [
+        {
+          "item": "実行タイミング",
+          "value": "すべての変更（コミット前ローカル・PR で CI）"
+        },
+        {
+          "item": "CI トリガー",
+          "value": "push / pull_request"
+        },
+        {
+          "item": "ゲート",
+          "value": "シナリオ（.feature）緑が必須（Stage B ゲート1）"
+        },
+        {
+          "item": "対象外",
+          "value": "パフォーマンステスト（中核だが性能要件なし）"
+        }
+      ]
+    },
+    "testTypes": {
+      "blockType": "TestTypes",
+      "title": "テストタイプ",
+      "items": [
+        {
+          "testType": "unit",
+          "tool": "pytest",
+          "target": "domain / application"
+        },
+        {
+          "testType": "integration",
+          "tool": "pytest",
+          "target": "adapters"
+        },
+        {
+          "testType": "acceptance-bdd",
+          "tool": "behave",
+          "target": "usecase（.feature）"
+        },
+        {
+          "testType": "contract",
+          "tool": "pytest（スキーマ差分検査）",
+          "target": "CLI / MCP の公開インターフェース"
+        }
+      ]
+    },
+    "framework": {
+      "blockType": "TestFramework",
+      "title": "フレームワーク",
+      "unit": "pytest",
+      "acceptance": "behave"
+    },
+    "scenarioBinding": {
+      "blockType": "ScenarioBinding",
+      "title": "シナリオの束ね方",
+      "items": [
+        {
+          "item": ".feature の生成元",
+          "rule": "spec の TestScenarios（手書きしない）"
+        },
+        {
+          "item": "配置",
+          "rule": "features/{spec-id}.feature（生成物）"
+        },
+        {
+          "item": "ステップ実装の配置",
+          "rule": "features/steps/{spec-id}_steps.py"
+        },
+        {
+          "item": "対応関係",
+          "rule": "1 spec（usecase）＝1 .feature＝1 ステップファイル"
+        }
+      ]
+    },
+    "placementByTarget": {
+      "blockType": "PlacementByTarget",
+      "title": "テスト対象別の配置",
+      "items": [
+        {
+          "target": "domain",
+          "testKind": "単体",
+          "path": "tests/domain/"
+        },
+        {
+          "target": "application",
+          "testKind": "単体（port はテストダブル）",
+          "path": "tests/application/"
+        },
+        {
+          "target": "adapters",
+          "testKind": "結合",
+          "path": "tests/adapters/"
+        },
+        {
+          "target": "usecase の受け入れ",
+          "testKind": "BDD",
+          "path": "features/"
+        }
+      ]
+    },
+    "rules": {
+      "blockType": "TestRules",
+      "title": "決定ルール",
+      "items": [
+        {
+          "level": "必須",
+          "rule": "TestScenarios は .feature で実行可能にする（読むだけの文書にしない）"
+        },
+        {
+          "level": "必須",
+          "rule": ".feature は spec から生成する（手で書かない）"
+        },
+        {
+          "level": "禁止",
+          "rule": "単体テストが実物の DB・外部サービスに依存する"
+        },
+        {
+          "level": "推奨",
+          "rule": "不変条件はテストダブルなしで検証する"
+        }
+      ]
+    }
+  }
+}

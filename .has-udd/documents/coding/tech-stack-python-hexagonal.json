@@ -1,0 +1,68 @@
+{
+  "documentId": "tech-stack-python-hexagonal",
+  "documentType": "Coding",
+  "schemaRef": "CodingSchema/v2",
+  "codingKind": "tech-stack",
+  "stack": "python-hexagonal",
+  "status": "ACTIVE",
+  "tags": ["tier:backend"],
+  "content": {
+    "title": { "blockType": "Title", "title": "tech-stack-python-hexagonal" },
+    "identity": {
+      "blockType": "Identity",
+      "title": "スタック概要",
+      "tier": "backend",
+      "stackName": "python-hexagonal"
+    },
+    "runtime": {
+      "blockType": "Runtime",
+      "title": "ランタイム",
+      "language": "Python 3.12+",
+      "target": "CLI / ローカルプロセス",
+      "concurrency": "同期主体（MCP 境界のみ async）"
+    },
+    "framework": {
+      "blockType": "Framework",
+      "title": "フレームワーク",
+      "name": "",
+      "note": "なし（Web フレームワークは使用しない。外部公開は「公開インターフェース」を参照）"
+    },
+    "interface": {
+      "blockType": "Interface",
+      "title": "公開インターフェース",
+      "items": [
+        { "style": "CLI", "implementation": "typer" },
+        { "style": "MCP", "implementation": "fastmcp" }
+      ]
+    },
+    "middleware": {
+      "blockType": "Middleware",
+      "title": "ミドルウェア",
+      "items": [],
+      "note": "なし（document.json をファイルとして保存。DB・ブローカー・AP サーバーを持たない）"
+    },
+    "libraries": {
+      "blockType": "Libraries",
+      "title": "ライブラリ",
+      "items": [
+        { "category": "validation", "capability": "schema-validation", "implementation": "jsonschema", "version": "^4" },
+        { "category": "observability", "capability": "logging", "implementation": "標準 logging", "version": "" }
+      ]
+    },
+    "tooling": {
+      "blockType": "Tooling",
+      "title": "開発ツール",
+      "packageManager": "uv（.venv / uv.lock 固定）",
+      "lintFormat": "ruff（任意）"
+    },
+    "policy": {
+      "blockType": "Policy",
+      "title": "依存方針",
+      "items": [
+        { "level": "必須", "rule": "依存追加は「既存の用途で代替不可か」を確認してから" },
+        { "level": "禁止", "rule": "一覧に無いライブラリを反射的に import する" },
+        { "level": "推奨", "rule": "バージョンは範囲指定し uv.lock で固定する" }
+      ]
+    }
+  }
+}

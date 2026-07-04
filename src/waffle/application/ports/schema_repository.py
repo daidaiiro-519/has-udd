@@ -6,5 +6,5 @@ from typing import Protocol
 
 class SchemaRepository(Protocol):
     def load(self, schema_ref: str) -> dict:
-        """schemaRef（例: 'CodingSchema/v1'）から schema(dict) を返す。"""
+        """schemaRef（例: 'CodingSchema/v2'）から schema(dict) を返す。"""
         ...

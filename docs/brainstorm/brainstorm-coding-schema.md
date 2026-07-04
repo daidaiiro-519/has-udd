@@ -11,9 +11,9 @@
 
 | # | 論点 | 状態 |
 |---|---|---|
-| CS-1 | 仕様／詳細設計／実装 の境界をどう引くか | 議論中 |
-| CS-2 | codingKind は何で構成されるか（一から） | ✅ 合意（水準1＝概念合意。構造は CS-3＋後続） |
-| CS-3 | 各 codingKind は spec とどう関連づくか | 議論中 |
+| CS-1 | 仕様／詳細設計／実装 の境界をどう引くか | ✅ CLOSED |
+| CS-2 | codingKind は何で構成されるか（一から） | ✅ CLOSED（水準1＝概念合意） |
+| CS-3 | 各 codingKind は spec とどう関連づくか | ✅ CLOSED（水準2＝ブロック構造・サンプル値まで確定） |
 
 ---
 
@@ -165,8 +165,39 @@
 **根拠:** Stage S で specKind が DDD 概念に揃った＝architecture を同じ概念キーにすれば spec↔code が1:1で自明／リンク第一目的＝探索・重複防止（[[project-why-spec-exists]]）／subdomain spec 成立で subdomainRichness は重複。
 
 ### ユーザー見解
-> ✏️ _（あなたの考え・反論・追加情報をここに書いてください）_
+> @stack のうまみってなんなんだ？ ぶっちゃけあんまりいらない。／@spec もそこまで厳密にする必要があるのか、DDD において。リンクの管理自体がうまく回らない気がする。全体的にしっくりきていない。／詳細設計の本来の役割に立ち返るのはありかもしれない。AI 時代の DDD の詳細設計のあり方を考えるいい機会。／似たようなコードの量産は AI 時代の新たな問題で、膨大なトークンを使う。無駄なものを作らないことと検索性はトークン量の観点から大事。／全てのソースコードが決められた DocComment 構造を持てば、実装を見なくても当たりがつけられる。document.json が無くてもクエリが動的にインデックスビューを作れる仕組みがあれば把握できる。／spec タグ・stack タグはもういらないのでは。一般的なドックコメントの表現を活用して書くべき。サマリー部分はそのまま x-prompt-query。／全然これ陳腐化しなさそうな実装準拠の書き方。
+>
+> （詳細は専用ブレスト `brainstorm-ai-era-detail-design.md` の D-1〜D-6 を参照。以下はその結論の反映。）
+
+### AI 再考見解（★大幅更新：`@spec`/`@stack` アンカー全廃を反映）
+**見解:** `brainstorm-ai-era-detail-design`（D-1〜D-6）での再検討により、上記の「双方向リンク＝アンカー」路線を撤回する。**リンクは「管理」するものではなく「計算」するもの**。
+
+- **`@stack` アンカー：廃止**。import 文で技術は既に見える（コード＝真実）。tech-stack ドキュメント（能力→実装の登録簿）は残す。
+- **`@spec` アンカー：廃止**。architecture の **ConceptPlacement（正典配置）がリンクの実体**——`uc-place-order` は `application/usecases/place_order.py` にあるとパスで導出できる。
+- **coding-standard の役割転換**：「`@spec` 注釈規約」→ **「DocComment 構造規約」**（言語標準スタイル・要約行＝x-prompt-query 相当・カスタムタグなし）。ソースコードに has-udd 固有記法はゼロになる。
+- **gen-gap マーカーも廃止**（同原理：has-udd 固有記法・コードは AI authored で機械再生成しないため保護対象なし）。
+- **コード検索性は DocComment 動的インデックス（code_scan）が担う**：query engine 拡張・AI 0・決定的抽出・PoC 検証済み（src/has_udd 実測 1/7 圧縮）。ES-3（コードのタグ走査の engine 帰属）はこれで解決。
+- **責務の再配置（最終）**：
+  - architecture＝概念→配置・依存方向（骨格）
+  - coding-standard＝命名・スタイル・**DocComment 構造**（横断の細部・書き方）
+  - tech-stack＝技術選択・非ドメイン能力（アンカーの宛先ではなくドキュメントとして）
+  - test-standard＝TestStrategy/TestPlan/**TestTypes（共通カタログからの選択制）**/Framework/ScenarioBinding/PlacementByTarget/Rules
+
+**根拠:** [[project-ai-era-detail-design]]（憲法級）。詳細設計＝クエリ結果・導出物＝機械再生成キャッシュ・spec＝検索可能な意図カタログ・has-udd＝AI開発のトークン経済を成立させるハーネス。
+
+### 合意決定
+**決定:** 4 codingKind（tech-stack / architecture / coding-standard / test-standard）の**ブロック構造を全て確定**（水準2＝実装可能な粒度まで到達）。各ブロックの後イメージ（サンプル値入り）は以下に実物として存在:
+- `docs/design/coding-render-image-tech-stack.md`（8ブロック：スタック概要/ランタイム/フレームワーク/公開インターフェース/ミドルウェア/ライブラリ/開発ツール/依存方針）
+- `docs/design/coding-render-image-architecture.md`（6ブロック＋style：様式/レイヤーと依存方向/ディレクトリ構成/概念→実現形/規約/サブドメイン別の厚み。concept 固定enum に repository 追加・DI/エラー伝播の決定ルール込み）
+- `docs/design/coding-render-image-coding-standard.md`（4ブロック：命名/スタイル/ドキュメントコメント/決定ルール。カスタムタグなし）
+- `docs/design/coding-render-image-test-standard.md`（7ブロック：テスト方針/テスト計画/テストタイプ（共通カタログ選択制）/フレームワーク/シナリオの束ね方/配置/決定ルール）
+
+**「概念キー」の最終形＝architecture の ConceptPlacement のみ**（specKind と 1:1）。coding-standard は概念キーを持たず横断規約に特化。**アンカーによる双方向リンクは撤回**——正典配置（パス）＋検索（code_scan）で代替。
+
+**理由:** [[project-ai-era-detail-design]] の到達点を反映。CS-2/CS-3 を通じて「codingKind の構成」「spec との関連づけ」の両方が、実際にレンダリング後イメージを作り・自己テスト（uc-place-order 等を実装できるか）で検証しながら確定した。TestTypes の「共通カタログからの選択制」（tech-stack と同型の tier 別パターン）も同ラウンドで確立。
+
+**次のステップ:** 4 codingKind を content schema（実 JSON Schema・x-render・x-prompt-write 込み）に落とす。多スタックの schema 表現（stack 宣言方法）も同時に詰める。
 
 ---
 
-<!-- CS-1〜3 合意後: 動く最小サンプル / 効果測定 / content描画 を後続ラウンドで。各論点に AI再考・合意決定を追記。 -->
+<!-- CS-1〜3 CLOSED（水準2まで到達）。次ラウンド: content schema 化・多スタック宣言・動く最小サンプル・効果測定。 -->

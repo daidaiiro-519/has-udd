@@ -131,7 +131,7 @@ def test_lint_rejects_missing_required_attr():
     assert _lint([{"as": "table", "from": "rows"}])  # columns 漏れで非空
 
 
-@pytest.mark.parametrize("schema_ref", ["SkillSchema/v1", "CodingSchema/v1", "SpecSchema/v2"])
+@pytest.mark.parametrize("schema_ref", ["SkillSchema/v1", "CodingSchema/v2", "SpecSchema/v2"])
 def test_schema_xrender_conforms(schema_ref):
     """全 schema の全 block の x-render が RenderMetaSchema に適合する（誤設定・旧 {md,html} 形式の混入を防ぐ）。"""
     schema = PackageSchemaRepository().load(schema_ref)

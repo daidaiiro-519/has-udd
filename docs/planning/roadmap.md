@@ -71,19 +71,22 @@
 
 ---
 
-## Stage B — HOW品質を守る層 🟠 設計止まり（Stage K の後）
+## Stage B — 3ゲートのループ（＝has-udd の核心）🟠 設計止まり（Stage K の後）
 
-> コードが「.feature は通るが悪いモデル」になるのを防ぐ多層。今日の議論の中心。
+> **★2026-07 再定義（`brainstorm-ai-era-detail-design`・憲法級）**: Stage B＝「spec は嘘をつかない」を機械保証する **3ゲートのループ**。①シナリオ実行（BDD 緑・実装済✅）②構造照合（正典配置・依存方向・不変条件の所在）③言語検査（コード語彙↔spec 語彙）。**これが無ければ spec はただの文書**＝最優先。
+> **supersede**: @spec/@stack アンカーは全廃（リンク＝正典配置＋計算）・`sim-code-spec-link-projection` の「@spec ripgrep 投影」結論は置換（投影の機械化は code_scan に継承）・OQ-1/OQ-7（アンカー系）は消滅・ES-3 は解決（code_scan=query engine 拡張・PoC 済）。
 
 | 項目 | 状態 | 根拠ブレスト / メモ |
 |---|---|---|
-| CodingSchema 規約（tech-stack/code-template/test-template） | 🟡 schema＋instanceは在る・**強制が弱い** | `design-coding-schema` |
-| code↔spec リンク＝**投影（reconcile）** | 🟠 結論あり・**OQ-1〜7 未解決** | `sim-code-spec-link-projection` |
-| reconcile engine の帰属 | 🟠 **ES-3 未決** | `design-engine-set`（ES-3） |
-| Hooks（検証ゲートの機械強制） | 🟠 H-1〜7 | `design-hooks` |
-| 保守ループ（陳腐化対策・drift検知） | 🟠 ML-1〜6 | `design-maintenance-loop` |
+| CodingSchema 規約（Stage K で再定義中） | 🟠 architecture/tech-stack/coding-standard 確定・test-standard 残 | `brainstorm-coding-schema` |
+| ゲート2: 構造照合（reconcile＝その場で再計算して比較） | 🟠 設計 | `brainstorm-ai-era-detail-design`（D-1/D-3） |
+| ゲート3: 言語検査（新規） | ⚪ | 同上（帰結5） |
+| code_scan（DocComment 動的インデックス・ES-3 の解） | 🟡 **PoC 検証済**・正式実装残 | 同上（D-4） |
+| 投影（コード→API/DB/インフラ文書の機械生成） | ⚪ 新規機構 | 同上（D-2） |
+| Hooks（ゲートの発火点） | 🟠 H-1〜7 | `design-hooks` |
+| 保守ループ | 🟠 ML-1〜6 | `design-maintenance-loop` |
 
-**未 surface の検討漏れ（要昇格）:** OQ-1 アンカー多重度 / OQ-2 spec無しコードの規約 / **OQ-3 ドメインモデル整合ゲート（最重要）** / OQ-4 不変条件 unit test / OQ-5 重複防止の強制 / OQ-6 2グラフ混同 / OQ-7 supersede時アンカー寿命（→ `sim-code-spec-link-projection` 末尾）。
+**残 OQ（再編後）:** OQ-2 spec無しコードの規約 / OQ-3 ドメインモデル整合ゲート（→ゲート2に統合） / OQ-4 不変条件 unit test / OQ-5 重複防止の強制（→意図カタログ検索＋ゲート） / OQ-6 2グラフ混同。**Stage B 設計の最初の一手＝保守シミュレーション実験**（spec 変更→AI 保守→対応計算の精度実測・D-1 合意）。
 
 ---
 

@@ -3,8 +3,6 @@
 CLI と並ぶもう1つの front-door。各 engine(application use case) に outbound adapter を結線し、
 MCP ツールとして公開する。返り値は dict（Ok→value / Err→{error, message}）。
 engine Skill の InvocationSpec が指す MCP ツール（query_document 等）の実体。
-
-@stack:mcp
 """
 from __future__ import annotations
 
@@ -54,7 +52,6 @@ def query_document(
     nestedField: str | None = None,
 ) -> dict:
     """document.json へのセマンティック・クエリ（uc-query-document）。"""
-    # has-udd:impl-start
     raw = {
         "blockKey": blockKey, "arrayField": arrayField, "field": field,
         "idField": idField, "idValue": idValue, "key": key, "value": value,
@@ -63,23 +60,18 @@ def query_document(
     }
     params = {k: v for k, v in raw.items() if v is not None}
     return _dict(QueryEngine(_docs(), _schemas()).run(operation, path, params))
-    # has-udd:impl-end
 
 
 @mcp.tool
 def render_document(path: str, deploy: bool = True) -> dict:
     """document.json を成果物にレンダリングして deploy（uc-render-document）。"""
-    # has-udd:impl-start
     return _dict(RenderEngine(_docs(), _schemas()).run(path, deploy=deploy))
-    # has-udd:impl-end
 
 
 @mcp.tool
 def validate_document(path: str) -> dict:
     """document を schema 適合検証（uc-validate-document）。"""
-    # has-udd:impl-start
     return _dict(ValidateEngine(_docs(), _schemas(), JsonSchemaValidator()).run(path))
-    # has-udd:impl-end
 
 
 @mcp.tool
@@ -92,7 +84,6 @@ def scaffold_document(
     values: dict | None = None,
 ) -> dict:
     """document.json の骨格生成 / 値書き込み（uc-scaffold-document）。"""
-    # has-udd:impl-start
     if operation == "create":
         params: dict = {"schemaRef": schemaRef, "documentId": documentId}
         if discriminator:
@@ -102,4 +93,3 @@ def scaffold_document(
     else:
         params = {}
     return _dict(ScaffoldEngine(_docs(), _schemas()).run(operation, params))
-    # has-udd:impl-end

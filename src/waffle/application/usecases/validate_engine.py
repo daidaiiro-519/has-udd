@@ -2,8 +2,6 @@
 
 driven port（DocumentRepository / SchemaRepository / Validator）を編成する。
 inbound（driving）側のエントリは run()。
-
-@spec:uc-validate-document
 """
 from __future__ import annotations
 
@@ -32,7 +30,6 @@ class ValidateEngine:
         self._validator = validator
 
     def run(self, document_path: str) -> Result[dict]:
-        # has-udd:impl-start
         # G6: パストラバーサル拒否
         if ".." in Path(document_path).parts:
             return _err("INVALID_PATH", f"パストラバーサルは許可されません: {document_path}")
@@ -57,4 +54,3 @@ class ValidateEngine:
             # 不適合時は details に違反詳細（list[str]）を載せる（コードではなく違反内容が成果物）
             return Err(f"{document_path} は {schema_ref} に不適合", errors)
         return Ok({"path": document_path, "schemaRef": schema_ref, "status": "VALIDATED"})
-        # has-udd:impl-end

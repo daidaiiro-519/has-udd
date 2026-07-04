@@ -1,6 +1,7 @@
 """Result — 全 engine の戻り値の共通エンベロープ。
 
-@stack:error-handling
+成功時は Ok(value)、失敗時は Err(message, details) を返す統一型。
+呼び出し側は例外ではなくこの型で成否を判定する。
 """
 from __future__ import annotations
 

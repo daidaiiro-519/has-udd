@@ -6,8 +6,14 @@
 
   "x-render-target": {
     "formats": ["md", "feature"],
-    "path": ".waffle/specs/{documentId}.md",
-    "featurePath": ".waffle/specs/{documentId}.feature"
+    "path": {
+      "screen": ".waffle/specs/{contextRef}/screen/{documentId}.md",
+      "flow":   ".waffle/specs/{contextRef}/flow/{documentId}.md"
+    },
+    "featurePath": {
+      "screen": ".waffle/specs/{contextRef}/screen/{documentId}.feature",
+      "flow":   ".waffle/specs/{contextRef}/flow/{documentId}.feature"
+    }
   },
   "x-source-target": {
     "screen": ".waffle/documents/specs/{contextRef}/screen/{documentId}.json",

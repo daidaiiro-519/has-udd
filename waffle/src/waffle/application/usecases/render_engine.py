@@ -23,6 +23,13 @@ from waffle.shared.result import Err, Ok, Result
 def _err(code: str, message: str) -> Err:
     return Err(message, [code])
 
+def _select_template(value, spec_kind: str | None) -> str:
+    """x-render-target の path/featurePath は、フラットな文字列（旧来）か
+    specKind ごとの辞書（ネスト構造）のどちらでも書ける。辞書なら該当 specKind を選ぶ。"""
+    if isinstance(value, dict):
+        return value.get(spec_kind, "") if spec_kind else ""
+    return value or ""
+
 class RenderEngine:
     def __init__(
         self,
@@ -61,8 +68,11 @@ class RenderEngine:
         output = self._render_frontmatter(doc, schema) + self._render_body(doc, defs)
 
         path_vars = self._resolve_path_vars(doc, schema, document_path)
+        spec_kind = doc.get(discriminator_key(schema))
+        path_template_str = _select_template(target.get("path"), spec_kind)
+        feature_template_str = _select_template(target.get("featurePath"), spec_kind)
 
-        canonical = path_template.resolve(target.get("path") or "", **path_vars) if target.get("path") else ""
+        canonical = path_template.resolve(path_template_str, **path_vars) if path_template_str else ""
         deployed: list[str] = []
         if deploy and canonical:
             try:
@@ -79,8 +89,8 @@ class RenderEngine:
         # 第2フォーマット: feature（x-test-scenario block の Gherkin を .feature へ）
         feature = _extract_feature(doc, defs) if "feature" in formats else None
         feature_path = ""
-        if feature and deploy and target.get("featurePath"):
-            feature_path = path_template.resolve(target["featurePath"], **path_vars)
+        if feature and deploy and feature_template_str:
+            feature_path = path_template.resolve(feature_template_str, **path_vars)
             if feature_path:
                 self._documents.write_text(feature_path, feature)
 

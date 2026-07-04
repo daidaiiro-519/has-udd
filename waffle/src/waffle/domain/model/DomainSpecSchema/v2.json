@@ -6,8 +6,18 @@
 
   "x-render-target": {
     "formats": ["md", "feature"],
-    "path": ".waffle/specs/{documentId}.md",
-    "featurePath": ".waffle/specs/{documentId}.feature"
+    "path": {
+      "bounded-context": ".waffle/specs/{contextRef}/{documentId}.md",
+      "aggregate":       ".waffle/specs/{contextRef}/aggregate/{documentId}.md",
+      "subdomain":       ".waffle/specs/{contextRef}/subdomain/{documentId}.md",
+      "usecase":         ".waffle/specs/{contextRef}/subdomain/{subdomainRef}/{documentId}.md"
+    },
+    "featurePath": {
+      "bounded-context": ".waffle/specs/{contextRef}/{documentId}.feature",
+      "aggregate":       ".waffle/specs/{contextRef}/aggregate/{documentId}.feature",
+      "subdomain":       ".waffle/specs/{contextRef}/subdomain/{documentId}.feature",
+      "usecase":         ".waffle/specs/{contextRef}/subdomain/{subdomainRef}/{documentId}.feature"
+    }
   },
   "x-source-target": {
     "bounded-context": ".waffle/documents/specs/{contextRef}/{documentId}.json",

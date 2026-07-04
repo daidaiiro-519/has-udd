@@ -183,4 +183,52 @@
 **次のアクション:** {{次のステップ}}
 
 ---
-<!-- 論点5以降は必要に応じてユーザーと確認の上追加 -->
+
+## 論点 5: engineの改名は今すぐ行うべきか、名称はどうするか？
+
+### AI 初期見解
+**見解:** 改名は今すぐ行うべき。理由は論点2で触れた通り、engineはまだ外部にパッケージ公開されて
+おらず（PyPI/npm未公開）、改名コストが実質ゼロな今のうちに済ませておくのが得策。
+
+### ユーザー見解
+> 今ならhas-uddを別の名前にするだけで済む。幸いagent systemにはまだ着手していないので、
+> 「has-udd」という名前を（本来の意味通り）agent system側に残すなら今しかない。
+
+### AI 再考見解
+**見解:** `docs/brainstorm/brainstorm-has-udd-concept.md`を確認したところ、
+**has-udd = Harness Agentic Scrum Usecase-Driven-Development** の略であることが判明。
+頭字語は「HAS（Harness Agentic Scrum＝agent system）」と「UDD（Usecase-Driven-Development＝
+engineが支える開発手法）」の合成語だった。この事実がユーザー見解を裏付ける: 「has-udd」という
+名前は元々agent system側の概念（Harness Agentic Scrum）を核にしており、engineをこの名前で
+呼び続ける方が実は本来の語源とズレている。
+**根拠:**
+- 「Usecase-Driven-Development」は**開発手法・プラクティス**の名前（Test-Driven Developmentと
+  同じ構造）であり、それを実践するのはPO/SM/Devロールが回るagent system側。engine自体は
+  「schemaで検証された構造化文書を扱う」汎用的な仕組みに過ぎず、ユースケース文書に限らず
+  どんなスキーマ駆動文書にも使える。つまりengineは本質的に「usecase駆動」である必要がなく、
+  UDDという色を無理に背負わせる理由がない。
+- よってengineには手法的な意味合いを持たない、独立した新しい名前を与え、「has-udd」という
+  名前（とUDDが指す開発手法という意味）はagent system側にそのまま残すのが、頭字語の由来にも
+  素直に合致する。
+
+### 合意決定
+**決定:** engineの新名称を **Waffle** に確定する。
+タグライン案: 「Waffle — スキーマという型で文書を焼き上げる、構造検証＋意味ガイダンス内蔵の
+ドキュメントエンジン」。
+「has-udd」（Harness Agentic Scrum Usecase-Driven-Development）という名前と、それが指す
+開発手法（UDD）は、engineではなくagent system側に残す。
+**理由:**
+- LoomDB・Docker・Kubernetes等、多くのOSS/製品名は名前単体では機能を伝えず、
+  タグラインが意味を担う。Waffleも同じパターンで問題ない。
+- 名前の由来（blockKeyの格子構造＝ワッフルの格子、schema検証＝型に入れて焼き上げる）は
+  比喩として一貫しており、cc-sddのような短くキャッチーな響きよりもユーモアを優先した結果だが、
+  タグラインと組み合わせれば伝達性の問題は解消する。
+- 副次的な効果として、Waffle自体をhas-udd（agent system）のUsecase-Driven Development実践で
+  開発すれば、has-uddの方法論が実際に機能するかどうかの**最初のドッグフーディング事例**になる。
+**次のアクション:** `src/has_udd/`を`Waffle`という名称でパッケージ分離する具体的な移行計画
+（ディレクトリ構成・PyPI名の空き確認・既存の`.has-udd/documents/skills/harness-*-engine.json`等
+呼称の更新範囲）は、論点2（engineを先に独立OSS化する）・論点3（自己完結ディレクトリ形式）の
+議論と合わせて後続で詰める。
+
+---
+<!-- 論点6以降は必要に応じてユーザーと確認の上追加 -->

@@ -4,7 +4,7 @@
 
 ## 概要
 
-構造化された成果物（Document）の一貫性とライフサイクルを表す集約。documentType により2系統のライフサイクルを使い分ける: SpecSchema 系（Spec）は生成→検証→描画→置換の「処理パイプライン」（lifecycle）を、CodingSchema/SkillSchema 系（Coding/Skill）は起草→運用中→廃止の「成熟度」（maturityLifecycle）を持つ。
+構造化された成果物（Document）の一貫性とライフサイクルを表す集約。documentType により2系統のライフサイクルを使い分ける: Spec家族系（DomainSpecSchema/PresentationSpecSchema）は生成→検証→描画→置換の「処理パイプライン」（lifecycle）を、CodingSchema/SkillSchema 系（Coding/Skill）は起草→運用中→廃止の「成熟度」（maturityLifecycle）を持つ。
 
 ---
 
@@ -40,7 +40,7 @@
 |---|---|---|
 | DocumentId | 一意な識別子 | 不変。kebab-case。value が等しければ等価。 |
 | SchemaRef | 適合する Schema への参照 | name と version の組。両方が等しければ等価。 |
-| Status | ライフサイクル状態 | SpecSchema 系: enum CREATED/VALIDATED/RENDERED/SUPERSEDED（lifecycle）。CodingSchema/SkillSchema 系: enum DRAFT/ACTIVE/DEPRECATED（maturityLifecycle）。documentType ごとにどちらか一方のみを持つ。値が等しければ等価。遷移は不変条件で守る。 |
+| Status | ライフサイクル状態 | Spec家族系（DomainSpecSchema/PresentationSpecSchema）: enum CREATED/VALIDATED/RENDERED/SUPERSEDED（lifecycle）。CodingSchema/SkillSchema 系: enum DRAFT/ACTIVE/DEPRECATED（maturityLifecycle）。documentType ごとにどちらか一方のみを持つ。値が等しければ等価。遷移は不変条件で守る。 |
 
 ---
 
@@ -48,7 +48,7 @@
 
 | ルール | 守り方 | 根拠 |
 |---|---|---|
-| SpecSchema 系の status は CREATED→VALIDATED→RENDERED→SUPERSEDED の順にのみ進み、逆行・飛ばしをしない | guard | 成果物の状態の一貫性を保つ |
+| Spec家族系（DomainSpecSchema/PresentationSpecSchema）の status は CREATED→VALIDATED→RENDERED→SUPERSEDED の順にのみ進み、逆行・飛ばしをしない | guard | 成果物の状態の一貫性を保つ |
 | CodingSchema/SkillSchema 系の status は DRAFT→ACTIVE→DEPRECATED の順にのみ進み、逆行・飛ばしをしない | guard | 運用中の規約が予告なく後退・スキップしないことを保証する |
 | schemaRef は常に存在する | schema | 型が無ければ検証も描画もできない |
 | content が schema に適合しない限り VALIDATED へ進めない | guard | 不正な成果物を後段（render/deploy）に流さない |

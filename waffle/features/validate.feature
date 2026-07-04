@@ -8,7 +8,7 @@ Feature: document を schema 適合検証する (uc-validate-document)
   # --- 適合（dogfood: waffle 自身の全 document） ---
 
   # status の期待値は schema の x-lifecycle が "validate" を状態遷移コマンドとして
-  # 定義しているかで変わる: SpecSchema系=VALIDATEDへ進む／CodingSchema・SkillSchema系=
+  # 定義しているかで変わる: Spec家族系（DomainSpecSchema/PresentationSpecSchema）=VALIDATEDへ進む／CodingSchema・SkillSchema系=
   # maturityLifecycle に validate が無いため現状の status を維持する。
   Scenario Outline: 既存 document は schema に適合する
     Given 対象は "<path>"

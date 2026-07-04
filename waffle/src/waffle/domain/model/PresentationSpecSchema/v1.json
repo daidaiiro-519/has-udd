@@ -1,0 +1,259 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "PresentationSpecSchema/v1",
+  "title": "PresentationSpecSchema v1",
+  "description": "waffle の Spec 家族のうち、プレゼンテーション層（UI層・非DDD管轄）を扱う Spec。DomainSpecSchema（DDD管轄）とは別家族（spec は DDD より広い上位概念であり、UI層の意図は DDD のドメインモデルでは表現できないため分離）。specKind=screen/flow。画面の項目・操作・他画面への遷移を構造化する。ビジュアル（Figma等）は URL 参照のみで、レイアウトそのものはここに持たない。",
+
+  "x-render-target": {
+    "formats": ["md", "feature"],
+    "path": ".waffle/specs/{documentId}.md",
+    "featurePath": ".waffle/specs/{documentId}.feature"
+  },
+  "x-source-target": ".waffle/documents/specs/{documentId}.json",
+
+  "x-lifecycle": {
+    "transitions": [
+      { "from": null,        "to": "CREATED",    "command": "create" },
+      { "from": "CREATED",   "to": "VALIDATED",  "command": "validate" },
+      { "from": "VALIDATED", "to": "VALIDATED",  "command": "validate" },
+      { "from": "RENDERED",  "to": "RENDERED",   "command": "validate" },
+      { "from": "VALIDATED", "to": "RENDERED",   "command": "render" },
+      { "from": "VALIDATED", "to": "SUPERSEDED", "command": "supersede" },
+      { "from": "RENDERED",  "to": "SUPERSEDED", "command": "supersede" }
+    ]
+  },
+
+  "type": "object",
+  "required": ["documentId", "documentType", "schemaRef", "specKind", "status", "content"],
+  "properties": {
+    "documentId": {
+      "type": "string",
+      "x-prompt-write": "この Spec を一意に識別する ID を kebab-case で。screen は scr-、flow は flow- 接頭辞を推奨。例: scr-order-form"
+    },
+    "documentType": { "type": "string", "const": "PresentationSpec" },
+    "schemaRef":    { "type": "string", "const": "PresentationSpecSchema/v1" },
+    "specKind": {
+      "type": "string",
+      "enum": ["screen", "flow"],
+      "x-prompt-write": "screen=1つの画面（項目・操作を持つ）/ flow=複数画面をまたぐ遷移。迷ったら: 単体の画面の中身→screen、画面から画面への移動→flow。"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["CREATED", "VALIDATED", "RENDERED", "SUPERSEDED"],
+      "x-prompt-write": "作成直後は CREATED。検証通過で VALIDATED、render 済で RENDERED、後続版に置換で SUPERSEDED。"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "x-prompt-write": "この Spec を分類するタグ。例: [\"context:orders\"]"
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+
+    "_index": {
+      "description": "waffle が x-prompt-query から自動生成する。AI は直接書かない。",
+      "readOnly": true,
+      "type": "object",
+      "properties": {
+        "blocks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["blockType", "prompt"],
+            "properties": {
+              "blockType": { "type": "string" },
+              "prompt":    { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "content": { "type": "object" }
+  },
+
+  "allOf": [
+    { "if":   { "properties": { "specKind": { "const": "screen" } }, "required": ["specKind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/ScreenContent" } } } },
+    { "if":   { "properties": { "specKind": { "const": "flow" } }, "required": ["specKind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/FlowContent" } } } }
+  ],
+
+  "$defs": {
+
+    "ScreenContent": {
+      "type": "object",
+      "required": ["title", "summary", "fields", "actions"],
+      "additionalProperties": false,
+      "properties": {
+        "title":     { "$ref": "#/$defs/TitleBlock" },
+        "summary":   { "$ref": "#/$defs/SummaryBlock" },
+        "fields":    { "$ref": "#/$defs/FieldsBlock" },
+        "actions":   { "$ref": "#/$defs/ActionsBlock" },
+        "visualRef": { "$ref": "#/$defs/VisualRefBlock" }
+      }
+    },
+
+    "FlowContent": {
+      "type": "object",
+      "required": ["title", "summary", "steps"],
+      "additionalProperties": false,
+      "properties": {
+        "title":   { "$ref": "#/$defs/TitleBlock" },
+        "summary": { "$ref": "#/$defs/SummaryBlock" },
+        "steps":   { "$ref": "#/$defs/StepsBlock" }
+      }
+    },
+
+    "TitleBlock": {
+      "type": "object",
+      "required": ["blockType", "title"],
+      "x-render-order": 0,
+      "x-render-level": 1,
+      "x-prompt-query": "この Spec のタイトルを持ちます。documentId が使われ h1 になります。",
+      "x-render": [],
+      "properties": {
+        "blockType": { "type": "string", "const": "Title" },
+        "title":     { "type": "string", "x-prompt-write": "documentId をそのまま設定してください。" }
+      }
+    },
+
+    "SummaryBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "text"],
+      "x-render-order": 1,
+      "x-render-level": 2,
+      "x-prompt-query": "この画面/フローの概要を1〜2文で持ちます。",
+      "x-render": [ { "as": "paragraph", "from": "text" } ],
+      "properties": {
+        "blockType": { "type": "string", "const": "Summary" },
+        "title":     { "type": "string", "const": "概要" },
+        "text":      { "type": "string", "x-prompt-write": "この画面/フローが何のためにあるかを1〜2文で。" }
+      }
+    },
+
+    "FieldsBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 2,
+      "x-render-level": 2,
+      "x-prompt-query": "この画面が持つ入力/表示項目(名前・種別・必須・説明)を持ちます。",
+      "x-render": [
+        { "as": "table", "from": "items", "columns": [
+          { "field": "name", "header": "項目" },
+          { "field": "inputType", "header": "種別" },
+          { "field": "required", "header": "必須" },
+          { "field": "description", "header": "説明" }
+        ] }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "Fields" },
+        "title":     { "type": "string", "const": "項目" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "画面上の入力/表示項目を列挙。無ければ空。",
+          "items": {
+            "type": "object",
+            "required": ["name", "inputType", "required", "description"],
+            "properties": {
+              "name":        { "type": "string", "x-prompt-write": "項目名。例: 注文数量" },
+              "inputType":   { "type": "string", "x-prompt-write": "入力/表示の種別。例: text / number / select / display" },
+              "required":    { "type": "boolean", "x-prompt-write": "入力必須なら true。表示のみの項目は false。" },
+              "description": { "type": "string", "x-prompt-write": "この項目が何を表すかを1文で。" }
+            }
+          }
+        }
+      }
+    },
+
+    "ActionsBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 3,
+      "x-render-level": 2,
+      "x-prompt-query": "この画面で実行できる操作(名前・契機・対応するusecase)を持ちます。",
+      "x-render": [
+        { "as": "table", "from": "items", "columns": [
+          { "field": "name", "header": "操作" },
+          { "field": "trigger", "header": "契機" },
+          { "field": "description", "header": "説明" },
+          { "field": "usecaseRef", "header": "対応usecase", "code": true }
+        ] }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "Actions" },
+        "title":     { "type": "string", "const": "操作" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "画面上の操作を列挙。無ければ空。",
+          "items": {
+            "type": "object",
+            "required": ["name", "trigger", "description"],
+            "properties": {
+              "name":        { "type": "string", "x-prompt-write": "操作名。例: 注文を確定する" },
+              "trigger":     { "type": "string", "x-prompt-write": "操作の契機。例: 「確定」ボタン押下" },
+              "description": { "type": "string", "x-prompt-write": "何をするかを1文で。" },
+              "usecaseRef":  { "type": "string", "x-prompt-write": "この操作が対応する DomainSpecSchema の usecase の documentId（あれば）。例: uc-place-order。無ければ空文字。" }
+            }
+          }
+        }
+      }
+    },
+
+    "VisualRefBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "url"],
+      "x-render-order": 4,
+      "x-render-level": 2,
+      "x-prompt-query": "この画面の見た目（Figma等）への外部参照を持ちます。レイアウトそのものはここに持ちません。",
+      "x-render": [
+        { "as": "keyvalue", "pairs": [
+          { "label": "参照先", "from": "url" },
+          { "label": "補足", "from": "note" }
+        ] }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "VisualRef" },
+        "title":     { "type": "string", "const": "ビジュアル参照" },
+        "url":       { "type": "string", "x-prompt-write": "Figma等のURL。" },
+        "note":      { "type": "string", "x-prompt-write": "補足（バージョン・参照箇所等）。無ければ空文字。" }
+      }
+    },
+
+    "StepsBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 2,
+      "x-render-level": 2,
+      "x-prompt-query": "画面から画面への遷移(from→to・契機・条件)を持ちます。",
+      "x-render": [
+        { "as": "table", "from": "items", "columns": [
+          { "field": "fromScreen", "header": "from", "code": true },
+          { "field": "toScreen", "header": "to", "code": true },
+          { "field": "trigger", "header": "契機" },
+          { "field": "condition", "header": "条件" }
+        ] }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "Steps" },
+        "title":     { "type": "string", "const": "遷移" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "x-prompt-write": "画面遷移を列挙（from→to＋契機）。フロー開始点は fromScreen を空文字で。",
+          "items": {
+            "type": "object",
+            "required": ["fromScreen", "toScreen", "trigger"],
+            "properties": {
+              "fromScreen": { "type": "string", "x-prompt-write": "遷移元 screen の documentId。開始点なら空文字。" },
+              "toScreen":   { "type": "string", "x-prompt-write": "遷移先 screen の documentId。" },
+              "trigger":    { "type": "string", "x-prompt-write": "遷移の契機。例: 「次へ」ボタン押下" },
+              "condition":  { "type": "string", "x-prompt-write": "遷移の追加条件があれば。無ければ空文字。" }
+            }
+          }
+        }
+      }
+    }
+
+  }
+}

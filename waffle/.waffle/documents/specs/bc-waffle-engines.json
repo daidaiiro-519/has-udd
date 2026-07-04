@@ -1,7 +1,7 @@
 {
   "documentId": "bc-waffle-engines",
-  "documentType": "Spec",
-  "schemaRef": "SpecSchema/v2",
+  "documentType": "DomainSpec",
+  "schemaRef": "DomainSpecSchema/v2",
   "specKind": "bounded-context",
   "status": "CREATED",
   "tags": ["context:waffle-engines"],

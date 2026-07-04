@@ -43,7 +43,7 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
     And 出力フォーマットは "md"
     And 出力に "# " を含む
 
-  # --- SpecSchema（UDD ループ: TestScenarios → .feature） ---
+  # --- DomainSpecSchema（UDD ループ: TestScenarios → .feature） ---
 
   Scenario: usecase Spec は基本フローをシーケンス図に・TestScenarios を Markdown に出す
     Given 対象は ".waffle/documents/specs/uc-query-document.json"

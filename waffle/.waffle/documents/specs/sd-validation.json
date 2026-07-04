@@ -1,7 +1,7 @@
 {
   "documentId": "sd-validation",
-  "documentType": "Spec",
-  "schemaRef": "SpecSchema/v2",
+  "documentType": "DomainSpec",
+  "schemaRef": "DomainSpecSchema/v2",
   "specKind": "subdomain",
   "status": "CREATED",
   "tags": ["context:waffle-engines"],

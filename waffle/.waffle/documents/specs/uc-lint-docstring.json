@@ -1,7 +1,7 @@
 {
   "documentId": "uc-lint-docstring",
-  "documentType": "Spec",
-  "schemaRef": "SpecSchema/v2",
+  "documentType": "DomainSpec",
+  "schemaRef": "DomainSpecSchema/v2",
   "specKind": "usecase",
   "status": "CREATED",
   "subdomainRef": "sd-validation",

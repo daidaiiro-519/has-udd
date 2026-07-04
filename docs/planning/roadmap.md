@@ -120,7 +120,7 @@
 | ID | 論点 | 置き場 |
 |---|---|---|
 | OQ-1〜7 | code↔spec 投影の検討漏れ | `sim-code-spec-link-projection` |
-| ES-3 | reconcile engine の帰属 | `design-engine-set` |
+| ES-3 | reconcile engine の帰属 | ✅ CLOSED（2026-07）: reconcileという独立engineは新設しない。`brainstorm-schema-aggregate-zerobase`（論点1）で結論——has-udd自身は不変条件が全てschemaに宣言的に存在し意味比較を要する業務ロジックコードが無いため、当初の「AI生成コード↔spec drift」という前提が消滅。汎用engineの正しさは既存BDD（.feature/behave）が担い、spec↔schemaの構造整合は必要時にvalidate engineへの小さな機械チェック追加で足りる |
 | ML-1〜6 | 保守ループ | `design-maintenance-loop` |
 | H-1〜7 | Hooks | `design-hooks` |
 | RO-1〜5 | OKF render 設計 | `design-engine-render-okf` |

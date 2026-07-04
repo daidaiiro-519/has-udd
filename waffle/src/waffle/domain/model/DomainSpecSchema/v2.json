@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "SpecSchema/v2",
-  "title": "SpecSchema v2",
-  "description": "waffle Spec 集約（UDD の核）。specKind=bounded-context/subdomain/aggregate/usecase（DDD 語彙に整合）。content はドメイン語彙のみ（技術スタック/アーキ構成は CodingTemplate の担当）。集約=Commands/Invariants/Lifecycle、ユースケース=基本フロー(シーケンス)、整合の契約=TestScenarios(Gherkin)。描画は MD を正本とし HTML は viewer 想定（render エンジン MD 改修までは html/feature を出力）。",
+  "$id": "DomainSpecSchema/v2",
+  "title": "DomainSpecSchema v2",
+  "description": "waffle の Spec 家族のうち、業務ロジック層（ドメイン層・DDD管轄）を扱う Spec 集約（UDD の核）。旧称 SpecSchema（spec は DDD より広い上位概念であり、UI層を扱う PresentationSpecSchema が別家族として存在するため改名）。specKind=bounded-context/subdomain/aggregate/usecase（DDD 語彙に整合）。content はドメイン語彙のみ（技術スタック/アーキ構成は CodingTemplate の担当）。集約=Commands/Invariants/Lifecycle、ユースケース=基本フロー(シーケンス)、整合の契約=TestScenarios(Gherkin)。描画は MD を正本とし HTML は viewer 想定（render エンジン MD 改修までは html/feature を出力）。",
 
   "x-render-target": {
     "formats": ["md", "feature"],
@@ -30,8 +30,8 @@
       "type": "string",
       "x-prompt-write": "この Spec を一意に識別する ID を kebab-case で。bounded-context は bc-、subdomain は sd-、aggregate は agg-、usecase は uc- 接頭辞を推奨。例: uc-place-order"
     },
-    "documentType": { "type": "string", "const": "Spec" },
-    "schemaRef":    { "type": "string", "const": "SpecSchema/v2" },
+    "documentType": { "type": "string", "const": "DomainSpec" },
+    "schemaRef":    { "type": "string", "const": "DomainSpecSchema/v2" },
     "specKind": {
       "type": "string",
       "enum": ["bounded-context", "subdomain", "aggregate", "usecase"],

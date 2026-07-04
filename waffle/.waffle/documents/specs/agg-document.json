@@ -1,7 +1,7 @@
 {
   "documentId": "agg-document",
-  "documentType": "Spec",
-  "schemaRef": "SpecSchema/v2",
+  "documentType": "DomainSpec",
+  "schemaRef": "DomainSpecSchema/v2",
   "specKind": "aggregate",
   "status": "CREATED",
   "tags": [
@@ -15,7 +15,7 @@
     "summary": {
       "blockType": "Summary",
       "title": "概要",
-      "text": "構造化された成果物（Document）の一貫性とライフサイクルを表す集約。documentType により2系統のライフサイクルを使い分ける: SpecSchema 系（Spec）は生成→検証→描画→置換の「処理パイプライン」（lifecycle）を、CodingSchema/SkillSchema 系（Coding/Skill）は起草→運用中→廃止の「成熟度」（maturityLifecycle）を持つ。"
+      "text": "構造化された成果物（Document）の一貫性とライフサイクルを表す集約。documentType により2系統のライフサイクルを使い分ける: Spec家族系（DomainSpecSchema/PresentationSpecSchema）は生成→検証→描画→置換の「処理パイプライン」（lifecycle）を、CodingSchema/SkillSchema 系（Coding/Skill）は起草→運用中→廃止の「成熟度」（maturityLifecycle）を持つ。"
     },
     "aggregateRoot": {
       "blockType": "AggregateRoot",
@@ -76,7 +76,7 @@
         {
           "name": "Status",
           "represents": "ライフサイクル状態",
-          "behavior": "SpecSchema 系: enum CREATED/VALIDATED/RENDERED/SUPERSEDED（lifecycle）。CodingSchema/SkillSchema 系: enum DRAFT/ACTIVE/DEPRECATED（maturityLifecycle）。documentType ごとにどちらか一方のみを持つ。値が等しければ等価。遷移は不変条件で守る。"
+          "behavior": "Spec家族系（DomainSpecSchema/PresentationSpecSchema）: enum CREATED/VALIDATED/RENDERED/SUPERSEDED（lifecycle）。CodingSchema/SkillSchema 系: enum DRAFT/ACTIVE/DEPRECATED（maturityLifecycle）。documentType ごとにどちらか一方のみを持つ。値が等しければ等価。遷移は不変条件で守る。"
         }
       ]
     },
@@ -85,7 +85,7 @@
       "title": "不変条件",
       "items": [
         {
-          "rule": "SpecSchema 系の status は CREATED→VALIDATED→RENDERED→SUPERSEDED の順にのみ進み、逆行・飛ばしをしない",
+          "rule": "Spec家族系（DomainSpecSchema/PresentationSpecSchema）の status は CREATED→VALIDATED→RENDERED→SUPERSEDED の順にのみ進み、逆行・飛ばしをしない",
           "enforcement": "guard",
           "rationale": "成果物の状態の一貫性を保つ"
         },

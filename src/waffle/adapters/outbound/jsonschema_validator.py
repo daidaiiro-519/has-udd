@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from jsonschema import Draft202012Validator
 
-from has_udd.application.ports.validator import Validator
+from waffle.application.ports.validator import Validator
 
 
 class JsonSchemaValidator(Validator):

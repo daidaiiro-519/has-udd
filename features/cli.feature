@@ -1,9 +1,9 @@
-# has-udd CLI（inbound adapter）の受け入れシナリオ。
+# waffle CLI（inbound adapter）の受け入れシナリオ。
 # engine の振る舞いは各 engine の .feature が担保。ここは「引数成型・出力JSON整形・終了コード」を固定。
-Feature: has-udd CLI (inbound adapter)
+Feature: waffle CLI (inbound adapter)
 
   Background:
-    Given has-udd CLI
+    Given waffle CLI
 
   Scenario: query はブロックを取得し value を JSON で返す
     When CLI "query --operation get_block --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface" を実行する

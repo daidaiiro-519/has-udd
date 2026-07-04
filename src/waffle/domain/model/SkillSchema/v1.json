@@ -253,7 +253,7 @@
         "title":       { "type": "string", "const": "呼び出し" },
         "cliTemplate": {
           "type": "string",
-          "x-prompt-write": "CLI 呼び出しのテンプレ。operation/param をプレースホルダで示す。例: has-udd query --operation <operation> --path <path> [--<param> <value> ...]"
+          "x-prompt-write": "CLI 呼び出しのテンプレ。operation/param をプレースホルダで示す。例: waffle query --operation <operation> --path <path> [--<param> <value> ...]"
         },
         "cliExamples": {
           "type": "array",
@@ -271,7 +271,7 @@
         },
         "note": {
           "type": "string",
-          "x-prompt-write": "補足（任意。例: has-udd serve 起動後に MCP 利用可）。"
+          "x-prompt-write": "補足（任意。例: waffle serve 起動後に MCP 利用可）。"
         }
       }
     },

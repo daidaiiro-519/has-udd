@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from has_udd.application.ports.document_repository import DocumentRepository
+from waffle.application.ports.document_repository import DocumentRepository
 
 
 class FsDocumentRepository(DocumentRepository):

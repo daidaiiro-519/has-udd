@@ -72,15 +72,15 @@
     "invocationSpec": {
       "blockType": "InvocationSpec",
       "title": "呼び出し",
-      "cliTemplate": "has-udd render --path <document.json> [--no-deploy]",
+      "cliTemplate": "waffle render --path <document.json> [--no-deploy]",
       "cliExamples": [
-        "has-udd render --path .has-udd/documents/skills/harness-query-engine.json"
+        "waffle render --path .has-udd/documents/skills/harness-query-engine.json"
       ],
       "mcpTemplate": "render_document({ \"path\": \"<document.json>\", \"deploy\": true })",
       "mcpExamples": [
         "render_document({\"path\": \".has-udd/documents/skills/harness-query-engine.json\"})"
       ],
-      "note": "MCP は has-udd serve 起動後に利用可。"
+      "note": "MCP は waffle serve 起動後に利用可。"
     },
     "title": {
       "blockType": "Title",
@@ -133,7 +133,7 @@
       "title": "参照",
       "items": [
         {
-          "path": "src/has_udd/domain/model/SkillSchema/v1.json",
+          "path": "src/waffle/domain/model/SkillSchema/v1.json",
           "description": "Skill document の Schema 定義（x-render / x-render-target / x-frontmatter の参照元・パッケージ内）"
         },
         {

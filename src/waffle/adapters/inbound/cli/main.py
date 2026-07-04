@@ -12,14 +12,14 @@ import json
 
 import typer
 
-from has_udd.adapters.outbound.fs import FsDocumentRepository
-from has_udd.adapters.outbound.jsonschema_validator import JsonSchemaValidator
-from has_udd.adapters.outbound.schema_repo import PackageSchemaRepository
-from has_udd.application.usecases.query_engine import QueryEngine
-from has_udd.application.usecases.render_engine import RenderEngine
-from has_udd.application.usecases.scaffold_engine import ScaffoldEngine
-from has_udd.application.usecases.validate_engine import ValidateEngine
-from has_udd.shared.result import Ok, Result
+from waffle.adapters.outbound.fs import FsDocumentRepository
+from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
+from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
+from waffle.application.usecases.query_engine import QueryEngine
+from waffle.application.usecases.render_engine import RenderEngine
+from waffle.application.usecases.scaffold_engine import ScaffoldEngine
+from waffle.application.usecases.validate_engine import ValidateEngine
+from waffle.shared.result import Ok, Result
 
 app = typer.Typer(add_completion=False, help="has-udd CLI — query / render / validate / scaffold")
 
@@ -120,7 +120,7 @@ def scaffold(
 def serve() -> None:
     """MCP サーバを起動（query_document / render_document / … を MCP ツールとして公開）。"""
     # has-udd:impl-start
-    from has_udd.adapters.inbound.mcp.main import mcp
+    from waffle.adapters.inbound.mcp.main import mcp
 
     mcp.run()
     # has-udd:impl-end

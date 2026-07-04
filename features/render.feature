@@ -17,7 +17,7 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
     And 出力に "| name | type | 必須 | 説明 | 例 |" を含む
     And 出力に "### Step 2: オペレーションを選ぶ" を含む
     And 出力に "| operation | 用途 | 必須引数 | 例 |" を含む
-    And 出力に "has-udd query --operation get_block" を含む
+    And 出力に "waffle query --operation get_block" を含む
 
   Scenario: frontmatter は x-frontmatter のドットパスを解決して生成する
     Given 対象は ".has-udd/documents/skills/harness-query-engine.json"

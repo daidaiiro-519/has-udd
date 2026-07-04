@@ -5,9 +5,13 @@ description: "document.json の x-render テンプレートをもとに Markdown
 
 # harness-render-engine
 
+---
+
 ## 目的
 
 document.json の x-render テンプレートをもとに Markdown・HTML 形式でレンダリングし、人間が読める形式の成果物を生成する。
+
+---
 
 ## 役割
 
@@ -16,6 +20,8 @@ document.json の x-render テンプレートをもとに Markdown・HTML 形式
 - 各ブロックの x-render-level に従って見出しレベルを動的付与する（step_h / substep_h 等）
 - Jinja2 テンプレート（x-render.md / x-render.html）を展開してコンテンツを生成する
 - Schema の x-render-target.path（canonical）に書き込む。frontmatter は x-frontmatter + engine エンベロープで生成する
+
+---
 
 ## インターフェース
 
@@ -36,6 +42,8 @@ document.json の x-render テンプレートをもとに Markdown・HTML 形式
 | prompt | string/null | ✓ | 次アクションの指針（正常時 null・警告時は通知） | (正常時 null・警告時のみ通知文) |
 | value | object | ✓ | { renderedPaths: string[] } 生成された canonical パス一覧（そのまま返る） | { "renderedPaths": [".has-udd/skills/harness-query-engine/SKILL.md"] } |
 
+---
+
 ## 呼び出し
 
 選んだ operation と成型したパラメータを、下記の CLI / MCP の形に当てはめて呼ぶ（各パラメータの意味は『インターフェース』参照）。
@@ -43,13 +51,13 @@ document.json の x-render テンプレートをもとに Markdown・HTML 形式
 ### Skills（CLI）
 
 ```
-has-udd render --path <document.json> [--no-deploy]
+waffle render --path <document.json> [--no-deploy]
 ```
 
 例:
 
 ```
-has-udd render --path .has-udd/documents/skills/harness-query-engine.json
+waffle render --path .has-udd/documents/skills/harness-query-engine.json
 ```
 
 ### MCP
@@ -64,7 +72,9 @@ render_document({ "path": "<document.json>", "deploy": true })
 render_document({"path": ".has-udd/documents/skills/harness-query-engine.json"})
 ```
 
-MCP は has-udd serve 起動後に利用可。
+MCP は waffle serve 起動後に利用可。
+
+---
 
 ## 実行手順
 
@@ -88,6 +98,8 @@ documentPath（.has-udd/documents/{type}/{id}.json）は要望テキストで指
 
 `schemaRef` 欠落 / Schema 不在 / `x-render-target` 不在はエラー。`x-render` 未定義の blockType は `skipped` に記録され通知される（中断しない）。
 
+---
+
 ## ガードレール
 
 - 対象 document は呼び出し側が要望テキストで指定する。無ければ実行しない
@@ -96,7 +108,9 @@ documentPath（.has-udd/documents/{type}/{id}.json）は要望テキストで指
 - x-render 未定義の blockType はスキップし通知する（中断しない）
 - 例外は握りつぶさず { error, prompt, message } で返す
 
+---
+
 ## 参照
 
-- `src/has_udd/domain/model/SkillSchema/v1.json`: Skill document の Schema 定義（x-render / x-render-target / x-frontmatter の参照元・パッケージ内）
+- `src/waffle/domain/model/SkillSchema/v1.json`: Skill document の Schema 定義（x-render / x-render-target / x-frontmatter の参照元・パッケージ内）
 - `docs/brainstorm/design-engine-render.md`: render engine 設計ブレスト（R-1〜R-8）

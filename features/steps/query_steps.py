@@ -8,10 +8,10 @@ import tempfile
 
 from behave import given, then, when
 
-from has_udd.adapters.outbound.fs import FsDocumentRepository
-from has_udd.adapters.outbound.schema_repo import PackageSchemaRepository
-from has_udd.application.usecases.query_engine import QueryEngine
-from has_udd.shared.result import Err, Ok
+from waffle.adapters.outbound.fs import FsDocumentRepository
+from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
+from waffle.application.usecases.query_engine import QueryEngine
+from waffle.shared.result import Err, Ok
 
 
 def _parse_params(kv: str) -> dict:

@@ -4,9 +4,9 @@
 """
 import pytest
 
-from has_udd.adapters.outbound.jsonschema_validator import JsonSchemaValidator
-from has_udd.adapters.outbound.schema_repo import PackageSchemaRepository
-from has_udd.domain.services.part_renderer import render_parts
+from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
+from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
+from waffle.domain.services.part_renderer import render_parts
 
 
 def _lint(parts):

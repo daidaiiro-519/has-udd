@@ -7,9 +7,9 @@ import tempfile
 
 from behave import given, then, when
 
-from has_udd.adapters.outbound.fs import FsDocumentRepository
-from has_udd.adapters.outbound.schema_repo import PackageSchemaRepository
-from has_udd.application.usecases.render_engine import RenderEngine
+from waffle.adapters.outbound.fs import FsDocumentRepository
+from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
+from waffle.application.usecases.render_engine import RenderEngine
 
 
 @given("render engine")

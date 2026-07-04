@@ -1,10 +1,10 @@
-# has-udd MCP サーバ（inbound adapter）の受け入れシナリオ。
+# waffle MCP サーバ（inbound adapter）の受け入れシナリオ。
 # CLI と並ぶ第2の front-door。engine の振る舞いは各 engine の .feature が担保。
 # ここは「MCP ツール経由で engine が正しく呼ばれ dict を返す」スモークを固定。
-Feature: has-udd MCP サーバ (inbound adapter)
+Feature: waffle MCP サーバ (inbound adapter)
 
   Background:
-    Given has-udd MCP サーバ
+    Given waffle MCP サーバ
 
   Scenario: query_document はブロックを取得する
     When MCP ツール "query_document" を引数 "operation=get_block;path=.has-udd/documents/skills/harness-query-engine.json;blockKey=interface" で呼ぶ

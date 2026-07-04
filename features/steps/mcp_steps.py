@@ -4,7 +4,7 @@ import asyncio
 from behave import given, then, when
 from fastmcp import Client
 
-from has_udd.adapters.inbound.mcp.main import mcp
+from waffle.adapters.inbound.mcp.main import mcp
 
 
 def _coerce(v: str):
@@ -39,7 +39,7 @@ async def _call(tool: str, args: dict):
         return result.data
 
 
-@given("has-udd MCP サーバ")
+@given("waffle MCP サーバ")
 def step_server(context):
     context.server = mcp
 

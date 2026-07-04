@@ -5,7 +5,7 @@ import shlex
 from behave import given, then, when
 from typer.testing import CliRunner
 
-from has_udd.adapters.inbound.cli.main import app
+from waffle.adapters.inbound.cli.main import app
 
 
 def _resolve(value, vpath: str):
@@ -15,7 +15,7 @@ def _resolve(value, vpath: str):
     return cur
 
 
-@given("has-udd CLI")
+@given("waffle CLI")
 def step_cli(context):
     context.runner = CliRunner()
 

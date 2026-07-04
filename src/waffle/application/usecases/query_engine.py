@@ -13,9 +13,9 @@ import json
 import re
 from pathlib import Path
 
-from has_udd.application.ports.document_repository import DocumentRepository
-from has_udd.application.ports.schema_repository import SchemaRepository
-from has_udd.shared.result import Err, Ok, Result
+from waffle.application.ports.document_repository import DocumentRepository
+from waffle.application.ports.schema_repository import SchemaRepository
+from waffle.shared.result import Err, Ok, Result
 
 # 各 operation の必須パラメータ（path を除く）
 _REQUIRED: dict[str, list[str]] = {

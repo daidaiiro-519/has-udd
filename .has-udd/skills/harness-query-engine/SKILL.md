@@ -67,17 +67,17 @@ document.json および通常ファイルに対してセマンティック操作
 ### Skills（CLI）
 
 ```
-has-udd query --operation <operation> --path <path> [--<param> <value> ...]
+waffle query --operation <operation> --path <path> [--<param> <value> ...]
 ```
 
 例:
 
 ```
-has-udd query --operation get_block --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface
+waffle query --operation get_block --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface
 ```
 
 ```
-has-udd query --operation filter_items --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface --arrayField input --key required --value true
+waffle query --operation filter_items --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface --arrayField input --key required --value true
 ```
 
 ### MCP
@@ -92,7 +92,7 @@ query_document({ "operation": "<operation>", "path": "<path>", ...<param>: <valu
 query_document({"operation": "get_block", "path": ".has-udd/documents/skills/harness-query-engine.json", "blockKey": "interface"})
 ```
 
-MCP は has-udd serve 起動後に利用可。
+MCP は waffle serve 起動後に利用可。
 
 ---
 

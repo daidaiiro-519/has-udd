@@ -15,10 +15,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from has_udd.application.ports.document_repository import DocumentRepository
-from has_udd.application.ports.schema_repository import SchemaRepository
-from has_udd.domain.services.part_renderer import render_parts
-from has_udd.shared.result import Err, Ok, Result
+from waffle.application.ports.document_repository import DocumentRepository
+from waffle.application.ports.schema_repository import SchemaRepository
+from waffle.domain.services.part_renderer import render_parts
+from waffle.shared.result import Err, Ok, Result
 
 
 def _err(code: str, message: str) -> Err:

@@ -8,11 +8,11 @@ import tempfile
 
 from behave import given, then, when
 
-from has_udd.adapters.outbound.fs import FsDocumentRepository
-from has_udd.adapters.outbound.jsonschema_validator import JsonSchemaValidator
-from has_udd.adapters.outbound.schema_repo import PackageSchemaRepository
-from has_udd.application.usecases.validate_engine import ValidateEngine
-from has_udd.shared.result import Err
+from waffle.adapters.outbound.fs import FsDocumentRepository
+from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
+from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
+from waffle.application.usecases.validate_engine import ValidateEngine
+from waffle.shared.result import Err
 
 
 @given("validate engine")

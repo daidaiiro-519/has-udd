@@ -11,12 +11,12 @@
       "blockType": "Conventions",
       "title": "コード規約",
       "items": [
-        { "concept": "port",            "folder": "src/has_udd/application/ports",    "namingRule": "{Name}（Protocol）。driven port は能力を必要とする application が所有" },
-        { "concept": "usecase",         "folder": "src/has_udd/application/usecases",  "namingRule": "{verb}_engine.py / {Verb}Engine・実行は run()（ヘキサゴナルのユースケース。公開名は engine）" },
-        { "concept": "domain-service",  "folder": "src/has_udd/domain/services",      "namingRule": "{Name}Service（ステートレス）" },
-        { "concept": "outbound-adapter","folder": "src/has_udd/adapters/outbound",    "namingRule": "{Tech}{Port}（例: Jinja2Renderer）" },
-        { "concept": "inbound-adapter", "folder": "src/has_udd/adapters/inbound/cli", "namingRule": "Typer コマンド" },
-        { "concept": "shared",          "folder": "src/has_udd/shared",               "namingRule": "Result / 契約定数（tags）" }
+        { "concept": "port",            "folder": "src/waffle/application/ports",    "namingRule": "{Name}（Protocol）。driven port は能力を必要とする application が所有" },
+        { "concept": "usecase",         "folder": "src/waffle/application/usecases",  "namingRule": "{verb}_engine.py / {Verb}Engine・実行は run()（ヘキサゴナルのユースケース。公開名は engine）" },
+        { "concept": "domain-service",  "folder": "src/waffle/domain/services",      "namingRule": "{Name}Service（ステートレス）" },
+        { "concept": "outbound-adapter","folder": "src/waffle/adapters/outbound",    "namingRule": "{Tech}{Port}（例: Jinja2Renderer）" },
+        { "concept": "inbound-adapter", "folder": "src/waffle/adapters/inbound/cli", "namingRule": "Typer コマンド" },
+        { "concept": "shared",          "folder": "src/waffle/shared",               "namingRule": "Result / 契約定数（tags）" }
       ]
     },
     "validationRules": {

@@ -10,14 +10,14 @@ from __future__ import annotations
 
 from fastmcp import FastMCP
 
-from has_udd.adapters.outbound.fs import FsDocumentRepository
-from has_udd.adapters.outbound.jsonschema_validator import JsonSchemaValidator
-from has_udd.adapters.outbound.schema_repo import PackageSchemaRepository
-from has_udd.application.usecases.query_engine import QueryEngine
-from has_udd.application.usecases.render_engine import RenderEngine
-from has_udd.application.usecases.scaffold_engine import ScaffoldEngine
-from has_udd.application.usecases.validate_engine import ValidateEngine
-from has_udd.shared.result import Ok, Result
+from waffle.adapters.outbound.fs import FsDocumentRepository
+from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
+from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
+from waffle.application.usecases.query_engine import QueryEngine
+from waffle.application.usecases.render_engine import RenderEngine
+from waffle.application.usecases.scaffold_engine import ScaffoldEngine
+from waffle.application.usecases.validate_engine import ValidateEngine
+from waffle.shared.result import Ok, Result
 
 mcp = FastMCP("has-udd")
 

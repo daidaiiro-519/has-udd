@@ -31,6 +31,16 @@ def step_nonconformant(context):
     context.path = f.name
 
 
+@given("SUPERSEDED 状態の一時ファイルを対象にする")
+def step_superseded(context):
+    document = json.loads(FsDocumentRepository().read_text(".waffle/documents/specs/agg-document.json"))
+    document["status"] = "SUPERSEDED"
+    f = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8")
+    f.write(json.dumps(document))
+    f.close()
+    context.path = f.name
+
+
 @when("検証する")
 def step_validate(context):
     context.result = context.engine.run(context.path)

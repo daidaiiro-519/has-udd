@@ -7,32 +7,40 @@ Feature: document を schema 適合検証する (uc-validate-document)
 
   # --- 適合（dogfood: waffle 自身の全 document） ---
 
+  # status の期待値は schema の x-lifecycle が "validate" を状態遷移コマンドとして
+  # 定義しているかで変わる: SpecSchema系=VALIDATEDへ進む／CodingSchema・SkillSchema系=
+  # maturityLifecycle に validate が無いため現状の status を維持する。
   Scenario Outline: 既存 document は schema に適合する
     Given 対象は "<path>"
     When 検証する
     Then 成功する
-    And status は "VALIDATED"
+    And status は "<status>"
 
     Examples:
-      | path                                                |
-      | .waffle/documents/skills/harness-query-engine.json |
-      | .waffle/documents/skills/harness-render-engine.json |
-      | .waffle/documents/coding/tech-stack-python-hexagonal.json      |
-      | .waffle/documents/coding/architecture-python-hexagonal.json    |
-      | .waffle/documents/coding/coding-standard-python-hexagonal.json |
-      | .waffle/documents/coding/test-standard-python-hexagonal.json   |
-      | .waffle/documents/specs/bc-waffle-engines.json      |
-      | .waffle/documents/specs/sd-harness-core.json        |
-      | .waffle/documents/specs/sd-validation.json          |
-      | .waffle/documents/specs/sd-rendering.json           |
-      | .waffle/documents/specs/agg-document.json           |
-      | .waffle/documents/specs/agg-schema.json             |
-      | .waffle/documents/specs/uc-query-document.json      |
-      | .waffle/documents/specs/uc-render-document.json     |
-      | .waffle/documents/specs/uc-validate-document.json   |
-      | .waffle/documents/specs/uc-scaffold-document.json   |
-      | .waffle/documents/specs/uc-scan-source-code.json    |
-      | .waffle/documents/specs/uc-lint-docstring.json    |
+      | path                                                            | status    |
+      | .waffle/documents/skills/harness-query-engine.json             | DRAFT     |
+      | .waffle/documents/skills/harness-render-engine.json            | DRAFT     |
+      | .waffle/documents/coding/tech-stack-python-hexagonal.json      | ACTIVE    |
+      | .waffle/documents/coding/architecture-python-hexagonal.json    | ACTIVE    |
+      | .waffle/documents/coding/coding-standard-python-hexagonal.json | ACTIVE    |
+      | .waffle/documents/coding/test-standard-python-hexagonal.json   | ACTIVE    |
+      | .waffle/documents/specs/bc-waffle-engines.json      | VALIDATED |
+      | .waffle/documents/specs/sd-harness-core.json        | VALIDATED |
+      | .waffle/documents/specs/sd-validation.json          | VALIDATED |
+      | .waffle/documents/specs/sd-rendering.json           | VALIDATED |
+      | .waffle/documents/specs/agg-document.json           | VALIDATED |
+      | .waffle/documents/specs/agg-schema.json             | VALIDATED |
+      | .waffle/documents/specs/uc-query-document.json      | VALIDATED |
+      | .waffle/documents/specs/uc-render-document.json     | VALIDATED |
+      | .waffle/documents/specs/uc-validate-document.json   | VALIDATED |
+      | .waffle/documents/specs/uc-scaffold-document.json   | VALIDATED |
+      | .waffle/documents/specs/uc-scan-source-code.json    | VALIDATED |
+      | .waffle/documents/specs/uc-lint-docstring.json      | VALIDATED |
+
+  Scenario: SUPERSEDED は終端であり validate を受け付けない (Re-2 guard)
+    Given SUPERSEDED 状態の一時ファイルを対象にする
+    When 検証する
+    Then エラーコード "INVALID_TRANSITION" で失敗する
 
   # --- 不適合 ---
 

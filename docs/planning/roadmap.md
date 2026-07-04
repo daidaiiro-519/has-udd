@@ -62,9 +62,9 @@
 
 | 項目 | 状態 | メモ |
 |---|---|---|
-| code-template 規約の確定（Re-1/Re-2 結論を反映） | 🟠 | 宣言的realize=imperative集約クラス不要／status遷移 guard の置き場／subdomainRichness 接続 |
-| 動く最小サンプル（examples/・Spec→コード→緑テスト1本） | ⚪ | 配布 example・規約の手本 |
-| 効果測定（規約が意図した品質を生むか） | ⚪ | 合格基準: .feature緑 / lint通過 / 別AIで規約収束 / 違反検出 |
+| code-template 規約の確定（Re-1/Re-2/Re-4 決定） | ✅ 決定＋実装済 | `brainstorm-coding-schema-redefine`（Re-2/3/4 CLOSED）。宣言的realize=imperative集約クラス不要／status遷移=`domain/services/lifecycle_guard.py`が各schemaのx-lifecycle宣言を読む薄いguard（validate engineで判定のみ・副作用なし）。副産物: agg-documentのLifecycleがSpec系(CREATED→VALIDATED→RENDERED→SUPERSEDED)とCoding/Skill系(DRAFT→ACTIVE→DEPRECATED)の2系統に分かれていた drift を発見・agg-document.json修正＋SpecSchema/v2にmaturityLifecycleブロック追加で解消 |
+| 動く最小サンプル（examples/・Spec→コード→緑テスト1本） | ⚪ | Re-3で合格基準4点確定（.feature緑/lint通過/別AI収束/違反検出）・実装未着手 |
+| 効果測定（規約が意図した品質を生むか） | ⚪ | 合格基準は Re-3 で確定済み・実施は examples/ 完成後 |
 | CodingSchema の content 構造・描画（Spec 同様の見直し） | ⚪ | 根拠=`design-coding-schema`・`brainstorm-coding-schema` |
 
 > 決定済み（Stage S 副産物）: 宣言的realize・subdomain分類。未決＝上記。ブレスト=`brainstorm-coding-schema`（本ステージで実施）。

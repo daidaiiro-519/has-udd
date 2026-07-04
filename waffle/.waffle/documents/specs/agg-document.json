@@ -4,19 +4,26 @@
   "schemaRef": "SpecSchema/v2",
   "specKind": "aggregate",
   "status": "CREATED",
-  "tags": ["context:waffle-engines"],
+  "tags": [
+    "context:waffle-engines"
+  ],
   "content": {
-    "title": { "blockType": "Title", "title": "agg-document" },
+    "title": {
+      "blockType": "Title",
+      "title": "agg-document"
+    },
     "summary": {
       "blockType": "Summary",
       "title": "概要",
-      "text": "構造化された成果物（Document）の一貫性とライフサイクルを表す集約。状態は生成→検証→描画の順にのみ進み、後続版で置換される。"
+      "text": "構造化された成果物（Document）の一貫性とライフサイクルを表す集約。documentType により2系統のライフサイクルを使い分ける: SpecSchema 系（Spec）は生成→検証→描画→置換の「処理パイプライン」（lifecycle）を、CodingSchema/SkillSchema 系（Coding/Skill）は起草→運用中→廃止の「成熟度」（maturityLifecycle）を持つ。"
     },
     "aggregateRoot": {
       "blockType": "AggregateRoot",
       "title": "集約ルート",
       "name": "Document",
-      "externalRefs": ["Schema"]
+      "externalRefs": [
+        "Schema"
+      ]
     },
     "entities": {
       "blockType": "Entities",
@@ -27,11 +34,27 @@
           "role": "構造化された成果物の一貫性単位",
           "isRoot": true,
           "attributes": [
-            { "name": "documentId", "type": "DocumentId", "isId": true },
-            { "name": "schemaRef", "type": "SchemaRef" },
-            { "name": "status", "type": "Status" },
-            { "name": "content", "type": "構造化データ（schema 準拠）" },
-            { "name": "tags", "type": "文字列配列" }
+            {
+              "name": "documentId",
+              "type": "DocumentId",
+              "isId": true
+            },
+            {
+              "name": "schemaRef",
+              "type": "SchemaRef"
+            },
+            {
+              "name": "status",
+              "type": "Status"
+            },
+            {
+              "name": "content",
+              "type": "構造化データ（schema 準拠）"
+            },
+            {
+              "name": "tags",
+              "type": "文字列配列"
+            }
           ]
         }
       ]
@@ -40,31 +63,99 @@
       "blockType": "ValueObjects",
       "title": "値オブジェクト",
       "items": [
-        { "name": "DocumentId", "represents": "一意な識別子", "behavior": "不変。kebab-case。value が等しければ等価。" },
-        { "name": "SchemaRef", "represents": "適合する Schema への参照", "behavior": "name と version の組。両方が等しければ等価。" },
-        { "name": "Status", "represents": "ライフサイクル状態", "behavior": "enum: CREATED/VALIDATED/RENDERED/SUPERSEDED。値が等しければ等価。遷移は不変条件で守る。" }
+        {
+          "name": "DocumentId",
+          "represents": "一意な識別子",
+          "behavior": "不変。kebab-case。value が等しければ等価。"
+        },
+        {
+          "name": "SchemaRef",
+          "represents": "適合する Schema への参照",
+          "behavior": "name と version の組。両方が等しければ等価。"
+        },
+        {
+          "name": "Status",
+          "represents": "ライフサイクル状態",
+          "behavior": "SpecSchema 系: enum CREATED/VALIDATED/RENDERED/SUPERSEDED（lifecycle）。CodingSchema/SkillSchema 系: enum DRAFT/ACTIVE/DEPRECATED（maturityLifecycle）。documentType ごとにどちらか一方のみを持つ。値が等しければ等価。遷移は不変条件で守る。"
+        }
       ]
     },
     "invariants": {
       "blockType": "Invariants",
       "title": "不変条件",
       "items": [
-        { "rule": "status は CREATED→VALIDATED→RENDERED→SUPERSEDED の順にのみ進み、逆行・飛ばしをしない", "enforcement": "guard", "rationale": "成果物の状態の一貫性を保つ" },
-        { "rule": "schemaRef は常に存在する", "enforcement": "schema", "rationale": "型が無ければ検証も描画もできない" },
-        { "rule": "content が schema に適合しない限り VALIDATED へ進めない", "enforcement": "guard", "rationale": "不正な成果物を後段（render/deploy）に流さない" },
-        { "rule": "SUPERSEDED は終端であり、以後どのコマンドも受け付けない", "enforcement": "guard", "rationale": "置換後の変更を防ぐ" }
+        {
+          "rule": "SpecSchema 系の status は CREATED→VALIDATED→RENDERED→SUPERSEDED の順にのみ進み、逆行・飛ばしをしない",
+          "enforcement": "guard",
+          "rationale": "成果物の状態の一貫性を保つ"
+        },
+        {
+          "rule": "CodingSchema/SkillSchema 系の status は DRAFT→ACTIVE→DEPRECATED の順にのみ進み、逆行・飛ばしをしない",
+          "enforcement": "guard",
+          "rationale": "運用中の規約が予告なく後退・スキップしないことを保証する"
+        },
+        {
+          "rule": "schemaRef は常に存在する",
+          "enforcement": "schema",
+          "rationale": "型が無ければ検証も描画もできない"
+        },
+        {
+          "rule": "content が schema に適合しない限り VALIDATED へ進めない",
+          "enforcement": "guard",
+          "rationale": "不正な成果物を後段（render/deploy）に流さない"
+        },
+        {
+          "rule": "SUPERSEDED は終端であり、以後どのコマンドも受け付けない",
+          "enforcement": "guard",
+          "rationale": "置換後の変更を防ぐ"
+        },
+        {
+          "rule": "DEPRECATED は終端であり、以後どのコマンドも受け付けない",
+          "enforcement": "guard",
+          "rationale": "廃止後の変更を防ぐ"
+        }
       ]
     },
     "lifecycle": {
       "blockType": "Lifecycle",
       "title": "ライフサイクル",
-      "states": ["CREATED", "VALIDATED", "RENDERED", "SUPERSEDED"],
+      "states": [
+        "CREATED",
+        "VALIDATED",
+        "RENDERED",
+        "SUPERSEDED"
+      ],
       "transitions": [
-        { "from": "[*]",       "to": "CREATED",    "command": "create",    "condition": "" },
-        { "from": "CREATED",   "to": "VALIDATED",  "command": "validate",  "condition": "schema に適合" },
-        { "from": "VALIDATED", "to": "RENDERED",   "command": "render",    "condition": "" },
-        { "from": "VALIDATED", "to": "SUPERSEDED", "command": "supersede", "condition": "" },
-        { "from": "RENDERED",  "to": "SUPERSEDED", "command": "supersede", "condition": "" }
+        {
+          "from": "[*]",
+          "to": "CREATED",
+          "command": "create",
+          "condition": ""
+        },
+        {
+          "from": "CREATED",
+          "to": "VALIDATED",
+          "command": "validate",
+          "condition": "schema に適合"
+        },
+        {
+          "from": "VALIDATED",
+          "to": "RENDERED",
+          "command": "render",
+          "condition": ""
+        },
+        {
+          "from": "VALIDATED",
+          "to": "SUPERSEDED",
+          "command": "supersede",
+          "condition": ""
+        },
+        {
+          "from": "RENDERED",
+          "to": "SUPERSEDED",
+          "command": "supersede",
+          "condition": ""
+        }
       ]
     },
     "commands": {
@@ -77,10 +168,18 @@
           "requiresState": "（新規）",
           "postState": "CREATED",
           "params": [
-            { "name": "schemaRef", "meaning": "適用する schema" },
-            { "name": "documentId", "meaning": "新しい識別子" }
+            {
+              "name": "schemaRef",
+              "meaning": "適用する schema"
+            },
+            {
+              "name": "documentId",
+              "meaning": "新しい識別子"
+            }
           ],
-          "emits": ["DocumentCreated"]
+          "emits": [
+            "DocumentCreated"
+          ]
         },
         {
           "name": "validate",
@@ -88,7 +187,9 @@
           "requiresState": "CREATED",
           "postState": "VALIDATED",
           "params": [],
-          "emits": ["DocumentValidated"]
+          "emits": [
+            "DocumentValidated"
+          ]
         },
         {
           "name": "render",
@@ -96,15 +197,50 @@
           "requiresState": "VALIDATED",
           "postState": "RENDERED",
           "params": [],
-          "emits": ["DocumentRendered", "DocumentDeployed"]
+          "emits": [
+            "DocumentRendered",
+            "DocumentDeployed"
+          ]
         },
         {
           "name": "supersede",
           "description": "後続版に置き換えて終端化する（終端の不変条件を確立する）。",
           "requiresState": "VALIDATED / RENDERED",
           "postState": "SUPERSEDED",
-          "params": [ { "name": "successorId", "meaning": "後継 Document の識別子" } ],
-          "emits": ["DocumentSuperseded"]
+          "params": [
+            {
+              "name": "successorId",
+              "meaning": "後継 Document の識別子"
+            }
+          ],
+          "emits": [
+            "DocumentSuperseded"
+          ]
+        },
+        {
+          "name": "activate",
+          "description": "起草中の Coding/Skill 規約を運用可能にする（CodingSchema/SkillSchema 系のみ）。",
+          "requiresState": "DRAFT",
+          "postState": "ACTIVE",
+          "params": [],
+          "emits": [
+            "DocumentActivated"
+          ]
+        },
+        {
+          "name": "deprecate",
+          "description": "運用中の Coding/Skill 規約を廃止する（CodingSchema/SkillSchema 系のみ）。",
+          "requiresState": "ACTIVE",
+          "postState": "DEPRECATED",
+          "params": [
+            {
+              "name": "successorId",
+              "meaning": "後継 Document の識別子（あれば）"
+            }
+          ],
+          "emits": [
+            "DocumentDeprecated"
+          ]
         }
       ]
     },
@@ -112,10 +248,86 @@
       "blockType": "DomainEvents",
       "title": "ドメインイベント",
       "items": [
-        { "name": "DocumentValidated", "raisedBy": "validate 成功時", "payload": [ { "name": "documentId", "meaning": "対象の識別子" }, { "name": "schemaRef", "meaning": "適合した schema" } ] },
-        { "name": "DocumentRendered", "raisedBy": "render 成功時", "payload": [ { "name": "documentId", "meaning": "対象の識別子" }, { "name": "outputs", "meaning": "生成された成果物のパス一覧" } ] },
-        { "name": "DocumentDeployed", "raisedBy": "render が deploy 先を持つ Document を描画した時", "payload": [ { "name": "documentId", "meaning": "対象の識別子" }, { "name": "targets", "meaning": "反映された各ツールの配置先" } ] },
-        { "name": "DocumentSuperseded", "raisedBy": "supersede 成功時", "payload": [ { "name": "documentId", "meaning": "対象の識別子" }, { "name": "successorId", "meaning": "後継の識別子" } ] }
+        {
+          "name": "DocumentValidated",
+          "raisedBy": "validate 成功時",
+          "payload": [
+            {
+              "name": "documentId",
+              "meaning": "対象の識別子"
+            },
+            {
+              "name": "schemaRef",
+              "meaning": "適合した schema"
+            }
+          ]
+        },
+        {
+          "name": "DocumentRendered",
+          "raisedBy": "render 成功時",
+          "payload": [
+            {
+              "name": "documentId",
+              "meaning": "対象の識別子"
+            },
+            {
+              "name": "outputs",
+              "meaning": "生成された成果物のパス一覧"
+            }
+          ]
+        },
+        {
+          "name": "DocumentDeployed",
+          "raisedBy": "render が deploy 先を持つ Document を描画した時",
+          "payload": [
+            {
+              "name": "documentId",
+              "meaning": "対象の識別子"
+            },
+            {
+              "name": "targets",
+              "meaning": "反映された各ツールの配置先"
+            }
+          ]
+        },
+        {
+          "name": "DocumentSuperseded",
+          "raisedBy": "supersede 成功時",
+          "payload": [
+            {
+              "name": "documentId",
+              "meaning": "対象の識別子"
+            },
+            {
+              "name": "successorId",
+              "meaning": "後継の識別子"
+            }
+          ]
+        },
+        {
+          "name": "DocumentActivated",
+          "raisedBy": "activate 成功時",
+          "payload": [
+            {
+              "name": "documentId",
+              "meaning": "対象の識別子"
+            }
+          ]
+        },
+        {
+          "name": "DocumentDeprecated",
+          "raisedBy": "deprecate 成功時",
+          "payload": [
+            {
+              "name": "documentId",
+              "meaning": "対象の識別子"
+            },
+            {
+              "name": "successorId",
+              "meaning": "後継の識別子（あれば）"
+            }
+          ]
+        }
       ]
     },
     "unitTestScenarios": {
@@ -143,6 +355,49 @@
           "viewpoint": "状態遷移：終端状態は不変",
           "gherkin": "Scenario: SUPERSEDED は終端\n  Given SUPERSEDED 状態の Document\n  When 任意のコマンドを実行する\n  Then 拒否される",
           "covers": "不変条件: SUPERSEDED は終端"
+        },
+        {
+          "name": "Coding/Skill の status も逆行できない",
+          "category": "異常系",
+          "viewpoint": "状態遷移：maturityLifecycle も前進のみの不変条件が効く",
+          "gherkin": "Scenario: Coding/Skill の status も逆行できない\n  Given ACTIVE 状態の Coding document\n  When DRAFT へ戻そうとする\n  Then 状態遷移は拒否され、状態は ACTIVE のままである",
+          "covers": "不変条件: CodingSchema/SkillSchema 系の status は前進のみ"
+        },
+        {
+          "name": "DEPRECATED は終端",
+          "category": "異常系",
+          "viewpoint": "状態遷移：終端状態は不変（maturityLifecycle）",
+          "gherkin": "Scenario: DEPRECATED は終端\n  Given DEPRECATED 状態の Skill document\n  When 任意のコマンドを実行する\n  Then 拒否される",
+          "covers": "不変条件: DEPRECATED は終端"
+        }
+      ]
+    },
+    "maturityLifecycle": {
+      "blockType": "Lifecycle",
+      "title": "ライフサイクル",
+      "states": [
+        "DRAFT",
+        "ACTIVE",
+        "DEPRECATED"
+      ],
+      "transitions": [
+        {
+          "from": "[*]",
+          "to": "DRAFT",
+          "command": "create",
+          "condition": ""
+        },
+        {
+          "from": "DRAFT",
+          "to": "ACTIVE",
+          "command": "activate",
+          "condition": "利用可能な状態になった"
+        },
+        {
+          "from": "ACTIVE",
+          "to": "DEPRECATED",
+          "command": "deprecate",
+          "condition": ""
         }
       ]
     }

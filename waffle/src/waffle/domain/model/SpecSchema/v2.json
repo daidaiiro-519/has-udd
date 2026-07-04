@@ -11,6 +11,18 @@
   },
   "x-source-target": ".waffle/documents/specs/{documentId}.json",
 
+  "x-lifecycle": {
+    "transitions": [
+      { "from": null,        "to": "CREATED",    "command": "create" },
+      { "from": "CREATED",   "to": "VALIDATED",  "command": "validate" },
+      { "from": "VALIDATED", "to": "VALIDATED",  "command": "validate" },
+      { "from": "RENDERED",  "to": "RENDERED",   "command": "validate" },
+      { "from": "VALIDATED", "to": "RENDERED",   "command": "render" },
+      { "from": "VALIDATED", "to": "SUPERSEDED", "command": "supersede" },
+      { "from": "RENDERED",  "to": "SUPERSEDED", "command": "supersede" }
+    ]
+  },
+
   "type": "object",
   "required": ["documentId", "documentType", "schemaRef", "specKind", "status", "content"],
   "properties": {
@@ -121,6 +133,7 @@
         "valueObjects":      { "$ref": "#/$defs/ValueObjectsBlock" },
         "invariants":        { "$ref": "#/$defs/InvariantsBlock" },
         "lifecycle":         { "$ref": "#/$defs/LifecycleBlock" },
+        "maturityLifecycle": { "$ref": "#/$defs/LifecycleBlock" },
         "commands":          { "$ref": "#/$defs/CommandsBlock" },
         "domainEvents":      { "$ref": "#/$defs/DomainEventsBlock" },
         "unitTestScenarios": { "$ref": "#/$defs/TestScenariosBlock" }

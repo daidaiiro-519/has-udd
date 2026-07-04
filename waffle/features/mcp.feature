@@ -14,9 +14,9 @@ Feature: waffle MCP サーバ (inbound adapter)
     When MCP ツール "query_document" を引数 "operation=bogus;path=.waffle/documents/skills/harness-query-engine.json" で呼ぶ
     Then MCP出力の "error" は "INVALID_OPERATION"
 
-  Scenario: validate_document は適合で VALIDATED を返す
+  Scenario: validate_document は適合で status 判定を返す
     When MCP ツール "validate_document" を引数 "path=.waffle/documents/skills/harness-query-engine.json" で呼ぶ
-    Then MCP出力の "status" は "VALIDATED"
+    Then MCP出力の "status" は "DRAFT"
 
   Scenario: render_document は md フォーマットを返す
     When MCP ツール "render_document" を引数 "path=.waffle/documents/skills/harness-query-engine.json;deploy=false" で呼ぶ

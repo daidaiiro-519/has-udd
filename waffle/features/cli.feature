@@ -20,10 +20,10 @@ Feature: waffle CLI (inbound adapter)
     Then 終了コードは 0
     And 出力JSONの "format" は "md"
 
-  Scenario: validate は適合で VALIDATED を返す
+  Scenario: validate は適合で status 判定を返す
     When CLI "validate --path .waffle/documents/skills/harness-query-engine.json" を実行する
     Then 終了コードは 0
-    And 出力JSONの "status" は "VALIDATED"
+    And 出力JSONの "status" は "DRAFT"
 
   Scenario: scaffold create は骨格を返す
     When CLI "scaffold --operation create --schemaRef SkillSchema/v1 --documentId scaffold-demo --discriminator skillKind=engine" を実行する

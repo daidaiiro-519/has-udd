@@ -9,6 +9,13 @@
     "deploy": [".claude/skills/{documentId}/SKILL.md"]
   },
   "x-source-target": ".waffle/documents/skills/{documentId}.json",
+  "x-lifecycle": {
+    "transitions": [
+      { "from": null,      "to": "DRAFT",      "command": "create" },
+      { "from": "DRAFT",   "to": "ACTIVE",     "command": "activate" },
+      { "from": "ACTIVE",  "to": "DEPRECATED", "command": "deprecate" }
+    ]
+  },
   "x-frontmatter": {
     "name": "doc.documentId",
     "description": "doc.content.purpose.text"

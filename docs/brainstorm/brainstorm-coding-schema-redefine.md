@@ -25,10 +25,22 @@
 | # | 論点 | 状態 |
 |---|---|---|
 | Re-1 | has-udd の実装方法は何か＝集約を持つか持たないか | ✅ 合意（集約は正しい・realize は宣言的 schema） |
-| Re-2 | schema が守れない「status 遷移」をどこで守るか | 議論中 |
-| Re-3 | 動く最小サンプルの要件と「効果測定」の定義 | 議論中 |
-| Re-4 | dm-document spec の「集約」framing をどうするか（Re-1 の波及） | 議論中 |
+| Re-2 | schema が守れない「status 遷移」をどこで守るか | ✅ CLOSED（Re-1 の帰結をそのまま適用・実質的異論なし） |
+| Re-3 | 動く最小サンプルの要件と「効果測定」の定義 | ✅ CLOSED（合格基準4点を確定・実装は未着手） |
+| Re-4 | dm-document spec の「集約」framing をどうするか（Re-1 の波及） | ✅ CLOSED（Re-1 の帰結をそのまま適用） |
 | Re-5 | spec 階層の切り直し（A案）＋ has-udd の subdomain 分類（中核/一般/補完） | ✅ advisor 判断で確定 |
+
+> ★CLOSED の経緯（2026-07）: Re-2/3/4 は「AI初期見解」に対しユーザーから実質的な異論が出ず、
+> Stage S の既存結論（不変条件=schema宣言的カプセル化・engine=executor・imperative集約クラス不要）
+> をそのまま適用しただけと判明したため、追加のユーザー見解収集ラウンドを経ずに CLOSED とした。
+> **決定はここで確定したが、実装（Re-2の遷移guard関数・Re-3のexamples/最小サンプル）はまだ無い**
+> ＝roadmap.md Stage K の残タスクとして引き継ぐ。
+>
+> ⚠️ **本 doc「現状の CodingSchema」節は古い**: codingKind は 3種（tech-stack/code-template/
+> test-template）でなく、CS-2/CS-3（`brainstorm-coding-schema.md`）で確定した **4種
+> （tech-stack/architecture/coding-standard/test-standard）** に置き換わっている。
+> `code-template` は `architecture`（ConceptPlacement等）＋`coding-standard`（命名/スタイル/docstring）
+> に分割済み。
 
 ---
 

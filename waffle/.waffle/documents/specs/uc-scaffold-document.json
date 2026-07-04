@@ -6,7 +6,7 @@
   "status": "CREATED",
   "subdomainRef": "sd-harness-core",
   "aggregateRef": "agg-document",
-  "tags": ["context:has-udd-engines"],
+  "tags": ["context:waffle-engines"],
   "content": {
     "title": { "blockType": "Title", "title": "uc-scaffold-document" },
     "summary": {

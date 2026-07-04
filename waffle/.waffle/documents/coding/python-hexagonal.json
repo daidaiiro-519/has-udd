@@ -28,7 +28,7 @@
         { "id": "lib-via-adapter", "kind": "required-abstraction", "spec": "外部 library（jsonschema/jinja2 等）は outbound adapter 経由。application から直 import 禁止", "severity": "error" },
         { "id": "no-print",        "kind": "ban",                  "spec": "print() 禁止。logging を使う", "severity": "error" },
         { "id": "engine-run",      "kind": "naming",               "spec": "engine の公開エントリは run()。application 配下に置く", "severity": "warn" },
-        { "id": "gen-gap",         "kind": "placement",            "spec": "実装本体は has-udd:impl-start / impl-end で囲う", "severity": "warn" }
+        { "id": "gen-gap",         "kind": "placement",            "spec": "実装本体は waffle:impl-start / impl-end で囲う", "severity": "warn" }
       ]
     },
     "subdomainRichness": {

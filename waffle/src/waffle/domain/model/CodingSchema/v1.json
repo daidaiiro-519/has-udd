@@ -12,9 +12,9 @@
   },
   "x-render-target": {
     "formats": ["md"],
-    "path": ".has-udd/coding/{documentId}.md"
+    "path": ".waffle/coding/{documentId}.md"
   },
-  "x-source-target": ".has-udd/documents/coding/{documentId}.json",
+  "x-source-target": ".waffle/documents/coding/{documentId}.json",
 
   "type": "object",
   "required": ["documentId", "documentType", "schemaRef", "codingKind", "status", "content"],

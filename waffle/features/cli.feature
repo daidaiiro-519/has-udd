@@ -6,22 +6,22 @@ Feature: waffle CLI (inbound adapter)
     Given waffle CLI
 
   Scenario: query はブロックを取得し value を JSON で返す
-    When CLI "query --operation get_block --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface" を実行する
+    When CLI "query --operation get_block --path .waffle/documents/skills/harness-query-engine.json --blockKey interface" を実行する
     Then 終了コードは 0
     And 出力JSONの "value.blockType" は "Interface"
 
   Scenario: query のエラーは {error, message} と非ゼロ終了で返す
-    When CLI "query --operation bogus --path .has-udd/documents/skills/harness-query-engine.json" を実行する
+    When CLI "query --operation bogus --path .waffle/documents/skills/harness-query-engine.json" を実行する
     Then 終了コードは 1
     And 出力JSONの "error" は "INVALID_OPERATION"
 
   Scenario: render --no-deploy は md フォーマットを返す
-    When CLI "render --path .has-udd/documents/skills/harness-query-engine.json --no-deploy" を実行する
+    When CLI "render --path .waffle/documents/skills/harness-query-engine.json --no-deploy" を実行する
     Then 終了コードは 0
     And 出力JSONの "format" は "md"
 
   Scenario: validate は適合で VALIDATED を返す
-    When CLI "validate --path .has-udd/documents/skills/harness-query-engine.json" を実行する
+    When CLI "validate --path .waffle/documents/skills/harness-query-engine.json" を実行する
     Then 終了コードは 0
     And 出力JSONの "status" は "VALIDATED"
 

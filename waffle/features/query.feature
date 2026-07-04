@@ -5,7 +5,7 @@ Feature: document.json へのセマンティック・クエリ (uc-query-documen
 
   Background:
     Given query engine
-    And 対象は ".has-udd/documents/skills/harness-query-engine.json"
+    And 対象は ".waffle/documents/skills/harness-query-engine.json"
 
   # --- Group 1: ファイル / ドキュメント単位（prompt は null） ---
 
@@ -27,7 +27,7 @@ Feature: document.json へのセマンティック・クエリ (uc-query-documen
     And value の "interface.prompt" は非空
 
   Scenario: index_scan_dir はディレクトリ横断で index を集約する
-    Given 対象は ".has-udd/documents/skills"
+    Given 対象は ".waffle/documents/skills"
     When operation "index_scan_dir" を実行する
     Then 成功する
     And value のキーに "harness-query-engine.json" を含むものがある

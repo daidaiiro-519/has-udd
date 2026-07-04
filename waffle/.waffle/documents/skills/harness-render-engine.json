@@ -35,7 +35,7 @@
           "type": "string",
           "required": true,
           "description": "レンダリング対象 document.json のパス。要望テキストで指定される",
-          "example": ".has-udd/documents/skills/harness-query-engine.json"
+          "example": ".waffle/documents/skills/harness-query-engine.json"
         },
         {
           "name": "format",
@@ -65,7 +65,7 @@
           "type": "object",
           "required": true,
           "description": "{ renderedPaths: string[] } 生成された canonical パス一覧（そのまま返る）",
-          "example": "{ \"renderedPaths\": [\".has-udd/skills/harness-query-engine/SKILL.md\"] }"
+          "example": "{ \"renderedPaths\": [\".waffle/skills/harness-query-engine/SKILL.md\"] }"
         }
       ]
     },
@@ -74,11 +74,11 @@
       "title": "呼び出し",
       "cliTemplate": "uv run --project waffle waffle render --path <document.json> [--no-deploy]",
       "cliExamples": [
-        "uv run --project waffle waffle render --path .has-udd/documents/skills/harness-query-engine.json"
+        "uv run --project waffle waffle render --path .waffle/documents/skills/harness-query-engine.json"
       ],
       "mcpTemplate": "render_document({ \"path\": \"<document.json>\", \"deploy\": true })",
       "mcpExamples": [
-        "render_document({\"path\": \".has-udd/documents/skills/harness-query-engine.json\"})"
+        "render_document({\"path\": \".waffle/documents/skills/harness-query-engine.json\"})"
       ],
       "note": "MCP は uv run --project waffle waffle serve 起動後に利用可。"
     },
@@ -93,7 +93,7 @@
         {
           "stepId": "step-1",
           "title": "要望テキストから対象 document を読み取る",
-          "summary": "documentPath（.has-udd/documents/{type}/{id}.json）は要望テキストで指定される前提。無ければ『対象の指定が必要』と返す。"
+          "summary": "documentPath（.waffle/documents/{type}/{id}.json）は要望テキストで指定される前提。無ければ『対象の指定が必要』と返す。"
         },
         {
           "stepId": "step-2",

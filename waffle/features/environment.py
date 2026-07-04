@@ -5,5 +5,5 @@ import os
 
 def after_scenario(context, scenario):
     # scaffold.feature が x-source-target に書く一時骨格を削除（source を汚さない）
-    for p in glob.glob(".has-udd/documents/skills/scaffold-demo*.json"):
+    for p in glob.glob(".waffle/documents/skills/scaffold-demo*.json"):
         os.remove(p)

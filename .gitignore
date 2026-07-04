@@ -9,4 +9,4 @@ __pycache__/
 
 # render.feature の deploy テストが waffle/ 内に副生成する成果物（テスト用フィクスチャの再レンダリング先）
 waffle/.claude/
-waffle/.has-udd/skills/
+waffle/.waffle/skills/

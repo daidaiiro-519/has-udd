@@ -31,7 +31,7 @@ document.json の x-render テンプレートをもとに Markdown・HTML 形式
 
 | name | type | 必須 | 説明 | 例 |
 |---|---|---|---|---|
-| documentPath | string | ✓ | レンダリング対象 document.json のパス。要望テキストで指定される | .has-udd/documents/skills/harness-query-engine.json |
+| documentPath | string | ✓ | レンダリング対象 document.json のパス。要望テキストで指定される | .waffle/documents/skills/harness-query-engine.json |
 | format | string | - | 出力形式の上書き（既定は x-render-target.formats） | md |
 | noDeploy | boolean | - | true で canonical のみ生成・deploy 抑制 | true |
 
@@ -40,7 +40,7 @@ document.json の x-render テンプレートをもとに Markdown・HTML 形式
 | name | type | 必須 | 説明 | 例 |
 |---|---|---|---|---|
 | prompt | string/null | ✓ | 次アクションの指針（正常時 null・警告時は通知） | (正常時 null・警告時のみ通知文) |
-| value | object | ✓ | { renderedPaths: string[] } 生成された canonical パス一覧（そのまま返る） | { "renderedPaths": [".has-udd/skills/harness-query-engine/SKILL.md"] } |
+| value | object | ✓ | { renderedPaths: string[] } 生成された canonical パス一覧（そのまま返る） | { "renderedPaths": [".waffle/skills/harness-query-engine/SKILL.md"] } |
 
 ---
 
@@ -57,7 +57,7 @@ uv run --project waffle waffle render --path <document.json> [--no-deploy]
 例:
 
 ```
-uv run --project waffle waffle render --path .has-udd/documents/skills/harness-query-engine.json
+uv run --project waffle waffle render --path .waffle/documents/skills/harness-query-engine.json
 ```
 
 ### MCP
@@ -69,7 +69,7 @@ render_document({ "path": "<document.json>", "deploy": true })
 例:
 
 ```
-render_document({"path": ".has-udd/documents/skills/harness-query-engine.json"})
+render_document({"path": ".waffle/documents/skills/harness-query-engine.json"})
 ```
 
 MCP は uv run --project waffle waffle serve 起動後に利用可。
@@ -80,7 +80,7 @@ MCP は uv run --project waffle waffle serve 起動後に利用可。
 
 ### Step 1: 要望テキストから対象 document を読み取る
 
-documentPath（.has-udd/documents/{type}/{id}.json）は要望テキストで指定される前提。無ければ『対象の指定が必要』と返す。
+documentPath（.waffle/documents/{type}/{id}.json）は要望テキストで指定される前提。無ければ『対象の指定が必要』と返す。
 
 ### Step 2: オプションを成型する
 

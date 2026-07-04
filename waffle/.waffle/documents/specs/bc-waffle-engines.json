@@ -1,16 +1,16 @@
 {
-  "documentId": "bc-has-udd-engines",
+  "documentId": "bc-waffle-engines",
   "documentType": "Spec",
   "schemaRef": "SpecSchema/v2",
   "specKind": "bounded-context",
   "status": "CREATED",
-  "tags": ["context:has-udd-engines"],
+  "tags": ["context:waffle-engines"],
   "content": {
-    "title": { "blockType": "Title", "title": "bc-has-udd-engines" },
+    "title": { "blockType": "Title", "title": "bc-waffle-engines" },
     "summary": {
       "blockType": "Summary",
       "title": "概要",
-      "text": "has-udd のコアエンジン群が属する文脈。document.json を唯一の正とし、AI が構造を推論せず engine が機械的に読み書き・生成・描画する（Harness 原則）。"
+      "text": "waffle のコアエンジン群が属する文脈。document.json を唯一の正とし、AI が構造を推論せず engine が機械的に読み書き・生成・描画する（Harness 原則）。"
     },
     "ubiquitousLanguage": {
       "blockType": "UbiquitousLanguage",

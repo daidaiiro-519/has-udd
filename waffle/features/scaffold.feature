@@ -27,7 +27,7 @@ Feature: document.json のスキャフォールド (uc-scaffold-document)
   Scenario: create は x-source-target に骨格を書き出す
     When create を schemaRef "SkillSchema/v1" documentId "scaffold-demo" discriminator "skillKind=engine" で実行する
     Then 成功する
-    And ファイル ".has-udd/documents/skills/scaffold-demo.json" が存在する
+    And ファイル ".waffle/documents/skills/scaffold-demo.json" が存在する
 
   Scenario: fillTemplate は値フィールドの path と prompt(x-prompt-write) を持つ
     When create を schemaRef "SkillSchema/v1" documentId "scaffold-demo" discriminator "skillKind=engine" で実行する

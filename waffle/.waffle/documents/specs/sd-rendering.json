@@ -4,7 +4,7 @@
   "schemaRef": "SpecSchema/v2",
   "specKind": "subdomain",
   "status": "CREATED",
-  "tags": ["context:has-udd-engines"],
+  "tags": ["context:waffle-engines"],
   "content": {
     "title": { "blockType": "Title", "title": "sd-rendering" },
     "summary": {
@@ -16,7 +16,7 @@
       "blockType": "SubdomainCategory",
       "title": "カテゴリー",
       "classification": "supporting",
-      "rationale": "描画は has-udd の価値（Spec を正本にする UDD ループ）を成立させるのに必要だが、機械変換自体は競争優位を生まない。ゆえに補完。"
+      "rationale": "描画は waffle の価値（Spec を正本にする UDD ループ）を成立させるのに必要だが、機械変換自体は競争優位を生まない。ゆえに補完。"
     },
     "members": {
       "blockType": "SubdomainMembers",

@@ -4,7 +4,7 @@
   "schemaRef": "SpecSchema/v2",
   "specKind": "aggregate",
   "status": "CREATED",
-  "tags": ["context:has-udd-engines"],
+  "tags": ["context:waffle-engines"],
   "content": {
     "title": { "blockType": "Title", "title": "agg-schema" },
     "summary": {

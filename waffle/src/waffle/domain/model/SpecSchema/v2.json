@@ -6,10 +6,10 @@
 
   "x-render-target": {
     "formats": ["md", "feature"],
-    "path": ".has-udd/specs/{documentId}.md",
-    "featurePath": ".has-udd/specs/{documentId}.feature"
+    "path": ".waffle/specs/{documentId}.md",
+    "featurePath": ".waffle/specs/{documentId}.feature"
   },
-  "x-source-target": ".has-udd/documents/specs/{documentId}.json",
+  "x-source-target": ".waffle/documents/specs/{documentId}.json",
 
   "type": "object",
   "required": ["documentId", "documentType", "schemaRef", "specKind", "status", "content"],

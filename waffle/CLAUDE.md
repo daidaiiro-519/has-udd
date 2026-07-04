@@ -15,13 +15,17 @@ JSON Schemaでdocument.jsonを検証・query・render・scaffoldする。
   同梱を維持する。schemaを外部化する設計は採用しない（ユーザー判断）。
 - この`waffle/`ディレクトリは`loomdb/`と同じく**自己完結**しており、
   `git subtree split --prefix=waffle`でそのまま独立リポジトリに切り出せる想定。
-- `waffle/.has-udd/documents/`には、Waffle自身を説明するspec/skill document
+- `document.json`のパス規約（`x-source-target`/`x-render-target`）は`.has-udd/`ではなく
+  **`.waffle/`**（schema自身がWaffleの資産である以上、規約もWaffle自身のもの。
+  `.git/`が道具の名前を冠するのと同じ発想）。Waffle自身を説明するspec/skill document
   （harness-query-engine・harness-render-engine・stack・python-hexagonal・
-  bc-has-udd-engines等、計14件）のコピーを、Waffle単体でテストが完結するように
-  フィクスチャとして保持する。これらはrepo root側`.has-udd/documents/`にある
-  「本物」（`.claude/skills/`へのdeploy元）と重複するが、render先パス解決の
-  複雑化を避けるための現実的な選択（既知のトレードオフ。source更新時は両方に反映）。
+  bc-waffle-engines等、計14件）は`waffle/.waffle/documents/`に**一元管理**し、
+  repo root側`.has-udd/documents/`との重複コピーは解消済み（旧トレードオフは解消）。
+  repo root側`.has-udd/documents/`には、Waffle固有でない汎用skill
+  （`analyze-domain-model.json`等・has-udd/agent system自身の資産）だけが残る。
 - repo rootからの呼び出しは `uv run --project waffle waffle <command>` の形。
+  Waffle自身のdocumentを`.claude/skills/`へdeployする際は、`waffle/`配下へのパスを明示して
+  呼ぶ（例: `waffle render --path waffle/.waffle/documents/skills/harness-query-engine.json`）。
 
 ## 構造メモ
 

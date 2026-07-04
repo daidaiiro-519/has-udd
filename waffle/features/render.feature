@@ -8,7 +8,7 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
   # --- 正常系（SkillSchema → Markdown） ---
 
   Scenario: SkillSchema を Markdown にレンダリングする
-    Given 対象は ".has-udd/documents/skills/harness-query-engine.json"
+    Given 対象は ".waffle/documents/skills/harness-query-engine.json"
     When deploy なしでレンダリングする
     Then 成功する
     And 出力フォーマットは "md"
@@ -20,7 +20,7 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
     And 出力に "waffle query --operation get_block" を含む
 
   Scenario: frontmatter は x-frontmatter のドットパスを解決して生成する
-    Given 対象は ".has-udd/documents/skills/harness-query-engine.json"
+    Given 対象は ".waffle/documents/skills/harness-query-engine.json"
     When deploy なしでレンダリングする
     Then 成功する
     And 出力に "name:" を含む
@@ -28,16 +28,16 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
     And 出力に "harness-query-engine" を含む
 
   Scenario: deploy すると canonical と deploy 先の両方に書く
-    Given 対象は ".has-udd/documents/skills/harness-query-engine.json"
+    Given 対象は ".waffle/documents/skills/harness-query-engine.json"
     When レンダリングして deploy する
     Then 成功する
-    And 出力パスは ".has-udd/skills/harness-query-engine/SKILL.md"
+    And 出力パスは ".waffle/skills/harness-query-engine/SKILL.md"
     And deploy 先に ".claude/skills/harness-query-engine/SKILL.md" を含む
 
   # --- CodingSchema → Markdown ---
 
   Scenario: CodingSchema は Markdown として描画できる
-    Given 対象は ".has-udd/documents/coding/stack.json"
+    Given 対象は ".waffle/documents/coding/stack.json"
     When deploy なしでレンダリングする
     Then 成功する
     And 出力フォーマットは "md"
@@ -46,7 +46,7 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
   # --- SpecSchema（UDD ループ: TestScenarios → .feature） ---
 
   Scenario: usecase Spec は基本フローをシーケンス図に・TestScenarios を Markdown に出す
-    Given 対象は ".has-udd/documents/specs/uc-query-document.json"
+    Given 対象は ".waffle/documents/specs/uc-query-document.json"
     When deploy なしでレンダリングする
     Then 成功する
     And 出力フォーマットは "md"
@@ -59,7 +59,7 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
     And feature出力に "Scenario: 未知の operation はエラーを返す" を含む
 
   Scenario: aggregate Spec は集約の構造とライフサイクルを Markdown に出す
-    Given 対象は ".has-udd/documents/specs/agg-document.json"
+    Given 対象は ".waffle/documents/specs/agg-document.json"
     When deploy なしでレンダリングする
     Then 成功する
     And 出力に "## コマンド" を含む

@@ -43,7 +43,7 @@
           "type": "string",
           "required": true,
           "description": "対象ファイル（index_scan_dir はディレクトリ）。要望テキストで指定される",
-          "example": ".has-udd/documents/skills/harness-query-engine.json"
+          "example": ".waffle/documents/skills/harness-query-engine.json"
         },
         {
           "name": "blockKey",
@@ -180,12 +180,12 @@
       "title": "呼び出し",
       "cliTemplate": "uv run --project waffle waffle query --operation <operation> --path <path> [--<param> <value> ...]",
       "cliExamples": [
-        "uv run --project waffle waffle query --operation get_block --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface",
-        "uv run --project waffle waffle query --operation filter_items --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface --arrayField input --key required --value true"
+        "uv run --project waffle waffle query --operation get_block --path .waffle/documents/skills/harness-query-engine.json --blockKey interface",
+        "uv run --project waffle waffle query --operation filter_items --path .waffle/documents/skills/harness-query-engine.json --blockKey interface --arrayField input --key required --value true"
       ],
       "mcpTemplate": "query_document({ \"operation\": \"<operation>\", \"path\": \"<path>\", ...<param>: <value> })",
       "mcpExamples": [
-        "query_document({\"operation\": \"get_block\", \"path\": \".has-udd/documents/skills/harness-query-engine.json\", \"blockKey\": \"interface\"})"
+        "query_document({\"operation\": \"get_block\", \"path\": \".waffle/documents/skills/harness-query-engine.json\", \"blockKey\": \"interface\"})"
       ],
       "note": "MCP は uv run --project waffle waffle serve 起動後に利用可。"
     },
@@ -235,7 +235,7 @@
               "operation": "index_scan_dir",
               "purpose": "ディレクトリ横断で index 集約",
               "params": "path=ディレクトリ",
-              "example": "path=.has-udd/documents/skills"
+              "example": "path=.waffle/documents/skills"
             },
             {
               "operation": "get_block",
@@ -344,7 +344,7 @@
       "title": "参照",
       "items": [
         {
-          "path": ".has-udd/documents/",
+          "path": ".waffle/documents/",
           "description": "クエリ対象となる全集約の document.json 配置ディレクトリ（skills / specs / knowledge / agents / coding）"
         },
         {

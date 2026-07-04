@@ -54,7 +54,7 @@ waffle/
 │   └─ shared/          # Result型・タグ定数
 ├─ tests/               # pytest（単体）
 ├─ features/            # behave（受け入れシナリオ・Waffle自身のspec/skill documentで検証）
-└─ .has-udd/documents/  # Waffle自身を説明するspec/skill document（自己完結テスト用）
+└─ .waffle/documents/   # Waffle自身を説明するspec/skill document（自己完結テスト用・唯一の正本）
 ```
 
 ## 動かす
@@ -62,15 +62,16 @@ waffle/
 ```bash
 cd waffle
 uv sync
-uv run waffle validate --path .has-udd/documents/skills/harness-query-engine.json
-uv run waffle query --operation get_block --path .has-udd/documents/skills/harness-query-engine.json --blockKey interface
-uv run waffle render --path .has-udd/documents/skills/harness-query-engine.json --no-deploy
+uv run waffle validate --path .waffle/documents/skills/harness-query-engine.json
+uv run waffle query --operation get_block --path .waffle/documents/skills/harness-query-engine.json --blockKey interface
+uv run waffle render --path .waffle/documents/skills/harness-query-engine.json --no-deploy
 ```
 
-他プロジェクトのルートから使う場合（has-uddでの実例）:
+他プロジェクトのルートから使う場合（has-uddでの実例。Waffle自身のdocumentをdeployするときは
+`waffle/`配下へのパスを明示する）:
 
 ```bash
-uv run --project waffle waffle validate --path .has-udd/documents/skills/harness-query-engine.json
+uv run --project waffle waffle render --path waffle/.waffle/documents/skills/harness-query-engine.json
 ```
 
 ## ステータス

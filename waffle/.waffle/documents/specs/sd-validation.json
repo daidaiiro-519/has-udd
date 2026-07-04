@@ -4,7 +4,7 @@
   "schemaRef": "SpecSchema/v2",
   "specKind": "subdomain",
   "status": "CREATED",
-  "tags": ["context:has-udd-engines"],
+  "tags": ["context:waffle-engines"],
   "content": {
     "title": { "blockType": "Title", "title": "sd-validation" },
     "summary": {
@@ -16,7 +16,7 @@
       "blockType": "SubdomainCategory",
       "title": "カテゴリー",
       "classification": "generic",
-      "rationale": "JSON Schema 適合検証は業界標準の既製ライブラリで解決済みであり、has-udd 固有の差別化を生まない。ゆえに一般。"
+      "rationale": "JSON Schema 適合検証は業界標準の既製ライブラリで解決済みであり、waffle 固有の差別化を生まない。ゆえに一般。"
     },
     "members": {
       "blockType": "SubdomainMembers",
@@ -26,7 +26,7 @@
     "implementationGuidance": {
       "blockType": "ImplementationGuidance",
       "title": "実装ガイド",
-      "text": "一般ゆえ既製ライブラリを薄く包む。適合判定そのものは既製の検証器に委ね、has-udd はエラー整形と境界の適応だけを担う。"
+      "text": "一般ゆえ既製ライブラリを薄く包む。適合判定そのものは既製の検証器に委ね、waffle はエラー整形と境界の適応だけを担う。"
     },
     "externalSolution": {
       "blockType": "ExternalSolution",

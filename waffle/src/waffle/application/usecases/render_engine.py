@@ -67,7 +67,7 @@ class RenderEngine:
         deployed: list[str] = []
         if deploy and canonical:
             try:
-                # canonical（.has-udd 配下）に書く
+                # canonical（.waffle 配下）に書く
                 self._documents.write_text(canonical, output)
                 # deploy: 同一フォーマットは verbatim copy（更新漏れ防止のため render に内蔵）
                 for dep in target.get("deploy", []):

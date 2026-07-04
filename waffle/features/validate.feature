@@ -15,20 +15,20 @@ Feature: document を schema 適合検証する (uc-validate-document)
 
     Examples:
       | path                                                |
-      | .has-udd/documents/skills/harness-query-engine.json |
-      | .has-udd/documents/skills/harness-render-engine.json |
-      | .has-udd/documents/coding/stack.json                |
-      | .has-udd/documents/coding/python-hexagonal.json     |
-      | .has-udd/documents/specs/bc-has-udd-engines.json     |
-      | .has-udd/documents/specs/sd-harness-core.json        |
-      | .has-udd/documents/specs/sd-validation.json          |
-      | .has-udd/documents/specs/sd-rendering.json           |
-      | .has-udd/documents/specs/agg-document.json           |
-      | .has-udd/documents/specs/agg-schema.json             |
-      | .has-udd/documents/specs/uc-query-document.json      |
-      | .has-udd/documents/specs/uc-render-document.json     |
-      | .has-udd/documents/specs/uc-validate-document.json   |
-      | .has-udd/documents/specs/uc-scaffold-document.json   |
+      | .waffle/documents/skills/harness-query-engine.json |
+      | .waffle/documents/skills/harness-render-engine.json |
+      | .waffle/documents/coding/stack.json                |
+      | .waffle/documents/coding/python-hexagonal.json     |
+      | .waffle/documents/specs/bc-waffle-engines.json      |
+      | .waffle/documents/specs/sd-harness-core.json        |
+      | .waffle/documents/specs/sd-validation.json          |
+      | .waffle/documents/specs/sd-rendering.json           |
+      | .waffle/documents/specs/agg-document.json           |
+      | .waffle/documents/specs/agg-schema.json             |
+      | .waffle/documents/specs/uc-query-document.json      |
+      | .waffle/documents/specs/uc-render-document.json     |
+      | .waffle/documents/specs/uc-validate-document.json   |
+      | .waffle/documents/specs/uc-scaffold-document.json   |
 
   # --- 不適合 ---
 

@@ -7,17 +7,17 @@ Feature: waffle MCP サーバ (inbound adapter)
     Given waffle MCP サーバ
 
   Scenario: query_document はブロックを取得する
-    When MCP ツール "query_document" を引数 "operation=get_block;path=.has-udd/documents/skills/harness-query-engine.json;blockKey=interface" で呼ぶ
+    When MCP ツール "query_document" を引数 "operation=get_block;path=.waffle/documents/skills/harness-query-engine.json;blockKey=interface" で呼ぶ
     Then MCP出力の "value.blockType" は "Interface"
 
   Scenario: query_document のエラーは {error, message} を返す
-    When MCP ツール "query_document" を引数 "operation=bogus;path=.has-udd/documents/skills/harness-query-engine.json" で呼ぶ
+    When MCP ツール "query_document" を引数 "operation=bogus;path=.waffle/documents/skills/harness-query-engine.json" で呼ぶ
     Then MCP出力の "error" は "INVALID_OPERATION"
 
   Scenario: validate_document は適合で VALIDATED を返す
-    When MCP ツール "validate_document" を引数 "path=.has-udd/documents/skills/harness-query-engine.json" で呼ぶ
+    When MCP ツール "validate_document" を引数 "path=.waffle/documents/skills/harness-query-engine.json" で呼ぶ
     Then MCP出力の "status" は "VALIDATED"
 
   Scenario: render_document は md フォーマットを返す
-    When MCP ツール "render_document" を引数 "path=.has-udd/documents/skills/harness-query-engine.json;deploy=false" で呼ぶ
+    When MCP ツール "render_document" を引数 "path=.waffle/documents/skills/harness-query-engine.json;deploy=false" で呼ぶ
     Then MCP出力の "format" は "md"

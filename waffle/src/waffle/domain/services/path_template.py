@@ -16,10 +16,20 @@ def resolve(template: str, **variables) -> str:
 
 
 def reverse_parse(template: str, concrete_path: str) -> dict | None:
-    """具体パスとテンプレートを突き合わせ、{変数名} の実際の値を辞書で返す。一致しなければ None。"""
+    """具体パスとテンプレートを突き合わせ、{変数名} の実際の値を辞書で返す。一致しなければ None。
+
+    同じ変数名がテンプレート内に複数回登場する場合（例: subdomain の自己格納パターン
+    ".../{documentId}/{documentId}.json"）は、2回目以降はバックリファレンスにして
+    「同じ値が繰り返されている」ことを要求する（Python の正規表現は同名グループを
+    重複定義できないため）。
+    """
     pattern = re.escape(template)
     var_names = re.findall(r"\\\{(\w+)\\\}", pattern)
+    seen: set[str] = set()
     for name in var_names:
-        pattern = pattern.replace(re.escape("{" + name + "}"), f"(?P<{name}>[^/]+)")
+        token = re.escape("{" + name + "}")
+        replacement = f"(?P<{name}>[^/]+)" if name not in seen else f"(?P={name})"
+        pattern = pattern.replace(token, replacement, 1)
+        seen.add(name)
     m = re.fullmatch(pattern, concrete_path)
     return m.groupdict() if m else None

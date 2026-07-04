@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "RenderMetaSchema/v1",
   "title": "Render Meta Schema v1",
-  "description": "各 block の x-render（部品宣言）を検証するメタスキーマ。x-render は RenderPart の配列。部品語彙は閉じた enum で、未知部品・属性漏れは validate で弾ける。engine が各部品を md/html 両形式に描画する（block の見出しは x-render-level + title から engine が自動付与し、parts は本文を担う）。",
+  "description": "各 block の x-render（部品宣言）を検証するメタスキーマ。x-render は RenderPart の配列。部品語彙は閉じた enum で、未知部品・属性漏れは validate で弾ける。engine は MD を正本として各部品を描画する（HTML は生成しない・Google OKF 整合のため MD に一本化し、HTML は既存技術で MD から導出する viewer 側の責務）。block の見出しは x-render-level + title から engine が自動付与し、parts は本文を担う。",
 
   "$defs": {
     "RenderPart": {

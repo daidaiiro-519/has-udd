@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "DomainSpecSchema/v2",
   "title": "DomainSpecSchema v2",
-  "description": "waffle の Spec 家族のうち、業務ロジック層（ドメイン層・DDD管轄）を扱う Spec 集約（UDD の核）。旧称 SpecSchema（spec は DDD より広い上位概念であり、UI層を扱う PresentationSpecSchema が別家族として存在するため改名）。specKind=bounded-context/subdomain/aggregate/usecase（DDD 語彙に整合）。content はドメイン語彙のみ（技術スタック/アーキ構成は CodingTemplate の担当）。集約=Commands/Invariants/Lifecycle、ユースケース=基本フロー(シーケンス)、整合の契約=TestScenarios(Gherkin)。描画は MD を正本とし HTML は viewer 想定（render エンジン MD 改修までは html/feature を出力）。",
+  "description": "waffle の Spec 家族のうち、業務ロジック層（ドメイン層・DDD管轄）を扱う Spec 集約（UDD の核）。旧称 SpecSchema（spec は DDD より広い上位概念であり、UI層を扱う PresentationSpecSchema が別家族として存在するため改名）。specKind=bounded-context/subdomain/aggregate/usecase（DDD 語彙に整合）。content はドメイン語彙のみ（技術スタック/アーキ構成は CodingTemplate の担当）。集約=Commands/Invariants/Lifecycle、ユースケース=基本フロー(シーケンス)、整合の契約=TestScenarios(Gherkin)。描画は MD を正本とする（Google OKF 整合のため HTML は生成しない・HTML が要る場合は既存技術で MD から導出する viewer 側の責務）。",
 
   "x-render-target": {
     "formats": ["md", "feature"],
@@ -805,7 +805,7 @@
       "x-render-order": 9,
       "x-render-level": 2,
       "x-test-scenario": true,
-      "x-prompt-query": "振る舞い契約のテストシナリオ(分類・観点・Gherkin)を持ちます。仕様↔実装の整合点。HTML 表示＋.feature に render され実行されます。",
+      "x-prompt-query": "振る舞い契約のテストシナリオ(分類・観点・Gherkin)を持ちます。仕様↔実装の整合点。MD（コードブロック表示）＋.feature に render され実行されます。",
       "x-render": [
         { "as": "paragraph", "heading": "背景", "from": "background" },
         { "as": "section", "from": "scenarios", "titleFrom": "name", "each": [

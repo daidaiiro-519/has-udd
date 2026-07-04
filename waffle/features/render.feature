@@ -46,7 +46,7 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
   # --- DomainSpecSchema（UDD ループ: TestScenarios → .feature） ---
 
   Scenario: usecase Spec は基本フローをシーケンス図に・TestScenarios を Markdown に出す
-    Given 対象は ".waffle/documents/specs/uc-query-document.json"
+    Given 対象は ".waffle/documents/specs/bc-waffle-engines/subdomain/sd-harness-core/uc-query-document.json"
     When deploy なしでレンダリングする
     Then 成功する
     And 出力フォーマットは "md"
@@ -59,7 +59,7 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
     And feature出力に "Scenario: 未知の operation はエラーを返す" を含む
 
   Scenario: aggregate Spec は集約の構造とライフサイクルを Markdown に出す
-    Given 対象は ".waffle/documents/specs/agg-document.json"
+    Given 対象は ".waffle/documents/specs/bc-waffle-engines/aggregate/agg-document.json"
     When deploy なしでレンダリングする
     Then 成功する
     And 出力に "## コマンド" を含む

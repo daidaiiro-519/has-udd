@@ -81,6 +81,8 @@ def scaffold(
     schema_ref: str = typer.Option(None, "--schemaRef", "--schema-ref"),
     document_id: str = typer.Option(None, "--documentId", "--document-id"),
     discriminator: str = typer.Option(None, "--discriminator", help="key=value 形式（例: skillKind=engine）"),
+    context_ref: str = typer.Option(None, "--contextRef", "--context-ref", help="所属する bounded-context の documentId（ネストしたx-source-targetが要求する場合）"),
+    subdomain_ref: str = typer.Option(None, "--subdomainRef", "--subdomain-ref", help="usecase が属する subdomain の documentId"),
     path: str = typer.Option(None, "--path", help="fill 対象の documentPath"),
     values: str = typer.Option(None, "--values", help="fill する値の JSON オブジェクト"),
 ) -> None:
@@ -90,6 +92,10 @@ def scaffold(
         if discriminator:
             k, _, v = discriminator.partition("=")
             params["discriminator"] = {k: v}
+        if context_ref:
+            params["contextRef"] = context_ref
+        if subdomain_ref:
+            params["subdomainRef"] = subdomain_ref
     elif operation == "fill":
         params = {"documentPath": path, "values": json.loads(values) if values else {}}
     else:

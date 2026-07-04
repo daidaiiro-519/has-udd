@@ -9,7 +9,10 @@
     "path": ".waffle/specs/{documentId}.md",
     "featurePath": ".waffle/specs/{documentId}.feature"
   },
-  "x-source-target": ".waffle/documents/specs/{documentId}.json",
+  "x-source-target": {
+    "screen": ".waffle/documents/specs/{contextRef}/screen/{documentId}.json",
+    "flow":   ".waffle/documents/specs/{contextRef}/flow/{documentId}.json"
+  },
 
   "x-lifecycle": {
     "transitions": [

@@ -24,18 +24,18 @@ Feature: document を schema 適合検証する (uc-validate-document)
       | .waffle/documents/coding/architecture-python-hexagonal.json    | ACTIVE    |
       | .waffle/documents/coding/coding-standard-python-hexagonal.json | ACTIVE    |
       | .waffle/documents/coding/test-standard-python-hexagonal.json   | ACTIVE    |
-      | .waffle/documents/specs/bc-waffle-engines.json      | VALIDATED |
-      | .waffle/documents/specs/sd-harness-core.json        | VALIDATED |
-      | .waffle/documents/specs/sd-validation.json          | VALIDATED |
-      | .waffle/documents/specs/sd-rendering.json           | VALIDATED |
-      | .waffle/documents/specs/agg-document.json           | VALIDATED |
-      | .waffle/documents/specs/agg-schema.json             | VALIDATED |
-      | .waffle/documents/specs/uc-query-document.json      | VALIDATED |
-      | .waffle/documents/specs/uc-render-document.json     | VALIDATED |
-      | .waffle/documents/specs/uc-validate-document.json   | VALIDATED |
-      | .waffle/documents/specs/uc-scaffold-document.json   | VALIDATED |
-      | .waffle/documents/specs/uc-scan-source-code.json    | VALIDATED |
-      | .waffle/documents/specs/uc-lint-docstring.json      | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/bc-waffle-engines.json                              | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-harness-core.json                      | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-validation.json                        | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-rendering.json                         | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/aggregate/agg-document.json                         | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/aggregate/agg-schema.json                           | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-harness-core/uc-query-document.json     | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-rendering/uc-render-document.json       | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-validation/uc-validate-document.json    | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-harness-core/uc-scaffold-document.json  | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-harness-core/uc-scan-source-code.json   | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-validation/uc-lint-docstring.json       | VALIDATED |
 
   Scenario: SUPERSEDED は終端であり validate を受け付けない (Re-2 guard)
     Given SUPERSEDED 状態の一時ファイルを対象にする

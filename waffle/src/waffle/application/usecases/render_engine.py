@@ -15,7 +15,9 @@ from pathlib import Path
 
 from waffle.application.ports.document_repository import DocumentRepository
 from waffle.application.ports.schema_repository import SchemaRepository
+from waffle.domain.services import path_template
 from waffle.domain.services.part_renderer import render_parts
+from waffle.domain.services.schema_discriminator import discriminator_key
 from waffle.shared.result import Err, Ok, Result
 
 def _err(code: str, message: str) -> Err:
@@ -58,7 +60,9 @@ class RenderEngine:
 
         output = self._render_frontmatter(doc, schema) + self._render_body(doc, defs)
 
-        canonical = (target.get("path") or "").format(documentId=doc["documentId"])
+        path_vars = self._resolve_path_vars(doc, schema, document_path)
+
+        canonical = path_template.resolve(target.get("path") or "", **path_vars) if target.get("path") else ""
         deployed: list[str] = []
         if deploy and canonical:
             try:
@@ -66,7 +70,7 @@ class RenderEngine:
                 self._documents.write_text(canonical, output)
                 # deploy: 同一フォーマットは verbatim copy（更新漏れ防止のため render に内蔵）
                 for dep in target.get("deploy", []):
-                    dp = dep.format(documentId=doc["documentId"])
+                    dp = path_template.resolve(dep, **path_vars)
                     self._documents.write_text(dp, output)
                     deployed.append(dp)
             except OSError as e:
@@ -75,8 +79,8 @@ class RenderEngine:
         # 第2フォーマット: feature（x-test-scenario block の Gherkin を .feature へ）
         feature = _extract_feature(doc, defs) if "feature" in formats else None
         feature_path = ""
-        if feature and deploy:
-            feature_path = (target.get("featurePath") or "").format(documentId=doc["documentId"])
+        if feature and deploy and target.get("featurePath"):
+            feature_path = path_template.resolve(target["featurePath"], **path_vars)
             if feature_path:
                 self._documents.write_text(feature_path, feature)
 
@@ -84,6 +88,24 @@ class RenderEngine:
             "path": canonical, "deployed": deployed, "format": fmt, "content": output,
             "feature": feature, "featurePath": feature_path or None,
         })
+
+    def _resolve_path_vars(self, doc: dict, schema: dict, document_path: str) -> dict:
+        """x-render-target のパステンプレートに渡す変数を組み立てる。
+
+        x-source-target が specKind 等でネストしている場合、contextRef のような
+        「document には保存しない」変数は、実際の document_path をそのテンプレートに
+        逆解析して復元する（create 時に渡した値は保存せず、パスそのものから読み戻す）。
+        """
+        path_vars = {"documentId": doc["documentId"]}
+        x_source = schema.get("x-source-target")
+        if isinstance(x_source, dict):
+            key = discriminator_key(schema)
+            template = x_source.get(doc.get(key)) if key else None
+            if template:
+                recovered = path_template.reverse_parse(template, document_path)
+                if recovered:
+                    path_vars.update(recovered)
+        return path_vars
 
     def _render_frontmatter(self, doc: dict, schema: dict) -> str:
         fm = schema.get("x-frontmatter")

@@ -9,7 +9,12 @@
     "path": ".waffle/specs/{documentId}.md",
     "featurePath": ".waffle/specs/{documentId}.feature"
   },
-  "x-source-target": ".waffle/documents/specs/{documentId}.json",
+  "x-source-target": {
+    "bounded-context": ".waffle/documents/specs/{contextRef}/{documentId}.json",
+    "aggregate":       ".waffle/documents/specs/{contextRef}/aggregate/{documentId}.json",
+    "subdomain":       ".waffle/documents/specs/{contextRef}/subdomain/{documentId}.json",
+    "usecase":         ".waffle/documents/specs/{contextRef}/subdomain/{subdomainRef}/{documentId}.json"
+  },
 
   "x-lifecycle": {
     "transitions": [

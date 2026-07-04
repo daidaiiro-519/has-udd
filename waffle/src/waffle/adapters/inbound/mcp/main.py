@@ -73,6 +73,8 @@ def scaffold_document(
     schemaRef: str | None = None,
     documentId: str | None = None,
     discriminator: dict | None = None,
+    contextRef: str | None = None,
+    subdomainRef: str | None = None,
     documentPath: str | None = None,
     values: dict | None = None,
 ) -> dict:
@@ -81,6 +83,10 @@ def scaffold_document(
         params: dict = {"schemaRef": schemaRef, "documentId": documentId}
         if discriminator:
             params["discriminator"] = discriminator
+        if contextRef:
+            params["contextRef"] = contextRef
+        if subdomainRef:
+            params["subdomainRef"] = subdomainRef
     elif operation == "fill":
         params = {"documentPath": documentPath, "values": values or {}}
     else:

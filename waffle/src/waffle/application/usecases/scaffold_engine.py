@@ -13,6 +13,8 @@ from pathlib import Path
 
 from waffle.application.ports.document_repository import DocumentRepository
 from waffle.application.ports.schema_repository import SchemaRepository
+from waffle.domain.services import path_template
+from waffle.domain.services.schema_discriminator import discriminator_key as _discriminator_key
 from waffle.shared.result import Err, Ok, Result
 
 def _err(code: str, message: str) -> Err:
@@ -51,7 +53,10 @@ class ScaffoldEngine:
         skeleton = _build_skeleton(schema, document_id, disc_key, discriminator, content_def)
         fill_template = _build_fill_template(schema, content_def)
 
-        path = (schema.get("x-source-target") or "").format(documentId=document_id)
+        x_source = schema.get("x-source-target") or ""
+        template = x_source.get(discriminator.get(disc_key)) if isinstance(x_source, dict) else x_source
+        path_vars = {"documentId": document_id, **{k: v for k, v in params.items() if isinstance(v, str)}}
+        path = path_template.resolve(template, **path_vars) if template else ""
         if path:
             self._documents.save(path, skeleton)
         return Ok({"skeleton": skeleton, "fillTemplate": fill_template, "path": path})
@@ -100,16 +105,6 @@ def _resolve(schema: dict, ref: str):
     for part in ref.lstrip("#/").split("/"):
         node = node[part]
     return node
-
-def _discriminator_key(schema: dict):
-    if "if" in schema:
-        return next(iter(schema["if"].get("properties", {})), None)
-    for entry in schema.get("allOf", []):
-        if "if" in entry:
-            key = next(iter(entry["if"].get("properties", {})), None)
-            if key:
-                return key
-    return None
 
 def _discriminator_candidates(schema: dict, key: str) -> list:
     return schema.get("properties", {}).get(key, {}).get("enum", [])

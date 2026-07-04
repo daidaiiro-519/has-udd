@@ -90,7 +90,12 @@
 - 代替案（採用しない）: bcのMembers一覧から逆引きしてパスを決める、という案も考えたが、create時点ではまだbcのMembersにも登録されていない（鶏と卵）ので不採用。
 
 ### ユーザー見解
-> ✏️ _（あなたの考え・反論・追加情報をここに書いてください）_
+> えっとつまり問題なく正しいパスで機械的にレンダリングできるということでいいですか？→ 具体的なシミュレーションを要求。
+
+### 合意決定
+**決定:** `x-source-target`をspecKindごとの辞書（`{"aggregate": "...", "subdomain": "...", "usecase": "..."}`）に変更し、`contextRef`をcreate時の明示的な入力パラメータとする。render時は、既に確定しているファイルパスをテンプレートに逆マッチさせて`contextRef`を復元する（新設の`path_template.reverse_parse`）。
+**理由:** シミュレーション（`/tmp/path_template_sim.py`）で4 specKind全てについて順方向解決・逆方向解析・異常系（誤ったspecKindのテンプレートでは解析失敗すること）を実証。実装（`scaffold_engine.py`/`render_engine.py`/`path_template.py`/`schema_discriminator.py`）にも反映し、実際にengineを通して動作確認済み。
+**次のアクション:** 完了（実装済み・pytest 24/24・behave 70/70緑）。詳細説明は`docs/design/spec-folder-nesting-mechanism.md`。
 
 ---
 
@@ -103,7 +108,23 @@
 - PresentationSpecSchemaのDocumentも「同じ製品文脈（bounded-context）に属するUI」であることは変わらない。documentTypeが違うことは「別のcontextに属する」ことを意味しない。
 - 対称性: DomainSpecSchemaの4 kindとPresentationSpecSchemaの2 kindを、同じ階層原理（kind名＝サブフォルダ名）で扱えば、スキーマが増えてもフォルダ構成のルールは変わらない。
 
-### ユーザー見解
-> ✏️ _（あなたの考え・反論・追加情報をここに書いてください）_
+### 合意決定
+**決定:** 論点3と同じ設計（specKindごとの辞書テンプレート）で`screen`/`flow`を`{contextRef}/`直下の兄弟フォルダとする。
+**理由:** AI初期見解に異論なく、論点3の実装と一体で反映（`PresentationSpecSchema/v1.json`のx-source-targetを`{"screen": "...", "flow": "..."}`に変更）。実際にscaffold createで動作確認済み。
+**次のアクション:** 完了（実装済み）。
 
 ---
+
+## セッションまとめ
+
+**合意事項:**
+1. `.waffle/documents/specs/`をbounded-context単位の入れ子構造に是正（`{contextRef}/aggregate/`・`{contextRef}/subdomain/`・`{contextRef}/subdomain/{subdomainRef}/`・`{contextRef}/screen/`・`{contextRef}/flow/`）。
+2. `x-source-target`をspecKindごとの辞書テンプレートに変更、`contextRef`はcreate時の明示的パラメータ・render時はパスからの逆算で復元。
+
+**実施済み:**
+- `path_template.py`（順方向resolve・逆方向reverse_parse）・`schema_discriminator.py`（discriminator_keyの共通化）を新設
+- `scaffold_engine.py`/`render_engine.py`/CLI/MCPアダプタを更新（`--contextRef`/`--subdomainRef`パラメータ追加）
+- `DomainSpecSchema/v2.json`・`PresentationSpecSchema/v1.json`の`x-source-target`をspecKindごとの辞書に変更
+- 実際の12ファイルを新しい入れ子構造へ移動、features/validate.feature・render.feature・steps更新
+- pytest 24/24・behave 70/70 全緑
+- 説明ドキュメント: `docs/design/spec-folder-nesting-mechanism.md`

@@ -33,7 +33,7 @@ def step_nonconformant(context):
 
 @given("SUPERSEDED 状態の一時ファイルを対象にする")
 def step_superseded(context):
-    document = json.loads(FsDocumentRepository().read_text(".waffle/documents/specs/agg-document.json"))
+    document = json.loads(FsDocumentRepository().read_text(".waffle/documents/specs/bc-waffle-engines/aggregate/agg-document.json"))
     document["status"] = "SUPERSEDED"
     f = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8")
     f.write(json.dumps(document))

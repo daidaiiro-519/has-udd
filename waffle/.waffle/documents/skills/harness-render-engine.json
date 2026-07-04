@@ -1,0 +1,146 @@
+{
+  "documentId": "harness-render-engine",
+  "documentType": "Skill",
+  "schemaRef": "SkillSchema/v1",
+  "skillKind": "engine",
+  "status": "DRAFT",
+  "tags": [
+    "engine:render"
+  ],
+  "createdAt": "2026-06-21T00:00:00Z",
+  "updatedAt": "2026-06-21T00:00:00Z",
+  "content": {
+    "purpose": {
+      "blockType": "Purpose",
+      "title": "目的",
+      "text": "document.json の x-render テンプレートをもとに Markdown・HTML 形式でレンダリングし、人間が読める形式の成果物を生成する。"
+    },
+    "role": {
+      "blockType": "Role",
+      "title": "役割",
+      "items": [
+        "document.json の schemaRef からパッケージ内の Schema を schema_repository（importlib.resources）で特定する",
+        "Schema の x-render-order に従ってブロックの出力順を決定する",
+        "各ブロックの x-render-level に従って見出しレベルを動的付与する（step_h / substep_h 等）",
+        "Jinja2 テンプレート（x-render.md / x-render.html）を展開してコンテンツを生成する",
+        "Schema の x-render-target.path（canonical）に書き込む。frontmatter は x-frontmatter + engine エンベロープで生成する"
+      ]
+    },
+    "interface": {
+      "blockType": "Interface",
+      "title": "インターフェース",
+      "input": [
+        {
+          "name": "documentPath",
+          "type": "string",
+          "required": true,
+          "description": "レンダリング対象 document.json のパス。要望テキストで指定される",
+          "example": ".waffle/documents/skills/harness-query-engine.json"
+        },
+        {
+          "name": "format",
+          "type": "string",
+          "required": false,
+          "description": "出力形式の上書き（既定は x-render-target.formats）",
+          "example": "md"
+        },
+        {
+          "name": "noDeploy",
+          "type": "boolean",
+          "required": false,
+          "description": "true で canonical のみ生成・deploy 抑制",
+          "example": "true"
+        }
+      ],
+      "output": [
+        {
+          "name": "prompt",
+          "type": "string/null",
+          "required": true,
+          "description": "次アクションの指針（正常時 null・警告時は通知）",
+          "example": "(正常時 null・警告時のみ通知文)"
+        },
+        {
+          "name": "value",
+          "type": "object",
+          "required": true,
+          "description": "{ renderedPaths: string[] } 生成された canonical パス一覧（そのまま返る）",
+          "example": "{ \"renderedPaths\": [\".waffle/skills/harness-query-engine/SKILL.md\"] }"
+        }
+      ]
+    },
+    "invocationSpec": {
+      "blockType": "InvocationSpec",
+      "title": "呼び出し",
+      "cliTemplate": "uv run --project waffle waffle render --path <document.json> [--no-deploy]",
+      "cliExamples": [
+        "uv run --project waffle waffle render --path .waffle/documents/skills/harness-query-engine.json"
+      ],
+      "mcpTemplate": "render_document({ \"path\": \"<document.json>\", \"deploy\": true })",
+      "mcpExamples": [
+        "render_document({\"path\": \".waffle/documents/skills/harness-query-engine.json\"})"
+      ],
+      "note": "MCP は uv run --project waffle waffle serve 起動後に利用可。"
+    },
+    "title": {
+      "blockType": "Title",
+      "title": "harness-render-engine"
+    },
+    "steps": {
+      "blockType": "EngineSteps",
+      "title": "実行手順",
+      "items": [
+        {
+          "stepId": "step-1",
+          "title": "要望テキストから対象 document を読み取る",
+          "summary": "documentPath（.waffle/documents/{type}/{id}.json）は要望テキストで指定される前提。無ければ『対象の指定が必要』と返す。"
+        },
+        {
+          "stepId": "step-2",
+          "title": "オプションを成型する",
+          "summary": "形式上書き(format)や canonical のみ(noDeploy)の指定が要望にあれば params に反映（『インターフェース』参照）。通常は documentPath だけでよい。"
+        },
+        {
+          "stepId": "step-3",
+          "title": "CLI / MCP で呼ぶ",
+          "summary": "成型した params で呼ぶ（『呼び出し』参照）。canonical 書き込みと deploy は engine が行う。"
+        },
+        {
+          "stepId": "step-4",
+          "title": "返り値 {prompt, value} を使う",
+          "summary": "`value.renderedPaths` が生成パス一覧。`prompt` は通知。AI は中身を再生成せずこのパスを参照する。"
+        },
+        {
+          "stepId": "step-5",
+          "title": "警告・エラーに対処する",
+          "summary": "`schemaRef` 欠落 / Schema 不在 / `x-render-target` 不在はエラー。`x-render` 未定義の blockType は `skipped` に記録され通知される（中断しない）。"
+        }
+      ]
+    },
+    "guardrails": {
+      "blockType": "Guardrails",
+      "title": "ガードレール",
+      "items": [
+        "対象 document は呼び出し側が要望テキストで指定する。無ければ実行しない",
+        "書き込みは canonical（x-render-target.path）配下のみ。パストラバーサル禁止",
+        "AI は成果物の中身を再生成せず、engine が返す renderedPaths を参照する",
+        "x-render 未定義の blockType はスキップし通知する（中断しない）",
+        "例外は握りつぶさず { error, prompt, message } で返す"
+      ]
+    },
+    "references": {
+      "blockType": "References",
+      "title": "参照",
+      "items": [
+        {
+          "path": "src/waffle/domain/model/SkillSchema/v1.json",
+          "description": "Skill document の Schema 定義（x-render / x-render-target / x-frontmatter の参照元・パッケージ内）"
+        },
+        {
+          "path": "docs/brainstorm/design-engine-render.md",
+          "description": "render engine 設計ブレスト（R-1〜R-8）"
+        }
+      ]
+    }
+  }
+}

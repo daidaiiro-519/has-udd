@@ -1,0 +1,32 @@
+{
+  "documentId": "sd-harness-core",
+  "documentType": "Spec",
+  "schemaRef": "SpecSchema/v2",
+  "specKind": "subdomain",
+  "status": "CREATED",
+  "tags": ["context:waffle-engines"],
+  "content": {
+    "title": { "blockType": "Title", "title": "sd-harness-core" },
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
+      "text": "AI に構造を推論させず、engine が決定的に Document を生成し意味単位で読み取る中核の業務領域。waffle の差別化そのもの（Harness 原則と UDD ループ）を担う。"
+    },
+    "category": {
+      "blockType": "SubdomainCategory",
+      "title": "カテゴリー",
+      "classification": "core",
+      "rationale": "『AI に構造を推論させず engine が構造を持つ／Spec を正本にして陳腐化させない UDD ループ』は waffle の競争優位の源泉であり、既製品で置換できない。ゆえに中核。"
+    },
+    "members": {
+      "blockType": "SubdomainMembers",
+      "title": "所属ユースケース",
+      "items": ["uc-scaffold-document", "uc-query-document"]
+    },
+    "implementationGuidance": {
+      "blockType": "ImplementationGuidance",
+      "title": "実装ガイド",
+      "text": "中核ゆえドメインモデルで厚く実装する。schema 走査による骨格生成と意味単位アクセスは自前の決定的コードで書き、外部ライブラリに委ねない。"
+    }
+  }
+}

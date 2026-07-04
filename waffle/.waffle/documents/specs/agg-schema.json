@@ -1,0 +1,151 @@
+{
+  "documentId": "agg-schema",
+  "documentType": "Spec",
+  "schemaRef": "SpecSchema/v2",
+  "specKind": "aggregate",
+  "status": "CREATED",
+  "tags": ["context:waffle-engines"],
+  "content": {
+    "title": { "blockType": "Title", "title": "agg-schema" },
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
+      "text": "Document の型定義（Schema）の不変条件とバージョン進化を表す集約。Document が機械生成・検証・描画できることを保証し、版の移行を司る。"
+    },
+    "aggregateRoot": {
+      "blockType": "AggregateRoot",
+      "title": "集約ルート",
+      "name": "Schema",
+      "externalRefs": ["Document"]
+    },
+    "entities": {
+      "blockType": "Entities",
+      "title": "エンティティ",
+      "items": [
+        {
+          "name": "Schema",
+          "role": "Document の型定義（構造・描画・記入/読取指示）の一貫性単位",
+          "isRoot": true,
+          "attributes": [
+            { "name": "schemaId", "type": "SchemaId", "isId": true },
+            { "name": "version", "type": "Version" },
+            { "name": "status", "type": "SchemaStatus" },
+            { "name": "blocks", "type": "構造定義（各ブロックの properties・x-render・x-prompt）" }
+          ]
+        }
+      ]
+    },
+    "valueObjects": {
+      "blockType": "ValueObjects",
+      "title": "値オブジェクト",
+      "items": [
+        { "name": "SchemaId", "represents": "スキーマ名（例: SpecSchema）", "behavior": "不変。値が等しければ等価。" },
+        { "name": "Version", "represents": "単調増加する版識別子（例: v1, v2）", "behavior": "不変。値が等しければ等価。上げる方向にのみ進む。" },
+        { "name": "SchemaRef", "represents": "スキーマ名＋版の組（Document が指す参照）", "behavior": "不変。name と version が共に等しければ等価。" },
+        { "name": "SchemaStatus", "represents": "版のライフサイクル状態", "behavior": "enum: PUBLISHED/DEPRECATED。値が等しければ等価。遷移は不変条件で守る。" }
+      ]
+    },
+    "invariants": {
+      "blockType": "Invariants",
+      "title": "不変条件",
+      "items": [
+        { "rule": "値フィールドは常に oneOf / anyOf を持たない", "enforcement": "schema", "rationale": "scaffold が骨格を機械生成できるようにする" },
+        { "rule": "content の各ブロックは additionalProperties を常に閉じる（固定 properties のみ）", "enforcement": "schema", "rationale": "未知フィールドの混入を防ぎ構造を決定的にする" },
+        { "rule": "再帰は常に有界である（無限ネストを許さない）", "enforcement": "schema", "rationale": "機械走査が停止することを保証する" },
+        { "rule": "各ブロックの x-render は常に RenderMetaSchema の閉じた語彙にのみ従う", "enforcement": "schema", "rationale": "描画がロジックを持たず決定的であることを保つ" },
+        { "rule": "status の enum は常に遷移順に並び、先頭が初期状態である", "enforcement": "schema", "rationale": "scaffold が初期状態を enum 先頭から一意に決められる" },
+        { "rule": "公開済みの版は遡って構造を変えない（後方互換を壊さない）", "enforcement": "guard", "rationale": "既存 Document が破損しないよう版の進化を安全にする" }
+      ]
+    },
+    "lifecycle": {
+      "blockType": "Lifecycle",
+      "title": "ライフサイクル",
+      "states": ["PUBLISHED", "DEPRECATED"],
+      "transitions": [
+        { "from": "[*]",       "to": "PUBLISHED",  "command": "publishVersion",   "condition": "scaffoldability 不変条件を満たす" },
+        { "from": "PUBLISHED", "to": "DEPRECATED", "command": "deprecateVersion", "condition": "" }
+      ]
+    },
+    "commands": {
+      "blockType": "Commands",
+      "title": "コマンド",
+      "items": [
+        {
+          "name": "publishVersion",
+          "description": "新しい版の Schema を公開し、以後その版で Document を作れるようにする（scaffoldability 不変条件を守る）。",
+          "requiresState": "（新規）",
+          "postState": "PUBLISHED",
+          "params": [ { "name": "version", "meaning": "公開する版" } ],
+          "emits": ["SchemaVersionPublished"]
+        },
+        {
+          "name": "deprecateVersion",
+          "description": "古い版を非推奨にし、新規 Document の作成を止める（既存は移行まで有効）。",
+          "requiresState": "PUBLISHED",
+          "postState": "DEPRECATED",
+          "params": [ { "name": "version", "meaning": "非推奨にする版" } ],
+          "emits": []
+        },
+        {
+          "name": "migrateDocuments",
+          "description": "既存 Document を旧版から新版へ移行する（版を上げる方向にのみ・後方互換の不変条件を守る）。",
+          "requiresState": "PUBLISHED",
+          "postState": "PUBLISHED",
+          "params": [
+            { "name": "fromVersion", "meaning": "移行元の版" },
+            { "name": "toVersion", "meaning": "移行先の版" }
+          ],
+          "emits": ["DocumentsMigrated"]
+        }
+      ]
+    },
+    "domainEvents": {
+      "blockType": "DomainEvents",
+      "title": "ドメインイベント",
+      "items": [
+        {
+          "name": "SchemaVersionPublished",
+          "raisedBy": "publishVersion 成功時",
+          "payload": [ { "name": "schemaRef", "meaning": "公開された name + version" } ]
+        },
+        {
+          "name": "DocumentsMigrated",
+          "raisedBy": "migrateDocuments 成功時",
+          "payload": [
+            { "name": "fromVersion", "meaning": "移行元の版" },
+            { "name": "toVersion", "meaning": "移行先の版" },
+            { "name": "count", "meaning": "移行された Document 数" }
+          ]
+        }
+      ]
+    },
+    "unitTestScenarios": {
+      "blockType": "TestScenarios",
+      "title": "テストシナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "値フィールドに oneOf を持てない",
+          "category": "異常系",
+          "viewpoint": "不変条件: scaffoldability（値フィールドは oneOf/anyOf を持たない）",
+          "gherkin": "Scenario: 値フィールドに oneOf を持てない\n  Given 値フィールドに oneOf を含む Schema\n  When scaffoldability を検証する\n  Then scaffold 不能として拒否される",
+          "covers": "不変条件: 値フィールドは oneOf/anyOf を持たない"
+        },
+        {
+          "name": "公開済みの版は後方互換を壊さない",
+          "category": "異常系",
+          "viewpoint": "不変条件: 公開済みの版は遡って構造を変えない",
+          "gherkin": "Scenario: 公開済みの版は後方互換を壊さない\n  Given PUBLISHED の Schema 版\n  When 既存ブロックに必須フィールドを追加しようとする\n  Then 後方互換を壊す変更として拒否される",
+          "covers": "不変条件: 公開済みの版は後方互換を壊さない"
+        },
+        {
+          "name": "移行は版を上げる方向にのみ行う",
+          "category": "異常系",
+          "viewpoint": "状態: migrateDocuments は版を上げる方向にのみ",
+          "gherkin": "Scenario: 移行は版を上げる方向にのみ行う\n  Given v1 と v2 の Schema\n  When v2 から v1 へ移行しようとする\n  Then 拒否される",
+          "covers": "コマンド: migrateDocuments"
+        }
+      ]
+    }
+  }
+}

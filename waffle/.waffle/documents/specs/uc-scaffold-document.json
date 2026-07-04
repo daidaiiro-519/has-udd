@@ -1,0 +1,89 @@
+{
+  "documentId": "uc-scaffold-document",
+  "documentType": "Spec",
+  "schemaRef": "SpecSchema/v2",
+  "specKind": "usecase",
+  "status": "CREATED",
+  "subdomainRef": "sd-harness-core",
+  "aggregateRef": "agg-document",
+  "tags": ["context:waffle-engines"],
+  "content": {
+    "title": { "blockType": "Title", "title": "uc-scaffold-document" },
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
+      "text": "schema から Document の骨格を機械生成し（create）、AI が生成した値を宣言済みフィールドにのみ機械的に書き込む（fill）。AI は構造を触らない。"
+    },
+    "actorIntent": {
+      "blockType": "ActorIntent",
+      "title": "主アクターと意図",
+      "actor": "Orchestrator（HarnessAgent）",
+      "intent": "新しい Document を schema 通りに起こし、値だけを安全に埋める"
+    },
+    "preconditions": {
+      "blockType": "Preconditions",
+      "title": "事前条件",
+      "items": ["生成対象の schema と documentId が与えられている", "分岐のある schema では discriminator が与えられている"]
+    },
+    "mainFlow": {
+      "blockType": "MainFlow",
+      "title": "基本フロー",
+      "steps": [
+        { "from": "Orchestrator", "to": "Document", "message": "create(schemaRef, documentId)", "kind": "command" },
+        { "from": "Document", "to": "Orchestrator", "message": "骨格と記入テンプレートを返す", "kind": "return" },
+        { "from": "Orchestrator", "to": "Orchestrator", "message": "値だけ生成（構造は触らない）", "kind": "self" },
+        { "from": "Orchestrator", "to": "Document", "message": "fill(値)", "kind": "command" },
+        { "from": "Document", "to": "", "message": "DocumentCreated", "kind": "event" }
+      ]
+    },
+    "postconditions": {
+      "blockType": "Postconditions",
+      "title": "事後条件",
+      "items": [
+        "Document が schema の初期 status（enum 先頭）で生成される",
+        "宣言済みの値フィールドにのみ値が書き込まれる",
+        "構造（const / discriminator）は AI に変更されない"
+      ]
+    },
+    "acceptanceCriteria": {
+      "blockType": "AcceptanceCriteria",
+      "title": "受け入れ基準",
+      "items": [
+        "When schemaRef と documentId が与えられたとき、engine は schema に適合する骨格を生成する shall（status=schema の enum 先頭）。",
+        "When fill で値が与えられたとき、engine は宣言済み値フィールドにのみ書き込む shall。",
+        "If 構造を変える値や const / discriminator が与えられたとき、engine は拒否し skipped に記録する shall。",
+        "If 分岐のある schema で discriminator が無いとき、engine は MISSING_DISCRIMINATOR を返し候補を案内する shall。"
+      ]
+    },
+    "errors": {
+      "blockType": "Errors",
+      "title": "エラー",
+      "items": [
+        { "code": "MISSING_DISCRIMINATOR", "condition": "分岐のある schema で discriminator が未指定（候補 enum を案内）" },
+        { "code": "INVALID_SCHEMA_REF", "condition": "未知の schemaRef" },
+        { "code": "SKIPPED", "condition": "未知 path / const / discriminator への書き込み（書き込まず skipped に記録）" }
+      ]
+    },
+    "testScenarios": {
+      "blockType": "TestScenarios",
+      "title": "テストシナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "生成した骨格は自分の schema で valid",
+          "category": "正常系",
+          "viewpoint": "骨格生成：生成骨格は schema 適合・status は初期値",
+          "gherkin": "Scenario: 生成した骨格は自分の schema で valid\n  Given engine 種別の Document（discriminator 指定済み）\n  When create する\n  Then 骨格は schema に適合し、status は schema の初期値である",
+          "covers": "受け入れ基準: 骨格は schema に適合"
+        },
+        {
+          "name": "構造を変える値は拒否される",
+          "category": "異常系",
+          "viewpoint": "構造保護：const フィールドへの書き込みは skipped",
+          "gherkin": "Scenario: 構造を変える値は拒否される\n  Given 作成済みの Document\n  When const フィールドへ値を書き込もうとする\n  Then 書き込まれず skipped に記録される",
+          "covers": "受け入れ基準: 構造を変える値は拒否"
+        }
+      ]
+    }
+  }
+}

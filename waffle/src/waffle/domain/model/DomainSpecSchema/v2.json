@@ -3,6 +3,7 @@
   "$id": "DomainSpecSchema/v2",
   "title": "DomainSpecSchema v2",
   "description": "waffle の Spec 家族のうち、業務ロジック層（ドメイン層・DDD管轄）を扱う Spec 集約（UDD の核）。旧称 SpecSchema（spec は DDD より広い上位概念であり、UI層を扱う PresentationSpecSchema が別家族として存在するため改名）。specKind=bounded-context/subdomain/aggregate/usecase（DDD 語彙に整合）。content はドメイン語彙のみ（技術スタック/アーキ構成は CodingTemplate の担当）。集約=Commands/Invariants/Lifecycle、ユースケース=基本フロー(シーケンス)、整合の契約=TestScenarios(Gherkin)。描画は MD を正本とする（Google OKF 整合のため HTML は生成しない・HTML が要る場合は既存技術で MD から導出する viewer 側の責務）。",
+  "x-schema-status": "PUBLISHED",
 
   "x-render-target": {
     "formats": ["md", "feature"],

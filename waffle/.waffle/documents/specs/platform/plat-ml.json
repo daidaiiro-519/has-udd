@@ -1,0 +1,13 @@
+{
+  "documentId": "plat-ml", "documentType": "PlatformSpec", "schemaRef": "PlatformSpec/v1", "specKind": "ml",
+  "content": {
+    "title": { "blockType": "Title", "title": "plat-ml" },
+    "summary": { "blockType": "Summary", "title": "概要", "text": "本プロダクトが利用する機械学習モデルの提供・学習データに関する要件を定める。" },
+    "servingTargets": { "blockType": "CapacityRequirements", "title": "推論性能目標", "items": [
+      { "metric": "推論レイテンシ(p95)", "target": "200ms以内", "rationale": "リアルタイム推薦のUX要件" }
+    ] },
+    "trainingDataGovernance": { "blockType": "TrainingDataGovernance", "title": "学習データガバナンス", "items": [
+      { "dataClassification": "顧客の購買履歴", "usageBoundary": "本人の同意がある場合のみ学習に利用可能", "requirement": "同意撤回時は学習データからも除外" }
+    ] }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "documentId": "plat-security",
+  "documentType": "PlatformSpec",
+  "schemaRef": "PlatformSpec/v1",
+  "specKind": "security",
+  "content": {
+    "title": { "blockType": "Title", "title": "plat-security" },
+    "summary": { "blockType": "Summary", "title": "概要", "text": "プロダクト全体を横断するコンプライアンス・アクセス制御・データ境界を定める。" },
+    "compliance": {
+      "blockType": "ComplianceRequirements",
+      "title": "コンプライアンス要件",
+      "items": [
+        { "framework": "PCI DSS", "scope": "決済情報を扱う全コンポーネント", "requirement": "カード情報の非保持・決済代行への委譲" },
+        { "framework": "個人情報保護法", "scope": "顧客個人情報を扱う全コンポーネント", "requirement": "保存時暗号化・アクセスログ記録" }
+      ]
+    },
+    "accessPolicy": {
+      "blockType": "IdentityAndAccessPolicy",
+      "title": "アクセス制御方針",
+      "items": [
+        { "principal": "社内運用者", "allowedActions": "管理画面へのアクセス", "condition": "VPN経由+多要素認証必須" },
+        { "principal": "エンドユーザー", "allowedActions": "自身のデータの参照・更新", "condition": "本人認証済みセッションのみ" }
+      ]
+    },
+    "dataBoundary": {
+      "blockType": "DataClassificationBoundary",
+      "title": "データ分類ごとの境界",
+      "items": [
+        { "classification": "個人情報", "boundary": "専用VPC内・外部公開しない", "requirement": "保存時暗号化必須" },
+        { "classification": "決済情報", "boundary": "自社では非保持", "requirement": "決済代行への委譲のみ" }
+      ]
+    }
+  }
+}

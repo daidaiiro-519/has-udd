@@ -1,0 +1,17 @@
+{
+  "documentId": "plat-integration", "documentType": "PlatformSpec", "schemaRef": "PlatformSpec/v1", "specKind": "integration",
+  "content": {
+    "title": { "blockType": "Title", "title": "plat-integration" },
+    "summary": { "blockType": "Summary", "title": "概要", "text": "本プロダクトのメッセージング/イベント連携に関する要件を定める。" },
+    "capacity": { "blockType": "CapacityRequirements", "title": "容量/性能要件", "items": [
+      { "metric": "メッセージスループット", "target": "1,000件/秒", "rationale": "ピーク時のイベント発生量から算出" }
+    ] },
+    "resilience": { "blockType": "ResilienceRequirements", "title": "耐障害性要件", "items": [
+      { "metric": "配信保証", "target": "少なくとも1回配信(at-least-once)", "rationale": "決済関連イベントの取りこぼしを防ぐため" },
+      { "metric": "デッドレターの扱い", "target": "3回失敗でDLQへ隔離し通知", "rationale": "障害の見逃しを防ぐため" }
+    ] },
+    "security": { "blockType": "ComponentSecurity", "title": "このコンポーネント固有のセキュリティ境界", "items": [
+      { "boundary": "サービス間認証", "requirement": "発行元サービスの署名検証必須" }
+    ] }
+  }
+}

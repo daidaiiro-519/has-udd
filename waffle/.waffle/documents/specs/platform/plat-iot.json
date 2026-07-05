@@ -1,0 +1,14 @@
+{
+  "documentId": "plat-iot", "documentType": "PlatformSpec", "schemaRef": "PlatformSpec/v1", "specKind": "iot",
+  "content": {
+    "title": { "blockType": "Title", "title": "plat-iot" },
+    "summary": { "blockType": "Summary", "title": "概要", "text": "本プロダクトが接続するIoTデバイス群に関する要件を定める。" },
+    "capacity": { "blockType": "CapacityRequirements", "title": "デバイス/データ取り込み要件", "items": [
+      { "metric": "同時接続デバイス数", "target": "10万台", "rationale": "展開予定拠点数×拠点あたり平均台数から算出" },
+      { "metric": "データ送信頻度", "target": "1台あたり1分に1回", "rationale": "モニタリング要件から算出" }
+    ] },
+    "security": { "blockType": "ComponentSecurity", "title": "このコンポーネント固有のセキュリティ境界", "items": [
+      { "boundary": "デバイス認証", "requirement": "デバイスごとの個別証明書必須・共通鍵の使い回し禁止" }
+    ] }
+  }
+}

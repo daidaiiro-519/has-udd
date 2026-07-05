@@ -1,0 +1,349 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "PlatformSpec/v1",
+  "title": "PlatformSpec v1 (DRAFT/PROTOTYPE v3 - 全11分類)",
+  "description": "検証用プロトタイプ。specKind=コンポーネント軸11分類(Compute/Storage/Database/Networking/Security/Integration/Observability/CI-CD/IoT/ML/Analytics)。資源型5分類(compute/storage/database/networking/integration)はCapacity/Resilience/ComponentSecurityの共通三分ブロックを再利用し、残り6分類(security/observability/ci-cd/iot/ml/analytics)はそれぞれの自然な中身に合わせた専用/再利用ブロックを持つ。",
+  "x-schema-status": "PUBLISHED",
+
+  "x-render-target": { "formats": ["md"], "path": ".waffle/specs/platform/{documentId}.md" },
+  "x-source-target": ".waffle/documents/specs/platform/{documentId}.json",
+
+  "type": "object",
+  "required": ["documentId", "documentType", "schemaRef", "specKind", "content"],
+  "properties": {
+    "documentId": { "type": "string" },
+    "documentType": { "type": "string", "const": "PlatformSpec" },
+    "schemaRef": { "type": "string", "const": "PlatformSpec/v1" },
+    "specKind": { "type": "string", "enum": ["compute", "storage", "database", "networking", "security", "integration", "observability", "ci-cd", "iot", "ml", "analytics"] },
+    "content": { "type": "object" }
+  },
+
+  "allOf": [
+    { "if": { "properties": { "specKind": { "const": "compute" } }, "required": ["specKind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/ResourceContent" } } } },
+    { "if": { "properties": { "specKind": { "const": "storage" } }, "required": ["specKind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/ResourceContent" } } } },
+    { "if": { "properties": { "specKind": { "const": "database" } }, "required": ["specKind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/ResourceContent" } } } },
+    { "if": { "properties": { "specKind": { "const": "networking" } }, "required": ["specKind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/NetworkingContent" } } } },
+    { "if": { "properties": { "specKind": { "const": "integration" } }, "required": ["specKind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/ResourceContent" } } } },
+    { "if": { "properties": { "specKind": { "const": "iot" } }, "required": ["specKind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/IotContent" } } } },
+    { "if": { "properties": { "specKind": { "const": "security" } }, "required": ["specKind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/SecurityContent" } } } },
+    { "if": { "properties": { "specKind": { "const": "observability" } }, "required": ["specKind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/ObservabilityContent" } } } },
+    { "if": { "properties": { "specKind": { "const": "ci-cd" } }, "required": ["specKind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/CiCdContent" } } } },
+    { "if": { "properties": { "specKind": { "const": "ml" } }, "required": ["specKind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/MlContent" } } } },
+    { "if": { "properties": { "specKind": { "const": "analytics" } }, "required": ["specKind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/AnalyticsContent" } } } }
+  ],
+
+  "$defs": {
+    "TitleBlock": {
+      "type": "object", "required": ["blockType", "title"],
+      "x-render-order": 0, "x-render-level": 1, "x-render": [],
+      "properties": { "blockType": { "type": "string", "const": "Title" }, "title": { "type": "string" } }
+    },
+    "SummaryBlock": {
+      "type": "object", "required": ["blockType", "title", "text"],
+      "x-render-order": 1, "x-render-level": 2,
+      "x-render": [ { "as": "paragraph", "from": "text" } ],
+      "properties": {
+        "blockType": { "type": "string", "const": "Summary" },
+        "title": { "type": "string", "const": "概要" },
+        "text": { "type": "string" }
+      }
+    },
+
+    "CapacityRequirementsBlock": {
+      "type": "object", "required": ["blockType", "title", "items"],
+      "x-render-order": 2, "x-render-level": 2,
+      "x-prompt-query": "このコンポーネント/領域が満たすべき容量・性能・規模の目標値を持ちます。",
+      "x-render": [ { "as": "table", "from": "items", "columns": [
+        { "field": "metric", "header": "指標" }, { "field": "target", "header": "目標値" }, { "field": "rationale", "header": "根拠" }
+      ] } ],
+      "properties": {
+        "blockType": { "type": "string", "const": "CapacityRequirements" },
+        "title": { "type": "string" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "指標・目標値・根拠を列挙。IaCコードから導出できる情報(具体的な設定値の羅列)ではなく、その目標値がなぜ必要かという事業/業務側の根拠を書く。",
+          "items": { "type": "object", "properties": {
+            "metric": { "type": "string" }, "target": { "type": "string" }, "rationale": { "type": "string" }
+          } }
+        }
+      }
+    },
+    "ResilienceRequirementsBlock": {
+      "type": "object", "required": ["blockType", "title", "items"],
+      "x-render-order": 3, "x-render-level": 2,
+      "x-prompt-query": "このコンポーネント/領域の耐障害性・可用性・災害対策の目標値を持ちます。",
+      "x-render": [ { "as": "table", "from": "items", "columns": [
+        { "field": "metric", "header": "指標" }, { "field": "target", "header": "目標値" }, { "field": "rationale", "header": "根拠" }
+      ] } ],
+      "properties": {
+        "blockType": { "type": "string", "const": "ResilienceRequirements" },
+        "title": { "type": "string", "const": "耐障害性要件" },
+        "items": { "type": "array", "items": { "type": "object", "properties": {
+          "metric": { "type": "string" }, "target": { "type": "string" }, "rationale": { "type": "string" }
+        } } }
+      }
+    },
+    "ComponentSecurityBlock": {
+      "type": "object", "required": ["blockType", "title", "items"],
+      "x-render-order": 4, "x-render-level": 2,
+      "x-prompt-query": "このコンポーネント固有のセキュリティ境界を持ちます(プロダクト全体を横断するコンプライアンス/アクセス方針はsecurity specKindの責務であり、ここには書かない)。",
+      "x-render": [ { "as": "table", "from": "items", "columns": [
+        { "field": "boundary", "header": "境界" }, { "field": "requirement", "header": "要件" }
+      ] } ],
+      "properties": {
+        "blockType": { "type": "string", "const": "ComponentSecurity" },
+        "title": { "type": "string", "const": "このコンポーネント固有のセキュリティ境界" },
+        "items": { "type": "array", "items": { "type": "object", "properties": {
+          "boundary": { "type": "string" }, "requirement": { "type": "string" }
+        } } }
+      }
+    },
+
+    "ComplianceRequirementsBlock": {
+      "type": "object", "required": ["blockType", "title", "items"],
+      "x-render-order": 2, "x-render-level": 2,
+      "x-render": [ { "as": "table", "from": "items", "columns": [
+        { "field": "framework", "header": "フレームワーク" }, { "field": "scope", "header": "対象範囲" }, { "field": "requirement", "header": "要件" }
+      ] } ],
+      "properties": {
+        "blockType": { "type": "string", "const": "ComplianceRequirements" },
+        "title": { "type": "string", "const": "コンプライアンス要件" },
+        "items": { "type": "array", "items": { "type": "object", "properties": {
+          "framework": { "type": "string" }, "scope": { "type": "string" }, "requirement": { "type": "string" }
+        } } }
+      }
+    },
+    "IdentityAndAccessPolicyBlock": {
+      "type": "object", "required": ["blockType", "title", "items"],
+      "x-render-order": 3, "x-render-level": 2,
+      "x-render": [ { "as": "table", "from": "items", "columns": [
+        { "field": "principal", "header": "主体" }, { "field": "allowedActions", "header": "許可される操作" }, { "field": "condition", "header": "条件" }
+      ] } ],
+      "properties": {
+        "blockType": { "type": "string", "const": "IdentityAndAccessPolicy" },
+        "title": { "type": "string", "const": "アクセス制御方針" },
+        "items": { "type": "array", "items": { "type": "object", "properties": {
+          "principal": { "type": "string" }, "allowedActions": { "type": "string" }, "condition": { "type": "string" }
+        } } }
+      }
+    },
+    "DataClassificationBoundaryBlock": {
+      "type": "object", "required": ["blockType", "title", "items"],
+      "x-render-order": 4, "x-render-level": 2,
+      "x-render": [ { "as": "table", "from": "items", "columns": [
+        { "field": "classification", "header": "データ分類" }, { "field": "boundary", "header": "境界" }, { "field": "requirement", "header": "要件" }
+      ] } ],
+      "properties": {
+        "blockType": { "type": "string", "const": "DataClassificationBoundary" },
+        "title": { "type": "string", "const": "データ分類ごとの境界" },
+        "items": { "type": "array", "items": { "type": "object", "properties": {
+          "classification": { "type": "string" }, "boundary": { "type": "string" }, "requirement": { "type": "string" }
+        } } }
+      }
+    },
+
+    "MonitoringTargetsBlock": {
+      "type": "object", "required": ["blockType", "title", "items"],
+      "x-render-order": 2, "x-render-level": 2,
+      "x-render": [ { "as": "table", "from": "items", "columns": [
+        { "field": "target", "header": "監視対象" }, { "field": "threshold", "header": "閾値" }, { "field": "severity", "header": "重大度" }
+      ] } ],
+      "properties": {
+        "blockType": { "type": "string", "const": "MonitoringTargets" },
+        "title": { "type": "string", "const": "監視対象と閾値" },
+        "items": { "type": "array", "items": { "type": "object", "properties": {
+          "target": { "type": "string" }, "threshold": { "type": "string" }, "severity": { "type": "string" }
+        } } }
+      }
+    },
+    "RetentionPolicyBlock": {
+      "type": "object", "required": ["blockType", "title", "items"],
+      "x-render-order": 3, "x-render-level": 2,
+      "x-render": [ { "as": "table", "from": "items", "columns": [
+        { "field": "dataType", "header": "データ種別" }, { "field": "retentionPeriod", "header": "保持期間" }, { "field": "rationale", "header": "根拠" }
+      ] } ],
+      "properties": {
+        "blockType": { "type": "string", "const": "RetentionPolicy" },
+        "title": { "type": "string", "const": "保持方針" },
+        "items": { "type": "array", "items": { "type": "object", "properties": {
+          "dataType": { "type": "string" }, "retentionPeriod": { "type": "string" }, "rationale": { "type": "string" }
+        } } }
+      }
+    },
+
+    "NetworkLayoutBlock": {
+      "type": "object", "required": ["blockType", "title", "zones"],
+      "x-render-order": 5, "x-render-level": 2,
+      "x-prompt-query": "ネットワークのゾーン区分と、ゾーン間の接続関係を持ちます。構成図として描画されます。",
+      "x-render": [ { "as": "architecture", "from": "zones", "connectionsFrom": "connections" } ],
+      "properties": {
+        "blockType": { "type": "string", "const": "NetworkLayout" },
+        "title": { "type": "string", "const": "ネットワーク構成図" },
+        "zones": {
+          "type": "array",
+          "x-prompt-write": "ゾーン(id/label)と、そのゾーンに含まれるコンポーネント(contains: id/label)を列挙。",
+          "items": { "type": "object", "properties": {
+            "id": { "type": "string" }, "label": { "type": "string" },
+            "contains": { "type": "array", "items": { "type": "object", "properties": {
+              "id": { "type": "string" }, "label": { "type": "string" }
+            } } }
+          } }
+        },
+        "connections": {
+          "type": "array",
+          "x-prompt-write": "コンポーネント間の接続(from/to、containsで宣言したidを使う)。",
+          "items": { "type": "object", "properties": { "from": { "type": "string" }, "to": { "type": "string" } } }
+        }
+      }
+    },
+
+    "ReleasePipelineBlock": {
+      "type": "object", "required": ["blockType", "title", "stages"],
+      "x-render-order": 4, "x-render-level": 2,
+      "x-prompt-query": "環境の昇格順序(dev→staging→production等)をパイプライン図で持ちます。各環境の詳細な昇格基準はReleasePolicyの表を参照。",
+      "x-render": [ { "as": "flowchart", "from": "stages", "transitionsFrom": "transitions" } ],
+      "properties": {
+        "blockType": { "type": "string", "const": "ReleasePipeline" },
+        "title": { "type": "string", "const": "リリースパイプライン" },
+        "stages": {
+          "type": "array",
+          "x-prompt-write": "環境の段階(id/label)を列挙。",
+          "items": { "type": "object", "properties": { "id": { "type": "string" }, "label": { "type": "string" } } }
+        },
+        "transitions": {
+          "type": "array",
+          "x-prompt-write": "段階間の遷移(from/to/label=昇格条件の要約)。",
+          "items": { "type": "object", "properties": {
+            "from": { "type": "string" }, "to": { "type": "string" }, "label": { "type": "string" }
+          } }
+        }
+      }
+    },
+
+    "ReleasePolicyBlock": {
+      "type": "object", "required": ["blockType", "title", "items"],
+      "x-render-order": 3, "x-render-level": 2,
+      "x-render": [ { "as": "table", "from": "items", "columns": [
+        { "field": "environment", "header": "環境" }, { "field": "promotionCriteria", "header": "昇格基準" }, { "field": "approvalRequirement", "header": "承認要件" }
+      ] } ],
+      "properties": {
+        "blockType": { "type": "string", "const": "ReleasePolicy" },
+        "title": { "type": "string", "const": "リリース/環境昇格方針" },
+        "items": { "type": "array", "items": { "type": "object", "properties": {
+          "environment": { "type": "string" }, "promotionCriteria": { "type": "string" }, "approvalRequirement": { "type": "string" }
+        } } }
+      }
+    },
+
+    "TrainingDataGovernanceBlock": {
+      "type": "object", "required": ["blockType", "title", "items"],
+      "x-render-order": 3, "x-render-level": 2,
+      "x-render": [ { "as": "table", "from": "items", "columns": [
+        { "field": "dataClassification", "header": "データ分類" }, { "field": "usageBoundary", "header": "利用境界" }, { "field": "requirement", "header": "要件" }
+      ] } ],
+      "properties": {
+        "blockType": { "type": "string", "const": "TrainingDataGovernance" },
+        "title": { "type": "string", "const": "学習データガバナンス" },
+        "items": { "type": "array", "items": { "type": "object", "properties": {
+          "dataClassification": { "type": "string" }, "usageBoundary": { "type": "string" }, "requirement": { "type": "string" }
+        } } }
+      }
+    },
+
+    "ResourceContent": {
+      "type": "object", "required": ["title", "summary", "capacity", "resilience", "security"],
+      "properties": {
+        "title": { "$ref": "#/$defs/TitleBlock" },
+        "summary": { "$ref": "#/$defs/SummaryBlock" },
+        "capacity": { "$ref": "#/$defs/CapacityRequirementsBlock" },
+        "resilience": { "$ref": "#/$defs/ResilienceRequirementsBlock" },
+        "security": { "$ref": "#/$defs/ComponentSecurityBlock" }
+      }
+    },
+
+    "NetworkingContent": {
+      "type": "object", "required": ["title", "summary", "layout", "capacity", "resilience", "security"],
+      "properties": {
+        "title": { "$ref": "#/$defs/TitleBlock" },
+        "summary": { "$ref": "#/$defs/SummaryBlock" },
+        "layout": { "$ref": "#/$defs/NetworkLayoutBlock" },
+        "capacity": { "$ref": "#/$defs/CapacityRequirementsBlock" },
+        "resilience": { "$ref": "#/$defs/ResilienceRequirementsBlock" },
+        "security": { "$ref": "#/$defs/ComponentSecurityBlock" }
+      }
+    },
+
+    "IotContent": {
+      "type": "object", "required": ["title", "summary", "capacity", "security"],
+      "properties": {
+        "title": { "$ref": "#/$defs/TitleBlock" },
+        "summary": { "$ref": "#/$defs/SummaryBlock" },
+        "capacity": { "$ref": "#/$defs/CapacityRequirementsBlock" },
+        "security": { "$ref": "#/$defs/ComponentSecurityBlock" }
+      }
+    },
+
+    "SecurityContent": {
+      "type": "object", "required": ["title", "summary", "compliance", "accessPolicy", "dataBoundary"],
+      "properties": {
+        "title": { "$ref": "#/$defs/TitleBlock" },
+        "summary": { "$ref": "#/$defs/SummaryBlock" },
+        "compliance": { "$ref": "#/$defs/ComplianceRequirementsBlock" },
+        "accessPolicy": { "$ref": "#/$defs/IdentityAndAccessPolicyBlock" },
+        "dataBoundary": { "$ref": "#/$defs/DataClassificationBoundaryBlock" }
+      }
+    },
+
+    "ObservabilityContent": {
+      "type": "object", "required": ["title", "summary", "monitoring", "retention"],
+      "properties": {
+        "title": { "$ref": "#/$defs/TitleBlock" },
+        "summary": { "$ref": "#/$defs/SummaryBlock" },
+        "monitoring": { "$ref": "#/$defs/MonitoringTargetsBlock" },
+        "retention": { "$ref": "#/$defs/RetentionPolicyBlock" }
+      }
+    },
+
+    "CiCdContent": {
+      "type": "object", "required": ["title", "summary", "deploymentTargets", "releasePipeline", "releasePolicy"],
+      "properties": {
+        "title": { "$ref": "#/$defs/TitleBlock" },
+        "summary": { "$ref": "#/$defs/SummaryBlock" },
+        "deploymentTargets": { "$ref": "#/$defs/CapacityRequirementsBlock" },
+        "releasePipeline": { "$ref": "#/$defs/ReleasePipelineBlock" },
+        "releasePolicy": { "$ref": "#/$defs/ReleasePolicyBlock" }
+      }
+    },
+
+    "MlContent": {
+      "type": "object", "required": ["title", "summary", "servingTargets", "trainingDataGovernance"],
+      "properties": {
+        "title": { "$ref": "#/$defs/TitleBlock" },
+        "summary": { "$ref": "#/$defs/SummaryBlock" },
+        "servingTargets": { "$ref": "#/$defs/CapacityRequirementsBlock" },
+        "trainingDataGovernance": { "$ref": "#/$defs/TrainingDataGovernanceBlock" }
+      }
+    },
+
+    "AnalyticsContent": {
+      "type": "object", "required": ["title", "summary", "queryPerformanceTargets", "retention"],
+      "properties": {
+        "title": { "$ref": "#/$defs/TitleBlock" },
+        "summary": { "$ref": "#/$defs/SummaryBlock" },
+        "queryPerformanceTargets": { "$ref": "#/$defs/CapacityRequirementsBlock" },
+        "retention": { "$ref": "#/$defs/RetentionPolicyBlock" }
+      }
+    }
+  }
+}

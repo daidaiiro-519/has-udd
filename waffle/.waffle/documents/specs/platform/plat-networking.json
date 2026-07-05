@@ -1,0 +1,24 @@
+{
+  "documentId": "plat-networking", "documentType": "PlatformSpec", "schemaRef": "PlatformSpec/v1", "specKind": "networking",
+  "content": {
+    "title": { "blockType": "Title", "title": "plat-networking" },
+    "summary": { "blockType": "Summary", "title": "概要", "text": "本プロダクトのネットワーク構成に関する要件を定める。" },
+    "layout": { "blockType": "NetworkLayout", "title": "ネットワーク構成図", "zones": [
+      { "id": "public", "label": "Public", "contains": [{ "id": "lb", "label": "ロードバランサ" }] },
+      { "id": "private_app", "label": "Private App", "contains": [{ "id": "app", "label": "アプリサーバー" }] },
+      { "id": "private_data", "label": "Private Data", "contains": [{ "id": "db", "label": "DB" }] }
+    ], "connections": [
+      { "from": "lb", "to": "app" },
+      { "from": "app", "to": "db" }
+    ] },
+    "capacity": { "blockType": "CapacityRequirements", "title": "容量/性能要件", "items": [
+      { "metric": "帯域幅", "target": "ピーク時1Gbps確保", "rationale": "同時アクセス目標から算出" }
+    ] },
+    "resilience": { "blockType": "ResilienceRequirements", "title": "耐障害性要件", "items": [
+      { "metric": "マルチリージョン", "target": "主リージョン障害時に副リージョンへ切替", "rationale": "地域規模の障害への備え" }
+    ] },
+    "security": { "blockType": "ComponentSecurity", "title": "このコンポーネント固有のセキュリティ境界", "items": [
+      { "boundary": "ゾーン間通信", "requirement": "private-dataゾーンへはprivate-appゾーンからの通信のみ許可（public直接到達不可）" }
+    ] }
+  }
+}

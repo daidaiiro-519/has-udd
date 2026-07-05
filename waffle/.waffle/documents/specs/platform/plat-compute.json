@@ -1,0 +1,35 @@
+{
+  "documentId": "plat-compute",
+  "documentType": "PlatformSpec",
+  "schemaRef": "PlatformSpec/v1",
+  "specKind": "compute",
+  "content": {
+    "title": { "blockType": "Title", "title": "plat-compute" },
+    "summary": { "blockType": "Summary", "title": "概要", "text": "本プロダクトのコンピュート資源に関する要件を定める。" },
+    "capacity": {
+      "blockType": "CapacityRequirements",
+      "title": "容量/性能要件",
+      "items": [
+        { "metric": "同時実行数(平常時)", "target": "1,000", "rationale": "想定顧客規模から算出" },
+        { "metric": "同時実行数(繁忙期)", "target": "5,000", "rationale": "季節性トラフィックの実績" },
+        { "metric": "APIレスポンスタイム(p95)", "target": "300ms以内", "rationale": "UX上の許容ライン" },
+        { "metric": "オートスケール発火閾値", "target": "CPU使用率70%超で追加", "rationale": "急激な負荷変動への対応" }
+      ]
+    },
+    "resilience": {
+      "blockType": "ResilienceRequirements",
+      "title": "耐障害性要件",
+      "items": [
+        { "metric": "マルチAZ要件", "target": "最低2AZにまたがる構成が必須", "rationale": "単一AZ障害でサービス停止しないため" },
+        { "metric": "ヘルスチェック失敗時の挙動", "target": "自動的に再起動・トラフィックから排除", "rationale": "障害インスタンスを自動隔離するため" }
+      ]
+    },
+    "security": {
+      "blockType": "ComponentSecurity",
+      "title": "このコンポーネント固有のセキュリティ境界",
+      "items": [
+        { "boundary": "実行ロールの権限分離", "requirement": "各サービスは必要最小限のIAMロールのみ付与" }
+      ]
+    }
+  }
+}

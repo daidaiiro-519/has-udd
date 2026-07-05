@@ -1,0 +1,15 @@
+{
+  "documentId": "plat-observability", "documentType": "PlatformSpec", "schemaRef": "PlatformSpec/v1", "specKind": "observability",
+  "content": {
+    "title": { "blockType": "Title", "title": "plat-observability" },
+    "summary": { "blockType": "Summary", "title": "概要", "text": "本プロダクトの監視・ログ・アラートに関する方針を定める。" },
+    "monitoring": { "blockType": "MonitoringTargets", "title": "監視対象と閾値", "items": [
+      { "target": "APIエラー率", "threshold": "5分間で5%超", "severity": "緊急" },
+      { "target": "DB接続プール使用率", "threshold": "80%超", "severity": "警告" }
+    ] },
+    "retention": { "blockType": "RetentionPolicy", "title": "保持方針", "items": [
+      { "dataType": "アプリケーションログ", "retentionPeriod": "90日", "rationale": "障害調査に必要な期間" },
+      { "dataType": "アクセス監査ログ", "retentionPeriod": "1年", "rationale": "コンプライアンス上の保存要件" }
+    ] }
+  }
+}

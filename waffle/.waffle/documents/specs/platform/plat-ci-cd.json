@@ -1,0 +1,23 @@
+{
+  "documentId": "plat-ci-cd", "documentType": "PlatformSpec", "schemaRef": "PlatformSpec/v1", "specKind": "ci-cd",
+  "content": {
+    "title": { "blockType": "Title", "title": "plat-ci-cd" },
+    "summary": { "blockType": "Summary", "title": "概要", "text": "本プロダクトのデプロイ頻度・リリース方針を定める。" },
+    "deploymentTargets": { "blockType": "CapacityRequirements", "title": "デプロイ目標", "items": [
+      { "metric": "デプロイ頻度", "target": "1日に複数回可能", "rationale": "小さい変更を素早く届ける事業方針" },
+      { "metric": "リードタイム", "target": "コミットから本番反映まで1時間以内", "rationale": "開発速度の目標" }
+    ] },
+    "releasePolicy": { "blockType": "ReleasePolicy", "title": "リリース/環境昇格方針", "items": [
+      { "environment": "staging", "promotionCriteria": "全自動テスト成功", "approvalRequirement": "不要(自動昇格)" },
+      { "environment": "production", "promotionCriteria": "stagingでの手動確認完了", "approvalRequirement": "リリース責任者の承認必須" }
+    ] },
+    "releasePipeline": { "blockType": "ReleasePipeline", "title": "リリースパイプライン", "stages": [
+      { "id": "dev", "label": "開発" },
+      { "id": "staging", "label": "Staging" },
+      { "id": "production", "label": "Production" }
+    ], "transitions": [
+      { "from": "dev", "to": "staging", "label": "自動テスト成功" },
+      { "from": "staging", "to": "production", "label": "責任者承認" }
+    ] }
+  }
+}

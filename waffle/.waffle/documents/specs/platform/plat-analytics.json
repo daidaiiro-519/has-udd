@@ -1,0 +1,13 @@
+{
+  "documentId": "plat-analytics", "documentType": "PlatformSpec", "schemaRef": "PlatformSpec/v1", "specKind": "analytics",
+  "content": {
+    "title": { "blockType": "Title", "title": "plat-analytics" },
+    "summary": { "blockType": "Summary", "title": "概要", "text": "本プロダクトの分析基盤に関する性能・保持方針を定める。" },
+    "queryPerformanceTargets": { "blockType": "CapacityRequirements", "title": "クエリ性能目標", "items": [
+      { "metric": "ダッシュボードクエリのレスポンス", "target": "5秒以内", "rationale": "経営会議での利用に耐える速度" }
+    ] },
+    "retention": { "blockType": "RetentionPolicy", "title": "保持方針", "items": [
+      { "dataType": "生イベントデータ", "retentionPeriod": "13ヶ月", "rationale": "前年同月比分析のため" }
+    ] }
+  }
+}

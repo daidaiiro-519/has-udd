@@ -1,0 +1,17 @@
+{
+  "documentId": "plat-database", "documentType": "PlatformSpec", "schemaRef": "PlatformSpec/v1", "specKind": "database",
+  "content": {
+    "title": { "blockType": "Title", "title": "plat-database" },
+    "summary": { "blockType": "Summary", "title": "概要", "text": "本プロダクトのデータベースに関する要件を定める。" },
+    "capacity": { "blockType": "CapacityRequirements", "title": "容量/性能要件", "items": [
+      { "metric": "同時接続数", "target": "500接続", "rationale": "アプリサーバー台数×プールサイズから算出" },
+      { "metric": "クエリレイテンシ(p95)", "target": "50ms以内", "rationale": "APIレスポンス目標から逆算" }
+    ] },
+    "resilience": { "blockType": "ResilienceRequirements", "title": "耐障害性要件", "items": [
+      { "metric": "レプリケーション", "target": "同期レプリカ1台以上", "rationale": "プライマリ障害時の即時切替のため" }
+    ] },
+    "security": { "blockType": "ComponentSecurity", "title": "このコンポーネント固有のセキュリティ境界", "items": [
+      { "boundary": "ネットワーク到達性", "requirement": "アプリケーション層からのみ接続可能" }
+    ] }
+  }
+}

@@ -50,6 +50,12 @@ sequenceDiagram
 
 ---
 
+## 操作保証
+
+- When 同じ Document を複数回 render したとき、engine は常に同一の成果物を生成する shall（決定的：入力が同じなら出力も同じ）。
+
+---
+
 ## エラー
 
 | コード | 条件 |
@@ -110,4 +116,21 @@ Scenario: deploy すると canonical と deploy 先の両方に書く
   Given deploy 先を持つ Document
   When deploy を有効にして render する
   Then canonical と deploy 先の両方に成果物が書かれる
+```
+
+---
+
+## 操作保証シナリオ
+
+### 同じDocumentを2回renderしても同一の成果物になる
+
+| 分類 | 観点 |
+|---|---|
+| 境界値 | 決定性：入力が変わらなければ出力も変わらない |
+
+```gherkin
+Scenario: 同じDocumentを2回renderしても同一の成果物になる
+  Given 変更されていないDocument
+  When 同じDocumentを2回renderする
+  Then 1回目と2回目の成果物は同一である
 ```

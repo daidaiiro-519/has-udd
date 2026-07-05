@@ -18,3 +18,8 @@ Feature: uc-render-document
     Given deploy 先を持つ Document
     When deploy を有効にして render する
     Then canonical と deploy 先の両方に成果物が書かれる
+
+  Scenario: 同じDocumentを2回renderしても同一の成果物になる
+    Given 変更されていないDocument
+    When 同じDocumentを2回renderする
+    Then 1回目と2回目の成果物は同一である

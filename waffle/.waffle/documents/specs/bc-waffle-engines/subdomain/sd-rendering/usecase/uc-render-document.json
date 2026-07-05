@@ -134,6 +134,27 @@
           "covers": "受け入れ基準: deploy が有効なとき canonical と deploy 先の両方へ書き込む"
         }
       ]
+    },
+    "operationGuarantees": {
+      "blockType": "OperationGuarantees",
+      "title": "操作保証",
+      "items": [
+        "When 同じ Document を複数回 render したとき、engine は常に同一の成果物を生成する shall（決定的：入力が同じなら出力も同じ）。"
+      ]
+    },
+    "guaranteeScenarios": {
+      "blockType": "GuaranteeScenarios",
+      "title": "操作保証シナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "同じDocumentを2回renderしても同一の成果物になる",
+          "category": "境界値",
+          "viewpoint": "決定性：入力が変わらなければ出力も変わらない",
+          "gherkin": "Scenario: 同じDocumentを2回renderしても同一の成果物になる\n  Given 変更されていないDocument\n  When 同じDocumentを2回renderする\n  Then 1回目と2回目の成果物は同一である",
+          "covers": "操作保証: renderの決定性"
+        }
+      ]
     }
   }
 }

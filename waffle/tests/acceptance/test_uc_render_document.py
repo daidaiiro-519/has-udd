@@ -62,3 +62,16 @@ def test_deploy_すると_canonical_と_deploy_先の両方に書く():
     assert isinstance(result, Ok), result
     assert result.value["path"] == ".waffle/skills/harness-query-engine/SKILL.md"
     assert ".claude/skills/harness-query-engine/SKILL.md" in result.value["deployed"]
+
+
+def test_同じDocumentを2回renderしても同一の成果物になる():
+    """
+    Given 変更されていないDocument
+    When 同じDocumentを2回renderする
+    Then 1回目と2回目の成果物は同一である
+    """
+    first = _engine().run(".waffle/documents/skills/harness-query-engine.json", deploy=False)
+    second = _engine().run(".waffle/documents/skills/harness-query-engine.json", deploy=False)
+    assert isinstance(first, Ok), first
+    assert isinstance(second, Ok), second
+    assert first.value["content"] == second.value["content"]

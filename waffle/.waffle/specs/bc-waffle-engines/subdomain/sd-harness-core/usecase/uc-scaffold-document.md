@@ -55,7 +55,8 @@ sequenceDiagram
 
 ## 操作保証
 
-- When 同じ documentId で create を複数回実行したとき、engine はべき等に振る舞う shall（2回目以降は既存の骨格を上書きしない、または同一結果を返す）。
+- When 同じ documentId で create を複数回実行したとき、engine の生成する構造（schema由来の骨格の形）は常にべき等である shall。
+- While document.json が既に存在するとき、create を再実行しても、fill で書き込まれた既存の values は保持され、破壊されない shall（values 自体の再現性はengineの管轄外・呼び出し側の責務）。
 
 ---
 
@@ -127,15 +128,15 @@ Scenario: discriminator が無いと候補を案内する
 
 ## 操作保証シナリオ
 
-### 同じdocumentIdでcreateを2回実行してもべき等
+### 既存documentへの再createはvaluesを破壊しない
 
 | 分類 | 観点 |
 |---|---|
-| 境界値 | べき等性：同一documentIdへのcreate再実行は安全 |
+| 境界値 | べき等性：fill済みのvaluesはcreateの再実行で保持される |
 
 ```gherkin
-Scenario: 同じdocumentIdでcreateを2回実行してもべき等
-  Given 既に作成済みのdocumentId
+Scenario: 既存documentへの再createはvaluesを破壊しない
+  Given create済みかつfillで値を書き込み済みのdocumentId
   When 同じdocumentIdでcreateを再実行する
-  Then 既存の骨格は上書きされず、同一の結果が返る
+  Then fillで書き込んだvaluesは保持されたままである
 ```

@@ -150,31 +150,34 @@ class RenderEngine:
         return "\n\n---\n\n".join(parts) + "\n"
 
 def _extract_feature(doc: dict, defs: dict):
-    """x-test-scenario: true の block（TestScenarios/UnitTestScenarios）の Gherkin を返す。
+    """x-test-scenario: true の全block（TestScenarios/UnitTestScenarios/GuaranteeScenarios等）の
+    Gherkinを集約して返す（1文書に複数のx-test-scenario blockがあっても全て含める）。
 
     .feature は仕様内 Gherkin を実行可能形に書き出すだけ（render は内容を作らない・SP-6）。
     """
+    body_lines: list[str] = []
     for block in doc.get("content", {}).values():
         if not isinstance(block, dict):
             continue
         bdef = defs.get(f"{block.get('blockType')}Block", {})
         if not bdef.get("x-test-scenario"):
             continue
-        # TestScenariosBlock の scenarios[{gherkin}] を Feature にまとめる
         scenarios = block.get("scenarios")
-        if scenarios:
-            lines = [f"Feature: {doc.get('documentId', 'spec')}"]
-            bg = (block.get("background") or "").strip()
-            if bg:
-                lines.append(f"  # 背景: {bg}")
-            for s in scenarios:
-                g = (s.get("gherkin") or "").strip()
-                if not g:
-                    continue
-                lines.append("")
-                lines.extend("  " + ln for ln in g.splitlines())
-            return "\n".join(lines) + "\n"
-    return None
+        if not scenarios:
+            continue
+        bg = (block.get("background") or "").strip()
+        if bg:
+            body_lines.append(f"  # 背景: {bg}")
+        for s in scenarios:
+            g = (s.get("gherkin") or "").strip()
+            if not g:
+                continue
+            body_lines.append("")
+            body_lines.extend("  " + ln for ln in g.splitlines())
+    if not body_lines:
+        return None
+    lines = [f"Feature: {doc.get('documentId', 'spec')}", *body_lines]
+    return "\n".join(lines) + "\n"
 
 def _resolve_path(root: dict, path: str):
     """'doc.content.purpose.text' のようなドット区切りパスで dict を辿り値を返す。

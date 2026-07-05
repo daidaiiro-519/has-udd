@@ -19,8 +19,13 @@ def sanitize(name: str) -> str:
 
 def scenario_names(spec_path: str) -> set[str]:
     doc = json.loads(Path(spec_path).read_text())
-    scenarios = doc["content"]["testScenarios"]["scenarios"]
-    return {sanitize(s["name"]) for s in scenarios}
+    content = doc["content"]
+    names: set[str] = set()
+    for block_key in ("testScenarios", "guaranteeScenarios"):
+        block = content.get(block_key)
+        if block:
+            names |= {sanitize(s["name"]) for s in block["scenarios"]}
+    return names
 
 
 def test_function_names(test_file_path: str) -> set[str]:

@@ -58,8 +58,20 @@ class ScaffoldEngine:
         path_vars = {"documentId": document_id, **{k: v for k, v in params.items() if isinstance(v, str)}}
         path = path_template.resolve(template, **path_vars) if template else ""
         if path:
-            self._documents.save(path, skeleton)
+            existing = self._existing_document(path)
+            if existing is not None:
+                # べき等性: 既にdocument.jsonがある場合は、fillで埋めた既存のvaluesを保護し
+                # 骨格で上書きしない（構造は保存時に既に保証済み）。
+                skeleton = existing
+            else:
+                self._documents.save(path, skeleton)
         return Ok({"skeleton": skeleton, "fillTemplate": fill_template, "path": path})
+
+    def _existing_document(self, path: str) -> dict | None:
+        try:
+            return self._documents.load(path)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return None
 
     def _fill(self, params: dict) -> Result[dict]:
         document_path = params.get("documentPath")

@@ -19,3 +19,8 @@ Feature: uc-scaffold-document
     Given 分岐のある schema
     When discriminator を指定せずに create する
     Then MISSING_DISCRIMINATOR エラーが候補つきで返る
+
+  Scenario: 既存documentへの再createはvaluesを破壊しない
+    Given create済みかつfillで値を書き込み済みのdocumentId
+    When 同じdocumentIdでcreateを再実行する
+    Then fillで書き込んだvaluesは保持されたままである

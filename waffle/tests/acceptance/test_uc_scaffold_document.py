@@ -99,3 +99,31 @@ def test_discriminator_が無いと候補を案内する():
     result = _engine().run("create", {"schemaRef": _SKILL_SCHEMA, "documentId": _TEST_DOC_ID})
     assert isinstance(result, Err), result
     assert result.details[0] == "MISSING_DISCRIMINATOR"
+
+
+def test_既存documentへの再createはvaluesを破壊しない():
+    """
+    Given create済みかつfillで値を書き込み済みのdocumentId
+    When 同じdocumentIdでcreateを再実行する
+    Then fillで書き込んだvaluesは保持されたままである
+    """
+    create_result = _engine().run(
+        "create",
+        {"schemaRef": _SKILL_SCHEMA, "documentId": _TEST_DOC_ID, "discriminator": {"skillKind": "engine"}},
+    )
+    assert isinstance(create_result, Ok), create_result
+
+    fill_result = _engine().run(
+        "fill",
+        {"documentPath": create_result.value["path"], "values": {"content.purpose.text": "ドメインを分析する"}},
+    )
+    assert isinstance(fill_result, Ok), fill_result
+
+    recreate_result = _engine().run(
+        "create",
+        {"schemaRef": _SKILL_SCHEMA, "documentId": _TEST_DOC_ID, "discriminator": {"skillKind": "engine"}},
+    )
+    assert isinstance(recreate_result, Ok), recreate_result
+
+    doc = FsDocumentRepository().load(create_result.value["path"])
+    assert doc["content"]["purpose"]["text"] == "ドメインを分析する"

@@ -11,7 +11,7 @@
       "additionalProperties": false,
       "properties": {
         "as": {
-          "enum": ["paragraph", "list", "table", "section", "keyvalue", "code", "divider", "sequence", "statediagram", "kvtable"],
+          "enum": ["paragraph", "list", "table", "section", "keyvalue", "code", "divider", "sequence", "statediagram", "kvtable", "architecture", "flowchart"],
           "description": "部品の種類（閉じた語彙）"
         },
         "from": {
@@ -111,6 +111,14 @@
         "pseudoStatesFrom": {
           "type": "string",
           "description": "statediagram: 疑似状態宣言（{id, kind: choice|fork|join}[]）を持つ block フィールドのキー（任意・fromと同階層の別フィールド）。"
+        },
+        "connectionsFrom": {
+          "type": "string",
+          "description": "architecture: 接続宣言（{from, to}[]）を持つ block フィールドのキー（任意・fromと同階層の別フィールド）。"
+        },
+        "transitionsFrom": {
+          "type": "string",
+          "description": "flowchart: 遷移宣言（{from, to, label?}[]）を持つ block フィールドのキー（任意・fromと同階層の別フィールド）。"
         }
       },
       "allOf": [
@@ -122,7 +130,9 @@
         { "if": { "properties": { "as": { "const": "code" } } },      "then": { "required": ["from"] } },
         { "if": { "properties": { "as": { "const": "sequence" } } },  "then": { "required": ["from"] } },
         { "if": { "properties": { "as": { "const": "statediagram" } } }, "then": { "required": ["from"] } },
-        { "if": { "properties": { "as": { "const": "kvtable" } } },    "then": { "required": ["columns"] } }
+        { "if": { "properties": { "as": { "const": "kvtable" } } },    "then": { "required": ["columns"] } },
+        { "if": { "properties": { "as": { "const": "architecture" } } }, "then": { "required": ["from"] } },
+        { "if": { "properties": { "as": { "const": "flowchart" } } },  "then": { "required": ["from"] } }
       ]
     },
 

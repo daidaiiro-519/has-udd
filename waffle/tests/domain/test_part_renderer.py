@@ -93,6 +93,36 @@ def test_statediagram_md():
     assert "open_state --> C: go" in md
 
 
+def test_architecture_zones_and_connections_md():
+    parts = [{"as": "architecture", "from": "zones", "connectionsFrom": "connections"}]
+    data = {
+        "zones": [
+            {"id": "public", "label": "Public", "contains": [{"id": "lb", "label": "ロードバランサ"}]},
+            {"id": "private", "label": "Private", "contains": [{"id": "app", "label": "アプリ"}]},
+        ],
+        "connections": [{"from": "lb", "to": "app"}],
+    }
+    md = render_parts(parts, data, 3)
+    assert "```mermaid" in md
+    assert "architecture-beta" in md
+    assert 'group public(cloud)[Public]' in md  # ASCIIラベルはクォート不要
+    assert 'service lb(server)["ロードバランサ"] in public' in md  # 非ASCIIはクォート必須
+    assert "lb:R --> L:app" in md
+
+
+def test_flowchart_stages_and_transitions_md():
+    parts = [{"as": "flowchart", "from": "stages", "transitionsFrom": "transitions"}]
+    data = {
+        "stages": [{"id": "staging", "label": "Staging"}, {"id": "production", "label": "Production"}],
+        "transitions": [{"from": "staging", "to": "production", "label": "承認"}],
+    }
+    md = render_parts(parts, data, 3)
+    assert "```mermaid" in md
+    assert "flowchart LR" in md
+    assert 'staging[Staging]' in md
+    assert 'staging -->|"承認"| production' in md  # 非ASCIIラベルはクォート必須
+
+
 def test_sequence_participants_actor_vs_participant():
     parts = [{"as": "sequence", "from": "items", "participantsFrom": "participants"}]
     data = {
@@ -186,7 +216,7 @@ def test_lint_rejects_missing_required_attr():
     assert _lint([{"as": "table", "from": "rows"}])  # columns 漏れで非空
 
 
-@pytest.mark.parametrize("schema_ref", ["SkillSchema/v1", "CodingSchema/v2", "DomainSpecSchema/v2", "PresentationSpecSchema/v1"])
+@pytest.mark.parametrize("schema_ref", ["SkillSchema/v1", "CodingSchema/v2", "DomainSpecSchema/v2", "PresentationSpecSchema/v1", "PlatformSpec/v1"])
 def test_schema_xrender_conforms(schema_ref):
     """全 schema の全 block の x-render が RenderMetaSchema に適合する（誤設定・旧 {md,html} 形式の混入を防ぐ）。"""
     schema = PackageSchemaRepository().load(schema_ref)

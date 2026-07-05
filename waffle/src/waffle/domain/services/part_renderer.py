@@ -41,6 +41,10 @@ def render_part(part: dict, data: dict, level: int) -> str:
         out.append(_sequence(src, data.get(part.get("participantsFrom", "")) if part.get("participantsFrom") else None))
     elif kind == "statediagram":
         out.append(_statediagram(src, data.get(part.get("pseudoStatesFrom", "")) if part.get("pseudoStatesFrom") else None))
+    elif kind == "architecture":
+        out.append(_architecture(src, data.get(part.get("connectionsFrom", "")) if part.get("connectionsFrom") else []))
+    elif kind == "flowchart":
+        out.append(_flowchart(src, data.get(part.get("transitionsFrom", "")) if part.get("transitionsFrom") else []))
     elif kind == "divider":
         out.append("---")
     elif kind == "section":
@@ -168,6 +172,45 @@ def _sequence_lines(steps, indent):
             else:  # command / self
                 lines.append(f"{pad}{frm}->>{act}{to}: {msg}")
     return lines
+
+def _mmd_label(label: str) -> str:
+    """Mermaidラベルは非ASCII文字を含む場合ダブルクォートで囲む（architecture-beta/flowchart共通の字句規則）。"""
+    s = str(label).replace('"', "'")
+    return f'"{s}"' if not s.isascii() else s
+
+def _architecture(zones, connections=None):
+    """zones([{id,label,contains:[{id,label}]}]) + connections([{from,to}]) → Mermaid architecture-beta。
+    グループ間エッジは3グループ以上で構文解析に失敗する既知のバグ(mermaid-guide参照)があるため、
+    常にservice(個々のコンポーネント)どうしを直接結ぶ形で描画する。
+    """
+    lines = ["architecture-beta"]
+    for z in (zones or []):
+        zid = _seq_token(z.get("id", ""))
+        lines.append(f"    group {zid}(cloud)[{_mmd_label(z.get('label', zid))}]")
+        for svc in z.get("contains", []):
+            sid = _seq_token(svc.get("id", ""))
+            lines.append(f"    service {sid}(server)[{_mmd_label(svc.get('label', sid))}] in {zid}")
+    for c in (connections or []):
+        frm = _seq_token(c.get("from", ""))
+        to = _seq_token(c.get("to", ""))
+        lines.append(f"    {frm}:R --> L:{to}")
+    diagram = "\n".join(lines)
+    return f"```mermaid\n{diagram}\n```"
+
+def _flowchart(stages, transitions=None):
+    """stages([{id,label}]) + transitions([{from,to,label}]) → Mermaid flowchart LR。"""
+    lines = ["flowchart LR"]
+    for s in (stages or []):
+        sid = _seq_token(s.get("id", ""))
+        lines.append(f"    {sid}[{_mmd_label(s.get('label', sid))}]")
+    for t in (transitions or []):
+        frm = _seq_token(t.get("from", ""))
+        to = _seq_token(t.get("to", ""))
+        label = t.get("label")
+        arrow = f"-->|{_mmd_label(label)}|" if label else "-->"
+        lines.append(f"    {frm} {arrow} {to}")
+    diagram = "\n".join(lines)
+    return f"```mermaid\n{diagram}\n```"
 
 def _statediagram(transitions, pseudo_states=None):
     """状態遷移配列（from/to/command）→ Mermaid stateDiagram-v2。状態名の空白は _ に。

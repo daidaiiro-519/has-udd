@@ -5,7 +5,7 @@
   "description": "検証用プロトタイプ。specKind=コンポーネント軸11分類(Compute/Storage/Database/Networking/Security/Integration/Observability/CI-CD/IoT/ML/Analytics)。資源型5分類(compute/storage/database/networking/integration)はCapacity/Resilience/ComponentSecurityの共通三分ブロックを再利用し、残り6分類(security/observability/ci-cd/iot/ml/analytics)はそれぞれの自然な中身に合わせた専用/再利用ブロックを持つ。",
   "x-schema-status": "PUBLISHED",
 
-  "x-render-target": { "formats": ["md"], "path": ".waffle/specs/platform/{documentId}.md" },
+  "x-render-target": { "formats": ["md", "feature"], "path": ".waffle/specs/platform/{documentId}.md", "featurePath": ".waffle/specs/platform/{documentId}.feature" },
   "x-source-target": ".waffle/documents/specs/platform/{documentId}.json",
 
   "type": "object",
@@ -182,6 +182,46 @@
       }
     },
 
+    "PlatformTestScenariosBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "scenarios"],
+      "x-render-order": 20,
+      "x-render-level": 2,
+      "x-test-scenario": true,
+      "x-prompt-query": "このPlatformSpecの保証内容を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。MD＋.featureにrenderされ、GuaranteeScenariosと同じ機構でネイティブテスト化されます（IaC適合テスト・policy-as-code等）。",
+      "x-render": [
+        { "as": "paragraph", "heading": "背景", "from": "background" },
+        { "as": "section", "from": "scenarios", "titleFrom": "name", "each": [
+          { "as": "kvtable", "columns": [
+            { "field": "category", "header": "分類" },
+            { "field": "viewpoint", "header": "観点" }
+          ] },
+          { "as": "code", "from": "gherkin", "lang": "gherkin" }
+        ] }
+      ],
+      "properties": {
+        "blockType":  { "type": "string", "const": "PlatformTestScenarios" },
+        "title":      { "type": "string", "const": "プラットフォームテストシナリオ" },
+        "background": { "type": "string", "x-prompt-write": "複数シナリオ共通の前提。無ければ空文字。" },
+        "scenarios": {
+          "type": "array",
+          "minItems": 1,
+          "x-prompt-write": "1シナリオ1要素。このPlatformSpecの各保証（容量/耐障害性/セキュリティ境界/コンプライアンス等）を最低1つのシナリオで検証する。",
+          "items": {
+            "type": "object",
+            "required": ["name", "category", "viewpoint", "gherkin"],
+            "properties": {
+              "name":      { "type": "string", "x-prompt-write": "シナリオ名（概要）。" },
+              "category":  { "type": "string", "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。" },
+              "viewpoint": { "type": "string", "x-prompt-write": "観点: 何を保証するか＋検証の狙い。" },
+              "gherkin":   { "type": "string", "x-prompt-write": "Given/When/Then。ドメイン語彙で書き、IaCの実装詳細は書かない。" },
+              "covers":    { "type": "string", "x-prompt-write": "対応する保証項目への参照。" }
+            }
+          }
+        }
+      }
+    },
+
     "NetworkLayoutBlock": {
       "type": "object", "required": ["blockType", "title", "zones"],
       "x-render-order": 5, "x-render-level": 2,
@@ -268,7 +308,8 @@
         "summary": { "$ref": "#/$defs/SummaryBlock" },
         "capacity": { "$ref": "#/$defs/CapacityRequirementsBlock" },
         "resilience": { "$ref": "#/$defs/ResilienceRequirementsBlock" },
-        "security": { "$ref": "#/$defs/ComponentSecurityBlock" }
+        "security": { "$ref": "#/$defs/ComponentSecurityBlock" },
+        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
       }
     },
 
@@ -280,7 +321,8 @@
         "layout": { "$ref": "#/$defs/NetworkLayoutBlock" },
         "capacity": { "$ref": "#/$defs/CapacityRequirementsBlock" },
         "resilience": { "$ref": "#/$defs/ResilienceRequirementsBlock" },
-        "security": { "$ref": "#/$defs/ComponentSecurityBlock" }
+        "security": { "$ref": "#/$defs/ComponentSecurityBlock" },
+        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
       }
     },
 
@@ -290,7 +332,8 @@
         "title": { "$ref": "#/$defs/TitleBlock" },
         "summary": { "$ref": "#/$defs/SummaryBlock" },
         "capacity": { "$ref": "#/$defs/CapacityRequirementsBlock" },
-        "security": { "$ref": "#/$defs/ComponentSecurityBlock" }
+        "security": { "$ref": "#/$defs/ComponentSecurityBlock" },
+        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
       }
     },
 
@@ -301,7 +344,8 @@
         "summary": { "$ref": "#/$defs/SummaryBlock" },
         "compliance": { "$ref": "#/$defs/ComplianceRequirementsBlock" },
         "accessPolicy": { "$ref": "#/$defs/IdentityAndAccessPolicyBlock" },
-        "dataBoundary": { "$ref": "#/$defs/DataClassificationBoundaryBlock" }
+        "dataBoundary": { "$ref": "#/$defs/DataClassificationBoundaryBlock" },
+        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
       }
     },
 
@@ -311,7 +355,8 @@
         "title": { "$ref": "#/$defs/TitleBlock" },
         "summary": { "$ref": "#/$defs/SummaryBlock" },
         "monitoring": { "$ref": "#/$defs/MonitoringTargetsBlock" },
-        "retention": { "$ref": "#/$defs/RetentionPolicyBlock" }
+        "retention": { "$ref": "#/$defs/RetentionPolicyBlock" },
+        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
       }
     },
 
@@ -322,7 +367,8 @@
         "summary": { "$ref": "#/$defs/SummaryBlock" },
         "deploymentTargets": { "$ref": "#/$defs/CapacityRequirementsBlock" },
         "releasePipeline": { "$ref": "#/$defs/ReleasePipelineBlock" },
-        "releasePolicy": { "$ref": "#/$defs/ReleasePolicyBlock" }
+        "releasePolicy": { "$ref": "#/$defs/ReleasePolicyBlock" },
+        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
       }
     },
 
@@ -332,7 +378,8 @@
         "title": { "$ref": "#/$defs/TitleBlock" },
         "summary": { "$ref": "#/$defs/SummaryBlock" },
         "servingTargets": { "$ref": "#/$defs/CapacityRequirementsBlock" },
-        "trainingDataGovernance": { "$ref": "#/$defs/TrainingDataGovernanceBlock" }
+        "trainingDataGovernance": { "$ref": "#/$defs/TrainingDataGovernanceBlock" },
+        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
       }
     },
 
@@ -342,7 +389,8 @@
         "title": { "$ref": "#/$defs/TitleBlock" },
         "summary": { "$ref": "#/$defs/SummaryBlock" },
         "queryPerformanceTargets": { "$ref": "#/$defs/CapacityRequirementsBlock" },
-        "retention": { "$ref": "#/$defs/RetentionPolicyBlock" }
+        "retention": { "$ref": "#/$defs/RetentionPolicyBlock" },
+        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
       }
     }
   }

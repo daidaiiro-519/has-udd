@@ -68,6 +68,12 @@
 **理由:** 実際のレンダリングで表現力不足（関係性が文章に埋没）を確認し、mermaid-guideの既存パターンを流用することで実装コストを抑えつつ表現力を確保できたため。命名は紛らわしさの指摘を受けて、役割の違いが名前から伝わる形に修正した。
 **次のアクション:** 全11分類のexample documentをコミットし、残りの論点3(IaCコードとの対応関係)・論点4(著者role)に進む。
 
+### 再検討・追加合意（2026-07-06）: `PlatformTestScenarios`ブロックの追加
+論点3の「IaCコードとの対応関係=人の判断」という記述に対し、ユーザーから「通常のspec(DomainSpec)側はTestScenarios/GuaranteeScenarios→ネイティブテスト→`check_scenario_drift.py`という機械検知可能な仕組みを既に持っているはず」という指摘があり、論点2で最初に候補として出しながら合意過程で議論なしに落としていた`PlatformTestScenarios`を追加することで合意。
+**確認した論点:** ①既存パターン(GuaranteeScenarios)との整合性、②IaCの世界にも policy-as-code(checkov/tfsec/OPA/Terratest等)という対応する実践があること、③ただし検証対象のIaCコード自体がこのリポジトリにまだ存在しないため、今日のスコープは「schemaへの追加とexample作成まで」であり「実際のドリフト検知が機能するところまでの実証」は将来に送る、という3点。`ddd-advisor`はDDD書籍スコープ外(PlatformSpecは非DDD)、`platform-advisor`は未設計のため、既存advisorへの確認はできず、上記3点を自己点検する形で判断した。
+**実装:** `PlatformTestScenariosBlock`を`GuaranteeScenariosBlock`と同型(background+scenarios[{name,category,viewpoint,gherkin,covers}])で追加し、全8 content型にoptionalフィールド`testScenarios`として追加(**contentキー名をDomainSpecSchemaの`TestScenariosBlock`と同じ`testScenarios`に揃えた**ため、`check_scenario_drift.py`は一切のコード変更なしでPlatformSpecドキュメントも読める)。`x-render-target`に`feature`フォーマット・`featurePath`も追加。`plat-storage.json`に実例(保存時暗号化の検証シナリオ)を追加し、validate/render/`.feature`生成/`check_scenario_drift.py`(missing_in_tests検知)まで実地で確認、既存回帰(pytest 59/behave 49)は緑を維持。
+**次のアクション:** 残り10分類へのtestScenarios実例追加は必要に応じて後日。IaC実装が実在する段階でネイティブテスト(policy-as-code)を書き、ドリフト検知ループの実動作を実証する。
+
 ---
 
 ## 論点 3: IaCコードとの対応関係（x-source-target/x-render-target）

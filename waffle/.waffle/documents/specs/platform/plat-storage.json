@@ -12,6 +12,15 @@
     ] },
     "security": { "blockType": "ComponentSecurity", "title": "このコンポーネント固有のセキュリティ境界", "items": [
       { "boundary": "保存時暗号化", "requirement": "全ストレージで暗号化必須" }
+    ] },
+    "testScenarios": { "blockType": "PlatformTestScenarios", "title": "プラットフォームテストシナリオ", "background": "", "scenarios": [
+      {
+        "name": "保存時暗号化が全ストレージで有効",
+        "category": "正常系",
+        "viewpoint": "保存時暗号化の保証・IaC構成が実際に暗号化を強制しているかの検証",
+        "gherkin": "Given ストレージ資源が定義されている\nWhen そのIaC構成を検証する\nThen 暗号化が無効な状態では構成が拒否される",
+        "covers": "保存時暗号化: 全ストレージで暗号化必須"
+      }
     ] }
   }
 }

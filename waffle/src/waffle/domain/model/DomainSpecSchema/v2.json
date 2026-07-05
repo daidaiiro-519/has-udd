@@ -170,7 +170,9 @@
         "postconditions":     { "$ref": "#/$defs/PostconditionsBlock" },
         "acceptanceCriteria": { "$ref": "#/$defs/AcceptanceCriteriaBlock" },
         "errors":             { "$ref": "#/$defs/ErrorsBlock" },
-        "testScenarios":      { "$ref": "#/$defs/TestScenariosBlock" }
+        "testScenarios":      { "$ref": "#/$defs/TestScenariosBlock" },
+        "operationGuarantees":  { "$ref": "#/$defs/OperationGuaranteesBlock" },
+        "guaranteeScenarios":   { "$ref": "#/$defs/GuaranteeScenariosBlock" }
       }
     },
 
@@ -728,10 +730,22 @@
       "x-render-order": 5,
       "x-render-level": 2,
       "x-prompt-query": "このユースケースの基本フロー(相互作用)を持ちます。シーケンス図に描画されます。",
-      "x-render": [ { "as": "sequence", "from": "steps" } ],
+      "x-render": [ { "as": "sequence", "from": "steps", "participantsFrom": "participants" } ],
       "properties": {
         "blockType": { "type": "string", "const": "MainFlow" },
         "title":     { "type": "string", "const": "基本フロー" },
+        "participants": {
+          "type": "array",
+          "x-prompt-write": "stepsに登場する送り手/受け手のうち、主アクター（ActorIntentのactorと同じ名前）を kind=actor（棒人間アイコン）として宣言する。集約等のシステム側は宣言不要（省略時は participant として自動描画される）。無ければ空配列。",
+          "items": {
+            "type": "object",
+            "required": ["id", "kind"],
+            "properties": {
+              "id":   { "type": "string", "x-prompt-write": "識別子。stepsのfrom/toと同じ表記に揃える。" },
+              "kind": { "type": "string", "enum": ["actor", "participant"], "x-prompt-write": "人間/主アクターなら actor、集約等のシステム側なら participant。" }
+            }
+          }
+        },
         "steps": {
           "type": "array",
           "x-prompt-write": "主アクターと集約(と業務サービス・他集約)の相互作用を順に列挙。participant は必ずドメインの役者（技術コンポーネント=Controller/Repository/DB 等は書かない）。粒度は主要な相互作用のみ（内部処理の細部や UI 操作は書かない）。",
@@ -788,7 +802,7 @@
     "ErrorsBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 8,
+      "x-render-order": 9,
       "x-render-level": 2,
       "x-prompt-query": "このユースケースの失敗モード(コード・条件)を持ちます。",
       "x-render": [
@@ -818,7 +832,7 @@
     "TestScenariosBlock": {
       "type": "object",
       "required": ["blockType", "title", "scenarios"],
-      "x-render-order": 9,
+      "x-render-order": 10,
       "x-render-level": 2,
       "x-test-scenario": true,
       "x-prompt-query": "振る舞い契約のテストシナリオ(分類・観点・Gherkin)を持ちます。仕様↔実装の整合点。MD（コードブロック表示）＋.feature に render され実行されます。",
@@ -849,6 +863,66 @@
               "viewpoint": { "type": "string", "x-prompt-write": "観点: 側面（状態遷移/計算整合/事前条件 等）＋検証の狙い。" },
               "gherkin":   { "type": "string", "x-prompt-write": "このシナリオの Given/When/Then（Scenario: 1つ・実行可能・.feature 化）。ドメイン語彙で書き、実装詳細（クラス名/API/SQL/UI 操作）は書かない。" },
               "covers":    { "type": "string", "x-prompt-write": "検証する不変条件/受け入れ基準への参照（任意・トレーサビリティ）。" }
+            }
+          }
+        }
+      }
+    },
+
+    "OperationGuaranteesBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 8,
+      "x-render-level": 2,
+      "x-prompt-query": "このusecaseがデータアクセス層（依存する資源）に対して呼び出し元に約束する、機能・非機能上の保証（べき等性・一貫性・提供チャネルの一貫性等）を持ちます。",
+      "x-render": [
+        { "as": "list", "from": "items" }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "OperationGuarantees" },
+        "title":     { "type": "string", "const": "操作保証" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "保証をEARSで列挙（When/While/If … shall …）。書いてよいのは『何を保証するか』だけ（べき等性・一貫性・提供チャネルの一貫性等）。『どう実現するか』（具体的なDB技法・ロック機構・実装技術）は書かない（CodingSchemaのcode-templateの領分）。判定基準（このusecaseに書くか、集約のinvariantsに書くか）: 同じ資源を操作する複数usecaseの間で、この保証内容が重複するか？ 重複するなら集約（agg-*.json）のinvariants/unitTestScenariosに書く。このusecase固有の業務理由でのみ必要な保証だけをここに書く。性能の生数値（応答時間・スループット等）は書かない（CodingSchemaのtestTypes: non-functional-performanceの領分）。",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "GuaranteeScenariosBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "scenarios"],
+      "x-render-order": 11,
+      "x-render-level": 2,
+      "x-test-scenario": true,
+      "x-prompt-query": "OperationGuaranteesの各保証を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。MD＋.featureにrenderされ、TestScenariosと同じ機構でネイティブテスト化されます。",
+      "x-render": [
+        { "as": "paragraph", "heading": "背景", "from": "background" },
+        { "as": "section", "from": "scenarios", "titleFrom": "name", "each": [
+          { "as": "kvtable", "columns": [
+            { "field": "category", "header": "分類" },
+            { "field": "viewpoint", "header": "観点" }
+          ] },
+          { "as": "code", "from": "gherkin", "lang": "gherkin" }
+        ] }
+      ],
+      "properties": {
+        "blockType":  { "type": "string", "const": "GuaranteeScenarios" },
+        "title":      { "type": "string", "const": "操作保証シナリオ" },
+        "background": { "type": "string", "x-prompt-write": "複数シナリオ共通の前提。無ければ空文字。" },
+        "scenarios": {
+          "type": "array",
+          "minItems": 1,
+          "x-prompt-write": "1シナリオ1要素。OperationGuaranteesの各項目を最低1つのシナリオで検証する。呼び出し経路（直接engine呼び出し／CLI／MCP）をまたいで同じ保証が成立するかを確認したい場合は、経路ごとにシナリオを分けてよい（同じ保証・異なるバインディング）。",
+          "items": {
+            "type": "object",
+            "required": ["name", "category", "viewpoint", "gherkin"],
+            "properties": {
+              "name":      { "type": "string", "x-prompt-write": "シナリオ名（概要）。" },
+              "category":  { "type": "string", "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。" },
+              "viewpoint": { "type": "string", "x-prompt-write": "観点: べき等性/一貫性/提供チャネルの一貫性 等＋検証の狙い。" },
+              "gherkin":   { "type": "string", "x-prompt-write": "Given/When/Then。ドメイン語彙で書き、実装詳細は書かない。" },
+              "covers":    { "type": "string", "x-prompt-write": "対応するOperationGuaranteesの項目への参照。" }
             }
           }
         }

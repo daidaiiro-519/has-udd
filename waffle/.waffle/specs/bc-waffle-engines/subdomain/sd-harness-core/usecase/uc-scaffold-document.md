@@ -26,6 +26,7 @@ schema から Document の骨格を機械生成し（create）、AI が生成し
 
 ```mermaid
 sequenceDiagram
+    actor Orchestrator
     Orchestrator->>Document: create(schemaRef, documentId)
     Document-->>Orchestrator: 骨格と記入テンプレートを返す
     Orchestrator->>Orchestrator: 値だけ生成（構造は触らない）
@@ -49,6 +50,12 @@ sequenceDiagram
 - When fill で値が与えられたとき、engine は宣言済み値フィールドにのみ書き込む shall。
 - If 構造を変える値や const / discriminator が与えられたとき、engine は拒否し skipped に記録する shall。
 - If 分岐のある schema で discriminator が無いとき、engine は MISSING_DISCRIMINATOR を返し候補を案内する shall。
+
+---
+
+## 操作保証
+
+- When 同じ documentId で create を複数回実行したとき、engine はべき等に振る舞う shall（2回目以降は既存の骨格を上書きしない、または同一結果を返す）。
 
 ---
 
@@ -88,4 +95,47 @@ Scenario: 構造を変える値は拒否される
   Given 作成済みの Document
   When const フィールドへ値を書き込もうとする
   Then 書き込まれず skipped に記録される
+```
+
+### 宣言済みの値フィールドに書き込まれる
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | fill：宣言済み値フィールドへの書き込みは written に記録される |
+
+```gherkin
+Scenario: 宣言済みの値フィールドに書き込まれる
+  Given 作成済みの Document
+  When 宣言済みの値フィールドへ値を書き込む
+  Then written に記録され、ファイルに反映される
+```
+
+### discriminator が無いと候補を案内する
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | エラー：分岐のある schema で discriminator 未指定は MISSING_DISCRIMINATOR |
+
+```gherkin
+Scenario: discriminator が無いと候補を案内する
+  Given 分岐のある schema
+  When discriminator を指定せずに create する
+  Then MISSING_DISCRIMINATOR エラーが候補つきで返る
+```
+
+---
+
+## 操作保証シナリオ
+
+### 同じdocumentIdでcreateを2回実行してもべき等
+
+| 分類 | 観点 |
+|---|---|
+| 境界値 | べき等性：同一documentIdへのcreate再実行は安全 |
+
+```gherkin
+Scenario: 同じdocumentIdでcreateを2回実行してもべき等
+  Given 既に作成済みのdocumentId
+  When 同じdocumentIdでcreateを再実行する
+  Then 既存の骨格は上書きされず、同一の結果が返る
 ```

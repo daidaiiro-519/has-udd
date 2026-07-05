@@ -6,9 +6,14 @@
   "status": "CREATED",
   "subdomainRef": "sd-harness-core",
   "aggregateRef": "agg-document",
-  "tags": ["context:waffle-engines"],
+  "tags": [
+    "context:waffle-engines"
+  ],
   "content": {
-    "title": { "blockType": "Title", "title": "uc-scaffold-document" },
+    "title": {
+      "blockType": "Title",
+      "title": "uc-scaffold-document"
+    },
     "summary": {
       "blockType": "Summary",
       "title": "概要",
@@ -23,17 +28,51 @@
     "preconditions": {
       "blockType": "Preconditions",
       "title": "事前条件",
-      "items": ["生成対象の schema と documentId が与えられている", "分岐のある schema では discriminator が与えられている"]
+      "items": [
+        "生成対象の schema と documentId が与えられている",
+        "分岐のある schema では discriminator が与えられている"
+      ]
     },
     "mainFlow": {
       "blockType": "MainFlow",
       "title": "基本フロー",
+      "participants": [
+        {
+          "id": "Orchestrator",
+          "kind": "actor"
+        }
+      ],
       "steps": [
-        { "from": "Orchestrator", "to": "Document", "message": "create(schemaRef, documentId)", "kind": "command" },
-        { "from": "Document", "to": "Orchestrator", "message": "骨格と記入テンプレートを返す", "kind": "return" },
-        { "from": "Orchestrator", "to": "Orchestrator", "message": "値だけ生成（構造は触らない）", "kind": "self" },
-        { "from": "Orchestrator", "to": "Document", "message": "fill(値)", "kind": "command" },
-        { "from": "Document", "to": "", "message": "DocumentCreated", "kind": "event" }
+        {
+          "from": "Orchestrator",
+          "to": "Document",
+          "message": "create(schemaRef, documentId)",
+          "kind": "command"
+        },
+        {
+          "from": "Document",
+          "to": "Orchestrator",
+          "message": "骨格と記入テンプレートを返す",
+          "kind": "return"
+        },
+        {
+          "from": "Orchestrator",
+          "to": "Orchestrator",
+          "message": "値だけ生成（構造は触らない）",
+          "kind": "self"
+        },
+        {
+          "from": "Orchestrator",
+          "to": "Document",
+          "message": "fill(値)",
+          "kind": "command"
+        },
+        {
+          "from": "Document",
+          "to": "",
+          "message": "DocumentCreated",
+          "kind": "event"
+        }
       ]
     },
     "postconditions": {
@@ -59,9 +98,18 @@
       "blockType": "Errors",
       "title": "エラー",
       "items": [
-        { "code": "MISSING_DISCRIMINATOR", "condition": "分岐のある schema で discriminator が未指定（候補 enum を案内）" },
-        { "code": "INVALID_SCHEMA_REF", "condition": "未知の schemaRef" },
-        { "code": "SKIPPED", "condition": "未知 path / const / discriminator への書き込み（書き込まず skipped に記録）" }
+        {
+          "code": "MISSING_DISCRIMINATOR",
+          "condition": "分岐のある schema で discriminator が未指定（候補 enum を案内）"
+        },
+        {
+          "code": "INVALID_SCHEMA_REF",
+          "condition": "未知の schemaRef"
+        },
+        {
+          "code": "SKIPPED",
+          "condition": "未知 path / const / discriminator への書き込み（書き込まず skipped に記録）"
+        }
       ]
     },
     "testScenarios": {
@@ -82,6 +130,41 @@
           "viewpoint": "構造保護：const フィールドへの書き込みは skipped",
           "gherkin": "Scenario: 構造を変える値は拒否される\n  Given 作成済みの Document\n  When const フィールドへ値を書き込もうとする\n  Then 書き込まれず skipped に記録される",
           "covers": "受け入れ基準: 構造を変える値は拒否"
+        },
+        {
+          "name": "宣言済みの値フィールドに書き込まれる",
+          "category": "正常系",
+          "viewpoint": "fill：宣言済み値フィールドへの書き込みは written に記録される",
+          "gherkin": "Scenario: 宣言済みの値フィールドに書き込まれる\n  Given 作成済みの Document\n  When 宣言済みの値フィールドへ値を書き込む\n  Then written に記録され、ファイルに反映される",
+          "covers": "受け入れ基準: fill で値が宣言済み値フィールドにのみ書き込まれる"
+        },
+        {
+          "name": "discriminator が無いと候補を案内する",
+          "category": "異常系",
+          "viewpoint": "エラー：分岐のある schema で discriminator 未指定は MISSING_DISCRIMINATOR",
+          "gherkin": "Scenario: discriminator が無いと候補を案内する\n  Given 分岐のある schema\n  When discriminator を指定せずに create する\n  Then MISSING_DISCRIMINATOR エラーが候補つきで返る",
+          "covers": "エラー: MISSING_DISCRIMINATOR"
+        }
+      ]
+    },
+    "operationGuarantees": {
+      "blockType": "OperationGuarantees",
+      "title": "操作保証",
+      "items": [
+        "When 同じ documentId で create を複数回実行したとき、engine はべき等に振る舞う shall（2回目以降は既存の骨格を上書きしない、または同一結果を返す）。"
+      ]
+    },
+    "guaranteeScenarios": {
+      "blockType": "GuaranteeScenarios",
+      "title": "操作保証シナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "同じdocumentIdでcreateを2回実行してもべき等",
+          "category": "境界値",
+          "viewpoint": "べき等性：同一documentIdへのcreate再実行は安全",
+          "gherkin": "Scenario: 同じdocumentIdでcreateを2回実行してもべき等\n  Given 既に作成済みのdocumentId\n  When 同じdocumentIdでcreateを再実行する\n  Then 既存の骨格は上書きされず、同一の結果が返る",
+          "covers": "操作保証: createはべき等"
         }
       ]
     }

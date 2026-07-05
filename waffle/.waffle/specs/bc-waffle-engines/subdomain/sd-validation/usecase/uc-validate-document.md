@@ -25,6 +25,7 @@ Document の content が schema に適合するかを検証し、適合可否と
 
 ```mermaid
 sequenceDiagram
+    actor Orchestrator
     Orchestrator->>Document: validate する
     Document->>Document: content を schema と照合
     Note over Document: DocumentValidated（適合時）
@@ -85,4 +86,17 @@ Scenario: 不適合は違反詳細つきで失敗する
   Given schema に適合しない Document
   When validate する
   Then 違反詳細つきで失敗する
+```
+
+### schemaRef を持たない Document は検証できない
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | エラー：schemaRef 欠如は MISSING_SCHEMA_REF |
+
+```gherkin
+Scenario: schemaRef を持たない Document は検証できない
+  Given schemaRef の無い Document
+  When validate する
+  Then MISSING_SCHEMA_REF エラーが返る
 ```

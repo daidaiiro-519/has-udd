@@ -25,6 +25,7 @@
 
 ```mermaid
 sequenceDiagram
+    actor Orchestrator
     Orchestrator->>Document: render する
     Document->>Document: x-render から成果物を生成（frontmatter＋部品）
     Note over Document: DocumentRendered
@@ -84,4 +85,29 @@ Scenario: schemaRef を持たない Document は描画しない
   Given schemaRef の無い Document
   When render する
   Then MISSING_SCHEMA_REF エラーが返る
+```
+
+### 存在しないパスは描画しない
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | エラー：対象パスが存在しないときは INVALID_PATH |
+
+```gherkin
+Scenario: 存在しないパスは描画しない
+  When 存在しないパスを対象に render する
+  Then INVALID_PATH エラーが返る
+```
+
+### deploy すると canonical と deploy 先の両方に書く
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | 受け入れ基準：deploy が有効なとき canonical と deploy 先の両方へ書き込む |
+
+```gherkin
+Scenario: deploy すると canonical と deploy 先の両方に書く
+  Given deploy 先を持つ Document
+  When deploy を有効にして render する
+  Then canonical と deploy 先の両方に成果物が書かれる
 ```

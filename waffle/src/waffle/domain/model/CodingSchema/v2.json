@@ -708,7 +708,7 @@
         "items": {
           "type": "array",
           "minItems": 1,
-          "x-prompt-write": "共通カタログから該当ティアのものだけ選んで列挙: backend[unit, integration, acceptance-bdd, contract, non-functional-performance, security] / frontend[unit, integration, contract, e2e, visual-regression, accessibility] / platform[static-analysis-policy, plan-review, idempotency, drift-detection, disaster-recovery, non-functional-performance, security]。",
+          "x-prompt-write": "共通カタログから該当ティアのものだけ選んで列挙: backend[unit, integration, acceptance, contract, non-functional-performance, security] / frontend[unit, integration, contract, e2e, visual-regression, accessibility] / platform[static-analysis-policy, plan-review, idempotency, drift-detection, disaster-recovery, non-functional-performance, security]。",
           "items": {
             "type": "object",
             "required": ["testType", "tool", "target"],
@@ -716,7 +716,7 @@
               "testType": {
                 "type": "string",
                 "enum": [
-                  "unit", "integration", "acceptance-bdd", "contract",
+                  "unit", "integration", "acceptance", "contract",
                   "e2e", "visual-regression", "accessibility",
                   "non-functional-performance", "security",
                   "static-analysis-policy", "plan-review", "idempotency", "drift-detection", "disaster-recovery"
@@ -740,14 +740,14 @@
       "x-render": [
         { "as": "keyvalue", "pairs": [
           { "label": "単体テスト", "from": "unit" },
-          { "label": "受け入れテスト（BDD）", "from": "acceptance" }
+          { "label": "受け入れテスト", "from": "acceptance" }
         ] }
       ],
       "properties": {
         "blockType":  { "type": "string", "const": "TestFramework" },
         "title":      { "type": "string", "const": "フレームワーク" },
         "unit":       { "type": "string", "x-prompt-write": "単体テストFW。例: pytest" },
-        "acceptance": { "type": "string", "x-prompt-write": "受け入れテスト(BDD)FW。無ければ空。例: behave" }
+        "acceptance": { "type": "string", "x-prompt-write": "受け入れテストFW（.feature は参照専用の仕様書・AIがこのFWでネイティブに執筆する）。無ければ空。例: pytest" }
       }
     },
 
@@ -768,7 +768,7 @@
         "title":     { "type": "string", "const": "シナリオの束ね方" },
         "items": {
           "type": "array",
-          "x-prompt-write": ".feature の生成元・配置・ステップ実装配置・対応関係（1 spec=1 .feature=1 ステップファイル）を列挙。",
+          "x-prompt-write": ".feature の生成元・配置（参照専用・実行対象ではない）・ネイティブテストの配置・対応関係（1 spec=1 .feature=1 ネイティブテストファイル）・ドリフト検知方法を列挙。",
           "items": {
             "type": "object",
             "required": ["item", "rule"],

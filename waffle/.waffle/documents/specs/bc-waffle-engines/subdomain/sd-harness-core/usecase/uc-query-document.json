@@ -6,9 +6,14 @@
   "status": "CREATED",
   "subdomainRef": "sd-harness-core",
   "aggregateRef": "agg-document",
-  "tags": ["context:waffle-engines"],
+  "tags": [
+    "context:waffle-engines"
+  ],
   "content": {
-    "title": { "blockType": "Title", "title": "uc-query-document" },
+    "title": {
+      "blockType": "Title",
+      "title": "uc-query-document"
+    },
     "summary": {
       "blockType": "Summary",
       "title": "概要",
@@ -23,15 +28,38 @@
     "preconditions": {
       "blockType": "Preconditions",
       "title": "事前条件",
-      "items": ["対象 Document（またはディレクトリ）のパスが要望テキストで与えられている"]
+      "items": [
+        "対象 Document（またはディレクトリ）のパスが要望テキストで与えられている"
+      ]
     },
     "mainFlow": {
       "blockType": "MainFlow",
       "title": "基本フロー",
+      "participants": [
+        {
+          "id": "Orchestrator",
+          "kind": "actor"
+        }
+      ],
       "steps": [
-        { "from": "Orchestrator", "to": "Document", "message": "operation と対象パスを指定して問い合わせる", "kind": "command" },
-        { "from": "Document", "to": "Document", "message": "対象の意味単位を取り出す", "kind": "self" },
-        { "from": "Document", "to": "Orchestrator", "message": "{ prompt, value } を返す", "kind": "return" }
+        {
+          "from": "Orchestrator",
+          "to": "Document",
+          "message": "operation と対象パスを指定して問い合わせる",
+          "kind": "command"
+        },
+        {
+          "from": "Document",
+          "to": "Document",
+          "message": "対象の意味単位を取り出す",
+          "kind": "self"
+        },
+        {
+          "from": "Document",
+          "to": "Orchestrator",
+          "message": "{ prompt, value } を返す",
+          "kind": "return"
+        }
       ]
     },
     "postconditions": {
@@ -50,16 +78,35 @@
         "When ブロック/配列を取得したとき、prompt に対象ブロックの読み方の指針（x-prompt-query 由来）を含める shall。",
         "While フィルタ条件に一致する要素が無いとき、エンジンは正常系として空配列 value: [] を返す shall。",
         "If operation が未知のとき、エンジンは INVALID_OPERATION エラーを返す shall。",
-        "If 対象パスが存在しないとき、エンジンは INVALID_PATH エラーを返す shall。"
+        "If 対象パスが存在しないとき、エンジンは INVALID_PATH エラーを返す shall。",
+        "If 指定した blockKey/idValue が存在しないとき、エンジンは NOT_FOUND エラーを返す shall。",
+        "If フィルタの正規表現パターンが不正なとき、エンジンは INVALID_PATTERN エラーを返す shall。"
       ]
     },
     "errors": {
       "blockType": "Errors",
       "title": "エラー",
       "items": [
-        { "code": "INVALID_OPERATION", "condition": "operation が定義外" },
-        { "code": "INVALID_PATH", "condition": "対象パスが存在しない" },
-        { "code": "MISSING_PARAM", "condition": "必須パラメータが欠落" }
+        {
+          "code": "INVALID_OPERATION",
+          "condition": "operation が定義外"
+        },
+        {
+          "code": "INVALID_PATH",
+          "condition": "対象パスが存在しない"
+        },
+        {
+          "code": "MISSING_PARAM",
+          "condition": "必須パラメータが欠落"
+        },
+        {
+          "code": "NOT_FOUND",
+          "condition": "指定した blockKey/idValue に一致する要素が存在しない"
+        },
+        {
+          "code": "INVALID_PATTERN",
+          "condition": "filter_pattern の正規表現が不正"
+        }
       ]
     },
     "testScenarios": {
@@ -94,6 +141,34 @@
           "viewpoint": "エラー：未知 operation は INVALID_OPERATION",
           "gherkin": "Scenario: 未知の operation はエラーを返す\n  When 未知の operation を実行する\n  Then INVALID_OPERATION エラーが返る",
           "covers": "エラー: INVALID_OPERATION"
+        },
+        {
+          "name": "存在しないパスはエラーを返す",
+          "category": "異常系",
+          "viewpoint": "エラー：対象パスが存在しないときは INVALID_PATH",
+          "gherkin": "Scenario: 存在しないパスはエラーを返す\n  When 存在しないパスを対象に query する\n  Then INVALID_PATH エラーが返る",
+          "covers": "エラー: INVALID_PATH"
+        },
+        {
+          "name": "必須パラメータの欠落はエラーを返す",
+          "category": "異常系",
+          "viewpoint": "エラー：必須パラメータ欠落は MISSING_PARAM",
+          "gherkin": "Scenario: 必須パラメータの欠落はエラーを返す\n  When blockKey を指定せずに get_block を実行する\n  Then MISSING_PARAM エラーが返る",
+          "covers": "エラー: MISSING_PARAM"
+        },
+        {
+          "name": "存在しないblockKeyはエラーを返す",
+          "category": "異常系",
+          "viewpoint": "エラー：指定した blockKey が存在しないときは NOT_FOUND",
+          "gherkin": "Scenario: 存在しないblockKeyはエラーを返す\n  When 存在しない blockKey を指定して get_block を実行する\n  Then NOT_FOUND エラーが返る",
+          "covers": "エラー: NOT_FOUND"
+        },
+        {
+          "name": "不正な正規表現はエラーを返す",
+          "category": "異常系",
+          "viewpoint": "エラー：filter_pattern の正規表現が不正なときは INVALID_PATTERN",
+          "gherkin": "Scenario: 不正な正規表現はエラーを返す\n  When 不正な正規表現で filter_pattern を実行する\n  Then INVALID_PATTERN エラーが返る",
+          "covers": "エラー: INVALID_PATTERN"
         }
       ]
     }

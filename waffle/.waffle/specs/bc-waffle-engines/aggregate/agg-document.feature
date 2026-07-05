@@ -24,3 +24,13 @@ Feature: agg-document
     Given DEPRECATED 状態の Skill document
     When 任意のコマンドを実行する
     Then 拒否される
+
+  Scenario: パストラバーサルを含むパスは拒否される
+    Given '..' を含む対象パス
+    When 任意の operation・command を実行する
+    Then INVALID_PATH エラーが返り、プロジェクトルート外へはアクセスしない
+
+  Scenario: ディレクトリ横断はプロジェクトルート外を拒否する
+    Given プロジェクトルート外を指すディレクトリパス
+    When index_scan_dir を実行する
+    Then INVALID_PATH エラーが返る

@@ -75,16 +75,6 @@ def step_prompt_null(context):
     assert context.result.value["prompt"] is None
 
 
-@then("prompt は非空")
-def step_prompt_truthy(context):
-    assert context.result.value["prompt"]
-
-
-@then("value は空配列")
-def step_value_empty(context):
-    assert context.result.value["value"] == []
-
-
 @then('value は "{s}" を含む')
 def step_value_contains(context, s):
     v = context.result.value["value"]
@@ -100,12 +90,6 @@ def step_value_path_eq(context, vpath, expected):
 @then('value の "{vpath}" は非空')
 def step_value_path_truthy(context, vpath):
     assert _resolve(context.result.value["value"], vpath)
-
-
-@then('value の "{field}" 集合は "{csv}"')
-def step_value_set(context, field, csv):
-    got = {x[field] for x in context.result.value["value"]}
-    assert got == set(csv.split(",")), f'{got} != {csv}'
 
 
 @then('value のキーに "{s}" を含むものがある')

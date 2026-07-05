@@ -27,12 +27,7 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
     And 出力に "description:" を含む
     And 出力に "harness-query-engine" を含む
 
-  Scenario: deploy すると canonical と deploy 先の両方に書く
-    Given 対象は ".waffle/documents/skills/harness-query-engine.json"
-    When レンダリングして deploy する
-    Then 成功する
-    And 出力パスは ".waffle/skills/harness-query-engine/SKILL.md"
-    And deploy 先に ".claude/skills/harness-query-engine/SKILL.md" を含む
+  # deployの成功シナリオは uc-render-document の TestScenarios（tests/acceptance/test_uc_render_document.py）に移行済み。
 
   # --- CodingSchema → Markdown ---
 
@@ -67,21 +62,8 @@ Feature: document.json を成果物にレンダリング (uc-render-document)
     And 出力に "stateDiagram-v2" を含む
 
   # --- エラー / セキュリティ（頑健化） ---
-
-  Scenario: schemaRef を持たない document は MISSING_SCHEMA_REF
-    Given schemaRef なしの一時ファイルを対象にする
-    When deploy なしでレンダリングする
-    Then エラーコード "MISSING_SCHEMA_REF" で失敗する
-
-  Scenario: 存在しないパスは INVALID_PATH
-    Given 対象は "does/not/exist.json"
-    When deploy なしでレンダリングする
-    Then エラーコード "INVALID_PATH" で失敗する
-
-  Scenario: パストラバーサルは拒否する (G6)
-    Given 対象は "../etc/passwd.json"
-    When deploy なしでレンダリングする
-    Then エラーコード "INVALID_PATH" で失敗する
+  # MISSING_SCHEMA_REF・存在しないパス(INVALID_PATH)は uc-render-document の TestScenarios に移行済み。
+  # パストラバーサル拒否(G6)は agg-document の UnitTestScenarios（tests/test_document_path_confinement.py）に移行済み。
 
   Scenario: 不正な JSON は INVALID_JSON
     Given 不正な JSON の一時ファイルを対象にする

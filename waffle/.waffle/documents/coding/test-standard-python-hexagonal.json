@@ -56,9 +56,9 @@
           "target": "adapters"
         },
         {
-          "testType": "acceptance-bdd",
-          "tool": "behave",
-          "target": "usecase（.feature）"
+          "testType": "acceptance",
+          "tool": "pytest（AIが .feature を読んで直接執筆）",
+          "target": "usecase（.feature は参照専用の仕様書）"
         },
         {
           "testType": "contract",
@@ -71,7 +71,7 @@
       "blockType": "TestFramework",
       "title": "フレームワーク",
       "unit": "pytest",
-      "acceptance": "behave"
+      "acceptance": "pytest"
     },
     "scenarioBinding": {
       "blockType": "ScenarioBinding",
@@ -82,16 +82,20 @@
           "rule": "spec の TestScenarios（手書きしない）"
         },
         {
-          "item": "配置",
-          "rule": "features/{spec-id}.feature（生成物）"
+          "item": ".feature の配置",
+          "rule": ".waffle/specs/{contextRef}/subdomain/{subdomainRef}/usecase/{documentId}.feature（DomainSpecSchemaのx-render-target.featurePath通り・生成物・参照専用・実行対象ではない）"
         },
         {
-          "item": "ステップ実装の配置",
-          "rule": "features/steps/{spec-id}_steps.py"
+          "item": "ネイティブテストの配置",
+          "rule": "tests/acceptance/test_{spec-id}.py（AIが .feature を見て執筆・手編集前提）"
         },
         {
           "item": "対応関係",
-          "rule": "1 spec（usecase）＝1 .feature＝1 ステップファイル"
+          "rule": "1 spec（usecase）＝1 .feature（参照専用・render生成）＝1 ネイティブテストファイル（AI執筆）"
+        },
+        {
+          "item": "ドリフト検知",
+          "rule": "シナリオ名⇔テスト関数名の名前突き合わせで機械検出（未実装/孤立を検出、中身の妥当性はAIが評価）"
         }
       ]
     },
@@ -116,8 +120,8 @@
         },
         {
           "target": "usecase の受け入れ",
-          "testKind": "BDD",
-          "path": "features/"
+          "testKind": "受け入れ（ネイティブ・.feature は参照専用）",
+          "path": "tests/acceptance/"
         }
       ]
     },
@@ -127,7 +131,7 @@
       "items": [
         {
           "level": "必須",
-          "rule": "TestScenarios は .feature で実行可能にする（読むだけの文書にしない）"
+          "rule": ".feature は実行対象ではなく、AIが読んで実装すべき参照専用の仕様書とする"
         },
         {
           "level": "必須",

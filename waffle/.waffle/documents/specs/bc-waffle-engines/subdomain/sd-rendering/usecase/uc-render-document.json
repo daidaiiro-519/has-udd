@@ -6,9 +6,14 @@
   "status": "CREATED",
   "subdomainRef": "sd-rendering",
   "aggregateRef": "agg-document",
-  "tags": ["context:waffle-engines"],
+  "tags": [
+    "context:waffle-engines"
+  ],
   "content": {
-    "title": { "blockType": "Title", "title": "uc-render-document" },
+    "title": {
+      "blockType": "Title",
+      "title": "uc-render-document"
+    },
     "summary": {
       "blockType": "Summary",
       "title": "概要",
@@ -23,16 +28,44 @@
     "preconditions": {
       "blockType": "Preconditions",
       "title": "事前条件",
-      "items": ["対象 Document が存在し、schemaRef を持つ"]
+      "items": [
+        "対象 Document が存在し、schemaRef を持つ"
+      ]
     },
     "mainFlow": {
       "blockType": "MainFlow",
       "title": "基本フロー",
+      "participants": [
+        {
+          "id": "Orchestrator",
+          "kind": "actor"
+        }
+      ],
       "steps": [
-        { "from": "Orchestrator", "to": "Document", "message": "render する", "kind": "command" },
-        { "from": "Document", "to": "Document", "message": "x-render から成果物を生成（frontmatter＋部品）", "kind": "self" },
-        { "from": "Document", "to": "", "message": "DocumentRendered", "kind": "event" },
-        { "from": "Document", "to": "Orchestrator", "message": "生成パス一覧を返す", "kind": "return" }
+        {
+          "from": "Orchestrator",
+          "to": "Document",
+          "message": "render する",
+          "kind": "command"
+        },
+        {
+          "from": "Document",
+          "to": "Document",
+          "message": "x-render から成果物を生成（frontmatter＋部品）",
+          "kind": "self"
+        },
+        {
+          "from": "Document",
+          "to": "",
+          "message": "DocumentRendered",
+          "kind": "event"
+        },
+        {
+          "from": "Document",
+          "to": "Orchestrator",
+          "message": "生成パス一覧を返す",
+          "kind": "return"
+        }
       ]
     },
     "postconditions": {
@@ -57,8 +90,14 @@
       "blockType": "Errors",
       "title": "エラー",
       "items": [
-        { "code": "MISSING_SCHEMA_REF", "condition": "schemaRef が無い（描画しない）" },
-        { "code": "INVALID_PATH", "condition": "対象パスが存在しない" }
+        {
+          "code": "MISSING_SCHEMA_REF",
+          "condition": "schemaRef が無い（描画しない）"
+        },
+        {
+          "code": "INVALID_PATH",
+          "condition": "対象パスが存在しない"
+        }
       ]
     },
     "testScenarios": {
@@ -79,6 +118,20 @@
           "viewpoint": "エラー：schemaRef 欠如は MISSING_SCHEMA_REF",
           "gherkin": "Scenario: schemaRef を持たない Document は描画しない\n  Given schemaRef の無い Document\n  When render する\n  Then MISSING_SCHEMA_REF エラーが返る",
           "covers": "エラー: MISSING_SCHEMA_REF"
+        },
+        {
+          "name": "存在しないパスは描画しない",
+          "category": "異常系",
+          "viewpoint": "エラー：対象パスが存在しないときは INVALID_PATH",
+          "gherkin": "Scenario: 存在しないパスは描画しない\n  When 存在しないパスを対象に render する\n  Then INVALID_PATH エラーが返る",
+          "covers": "エラー: INVALID_PATH"
+        },
+        {
+          "name": "deploy すると canonical と deploy 先の両方に書く",
+          "category": "正常系",
+          "viewpoint": "受け入れ基準：deploy が有効なとき canonical と deploy 先の両方へ書き込む",
+          "gherkin": "Scenario: deploy すると canonical と deploy 先の両方に書く\n  Given deploy 先を持つ Document\n  When deploy を有効にして render する\n  Then canonical と deploy 先の両方に成果物が書かれる",
+          "covers": "受け入れ基準: deploy が有効なとき canonical と deploy 先の両方へ書き込む"
         }
       ]
     }

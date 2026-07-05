@@ -54,6 +54,7 @@
 | content が schema に適合しない限り VALIDATED へ進めない | guard | 不正な成果物を後段（render/deploy）に流さない |
 | SUPERSEDED は終端であり、以後どのコマンドも受け付けない | guard | 置換後の変更を防ぐ |
 | DEPRECATED は終端であり、以後どのコマンドも受け付けない | guard | 廃止後の変更を防ぐ |
+| Document のパス解決は、いかなる operation・command からも常にプロジェクトルート内に閉じ込められる（パストラバーサルを許さない） | guard | ファイルアクセスというデータアクセス層の技術的関心事だが、Document 集約が扱う全ての操作に横断的に適用される不変条件であり、特定 usecase の業務シナリオではなく集約の不変条件として一箇所で保証する |
 
 ---
 
@@ -310,4 +311,30 @@ Scenario: DEPRECATED は終端
   Given DEPRECATED 状態の Skill document
   When 任意のコマンドを実行する
   Then 拒否される
+```
+
+### パストラバーサルを含むパスは拒否される (G6)
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | パス解決：'..' を含むパスはどの operation でも拒否される |
+
+```gherkin
+Scenario: パストラバーサルを含むパスは拒否される
+  Given '..' を含む対象パス
+  When 任意の operation・command を実行する
+  Then INVALID_PATH エラーが返り、プロジェクトルート外へはアクセスしない
+```
+
+### ディレクトリ横断はプロジェクトルート外を拒否する (G7)
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | パス解決：index_scan_dir 等のディレクトリ横断操作もルート外を拒否する |
+
+```gherkin
+Scenario: ディレクトリ横断はプロジェクトルート外を拒否する
+  Given プロジェクトルート外を指すディレクトリパス
+  When index_scan_dir を実行する
+  Then INVALID_PATH エラーが返る
 ```

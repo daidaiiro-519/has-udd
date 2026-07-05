@@ -9,3 +9,8 @@ Feature: uc-validate-document
     Given schema に適合しない Document
     When validate する
     Then 違反詳細つきで失敗する
+
+  Scenario: schemaRef を持たない Document は検証できない
+    Given schemaRef の無い Document
+    When validate する
+    Then MISSING_SCHEMA_REF エラーが返る

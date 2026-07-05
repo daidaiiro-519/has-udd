@@ -30,11 +30,6 @@ def step_render_nodeploy(context):
     context.result = context.engine.run(context.path, deploy=False)
 
 
-@when("レンダリングして deploy する")
-def step_render_deploy(context):
-    context.result = context.engine.run(context.path, deploy=True)
-
-
 @then('出力フォーマットは "{fmt}"')
 def step_output_format(context, fmt):
     assert context.result.value["format"] == fmt, context.result
@@ -43,16 +38,6 @@ def step_output_format(context, fmt):
 @then('出力に "{s}" を含む')
 def step_output_contains(context, s):
     assert s in context.result.value["content"], f"出力に {s!r} が無い"
-
-
-@then('出力パスは "{p}"')
-def step_output_path(context, p):
-    assert context.result.value["path"] == p, context.result.value["path"]
-
-
-@then('deploy 先に "{p}" を含む')
-def step_deployed_contains(context, p):
-    assert p in context.result.value["deployed"], context.result.value["deployed"]
 
 
 @then('feature出力に "{s}" を含む')

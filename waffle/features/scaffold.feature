@@ -19,10 +19,7 @@ Feature: document.json のスキャフォールド (uc-scaffold-document)
     And skeleton の content に "interface" がある
     And skeleton の content に "invocationSpec" がある
 
-  Scenario: 生成した骨格は自分の schema で valid（status=DRAFT・空値）
-    When create を schemaRef "SkillSchema/v1" documentId "scaffold-demo" discriminator "skillKind=engine" で実行する
-    Then 成功する
-    And 生成された骨格は validate を通る
+  # 生成骨格がvalidateを通ることは uc-scaffold-document の TestScenarios（tests/acceptance/test_uc_scaffold_document.py）に移行済み。
 
   Scenario: create は x-source-target に骨格を書き出す
     When create を schemaRef "SkillSchema/v1" documentId "scaffold-demo" discriminator "skillKind=engine" で実行する
@@ -39,26 +36,11 @@ Feature: document.json のスキャフォールド (uc-scaffold-document)
     Then 成功する
     And skeleton の content に "processingTarget" がある
 
-  Scenario: discriminator を省くと MISSING_DISCRIMINATOR（候補つき）
-    When create を schemaRef "SkillSchema/v1" documentId "scaffold-demo" で実行する
-    Then エラーコード "MISSING_DISCRIMINATOR" で失敗する
+  # MISSING_DISCRIMINATOR は uc-scaffold-document の TestScenarios に移行済み。
 
   Scenario: 未知の schemaRef は INVALID_SCHEMA_REF
     When create を schemaRef "NoSuchSchema/v1" documentId "scaffold-demo" discriminator "skillKind=engine" で実行する
     Then エラーコード "INVALID_SCHEMA_REF" で失敗する
 
   # --- fill: 値だけ書き込む（構造は engine が保護） ---
-
-  Scenario: fill は宣言済み値フィールドに値を書き込む
-    Given "scaffold-demo" の engine 骨格を作成済み
-    When fill で値 "content.purpose.text=ドメインを分析する" を書き込む
-    Then 成功する
-    And written に "content.purpose.text" を含む
-    And ファイルの "content.purpose.text" は "ドメインを分析する"
-
-  Scenario: fill は const / 未知 path を拒否して skipped に記録する
-    Given "scaffold-demo" の engine 骨格を作成済み
-    When fill で値 "content.purpose.blockType=X" を書き込む
-    Then 成功する
-    And skipped に "content.purpose.blockType" を含む
-    And written は空
+  # fillの成功(written)・const拒否(skipped)は uc-scaffold-document の TestScenarios に移行済み。

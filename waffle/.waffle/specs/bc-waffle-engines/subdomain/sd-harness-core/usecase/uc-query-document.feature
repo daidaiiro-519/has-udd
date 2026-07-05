@@ -17,3 +17,19 @@ Feature: uc-query-document
   Scenario: 未知の operation はエラーを返す
     When 未知の operation を実行する
     Then INVALID_OPERATION エラーが返る
+
+  Scenario: 存在しないパスはエラーを返す
+    When 存在しないパスを対象に query する
+    Then INVALID_PATH エラーが返る
+
+  Scenario: 必須パラメータの欠落はエラーを返す
+    When blockKey を指定せずに get_block を実行する
+    Then MISSING_PARAM エラーが返る
+
+  Scenario: 存在しないblockKeyはエラーを返す
+    When 存在しない blockKey を指定して get_block を実行する
+    Then NOT_FOUND エラーが返る
+
+  Scenario: 不正な正規表現はエラーを返す
+    When 不正な正規表現で filter_pattern を実行する
+    Then INVALID_PATTERN エラーが返る

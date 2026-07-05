@@ -43,26 +43,13 @@ Feature: document を schema 適合検証する (uc-validate-document)
     Then エラーコード "INVALID_TRANSITION" で失敗する
 
   # --- 不適合 ---
-
-  Scenario: schema に適合しない document は違反詳細つきで失敗する
-    Given 不適合な document の一時ファイルを対象にする
-    When 検証する
-    Then 違反詳細つきで失敗する
+  # 違反詳細つき失敗・MISSING_SCHEMA_REF は uc-validate-document の TestScenarios（tests/acceptance/test_uc_validate_document.py）に移行済み。
 
   # --- エラー / セキュリティ（頑健化） ---
-
-  Scenario: schemaRef を持たない document は MISSING_SCHEMA_REF
-    Given schemaRef なしの一時ファイルを対象にする
-    When 検証する
-    Then エラーコード "MISSING_SCHEMA_REF" で失敗する
+  # パストラバーサル拒否(G6)は agg-document の UnitTestScenarios（tests/test_document_path_confinement.py）に移行済み。
 
   Scenario: 存在しないパスは INVALID_PATH
     Given 対象は "does/not/exist.json"
-    When 検証する
-    Then エラーコード "INVALID_PATH" で失敗する
-
-  Scenario: パストラバーサルは拒否する (G6)
-    Given 対象は "../etc/passwd.json"
     When 検証する
     Then エラーコード "INVALID_PATH" で失敗する
 

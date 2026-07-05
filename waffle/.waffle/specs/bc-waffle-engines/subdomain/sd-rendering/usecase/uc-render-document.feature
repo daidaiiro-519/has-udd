@@ -9,3 +9,12 @@ Feature: uc-render-document
     Given schemaRef の無い Document
     When render する
     Then MISSING_SCHEMA_REF エラーが返る
+
+  Scenario: 存在しないパスは描画しない
+    When 存在しないパスを対象に render する
+    Then INVALID_PATH エラーが返る
+
+  Scenario: deploy すると canonical と deploy 先の両方に書く
+    Given deploy 先を持つ Document
+    When deploy を有効にして render する
+    Then canonical と deploy 先の両方に成果物が書かれる

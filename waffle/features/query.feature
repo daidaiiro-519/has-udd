@@ -33,12 +33,7 @@ Feature: document.json へのセマンティック・クエリ (uc-query-documen
     And value のキーに "harness-query-engine.json" を含むものがある
 
   # --- Group 2: ブロック（prompt = 対象 block の x-prompt-query） ---
-
-  Scenario: get_block は block 全体と prompt を返す
-    When operation "get_block" を params "blockKey=interface" で実行する
-    Then 成功する
-    And value の "blockType" は "Interface"
-    And prompt は非空
+  # get_block の基本成功シナリオは uc-query-document の TestScenarios（tests/acceptance/test_uc_query_document.py）に移行済み。
 
   Scenario: get_field は block の1フィールドを返す
     When operation "get_field" を params "blockKey=purpose;field=text" で実行する
@@ -46,16 +41,7 @@ Feature: document.json へのセマンティック・クエリ (uc-query-documen
     And value は "document.json" を含む
 
   # --- Group 3: 配列操作 ---
-
-  Scenario: filter_items は key==value で絞り込む（文字列 "true" は bool True に一致）
-    When operation "filter_items" を params "blockKey=interface;arrayField=input;key=required;value=true" で実行する
-    Then 成功する
-    And value の "name" 集合は "operation,path"
-
-  Scenario: filter_items は一致0件でも正常系で空配列を返す（NO_MATCH マーカーは持たない）
-    When operation "filter_items" を params "blockKey=interface;arrayField=input;key=required;value=__none__" で実行する
-    Then 成功する
-    And value は空配列
+  # filter_items の基本成功・空一致シナリオは uc-query-document の TestScenarios に移行済み。
 
   Scenario: get_by_id は単一オブジェクトを返す（リストではない・id は一意前提）
     When operation "get_by_id" を params "blockKey=steps;arrayField=items;idField=stepId;idValue=step-2" で実行する
@@ -78,36 +64,9 @@ Feature: document.json へのセマンティック・クエリ (uc-query-documen
     And 結果の "type" は "raw"
 
   # --- エラーコード ---
-
-  Scenario: 未知 operation は INVALID_OPERATION
-    When operation "bogus" を実行する
-    Then エラーコード "INVALID_OPERATION" で失敗する
-
-  Scenario: 必須パラメータ欠落は MISSING_PARAM
-    When operation "get_block" を実行する
-    Then エラーコード "MISSING_PARAM" で失敗する
-
-  Scenario: 存在しない blockKey は NOT_FOUND
-    When operation "get_block" を params "blockKey=nope" で実行する
-    Then エラーコード "NOT_FOUND" で失敗する
-
-  Scenario: 不正な正規表現は INVALID_PATTERN
-    When operation "filter_pattern" を params "blockKey=interface;arrayField=input;field=name;pattern=[" で実行する
-    Then エラーコード "INVALID_PATTERN" で失敗する
-
-  Scenario: 存在しないパスは INVALID_PATH
-    Given 対象は "does/not/exist.json"
-    When operation "get_meta" を実行する
-    Then エラーコード "INVALID_PATH" で失敗する
+  # 未知operation(INVALID_OPERATION)・必須パラメータ欠落(MISSING_PARAM)・存在しないblockKey(NOT_FOUND)・
+  # 不正な正規表現(INVALID_PATTERN)・存在しないパス(INVALID_PATH)は uc-query-document の TestScenarios に移行済み。
 
   # --- セキュリティ（頑健化 G6 / G7） ---
-
-  Scenario: パストラバーサルは拒否する (G6)
-    Given 対象は "../etc/passwd"
-    When operation "scan" を実行する
-    Then エラーコード "INVALID_PATH" で失敗する
-
-  Scenario: index_scan_dir はプロジェクトルート外を拒否する (G7)
-    Given 対象は "/etc"
-    When operation "index_scan_dir" を実行する
-    Then エラーコード "INVALID_PATH" で失敗する
+  # パストラバーサル拒否(G6)・index_scan_dirのルート外拒否(G7)は、Document集約横断の不変条件として
+  # agg-document の UnitTestScenarios（tests/test_document_path_confinement.py）に移行済み。

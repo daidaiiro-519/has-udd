@@ -83,10 +83,12 @@
         "適合判定は kind ごとに確立された既存 lint ツールが行う（自前の照合ロジックは持たない）: google→pydoclint / tsdoc→eslint-plugin-jsdoc / javadoc→Checkstyle JavadocMethod / godoc→revive / rustdoc→rustc 組み込み missing_docs",
         "godoc/rustdoc は対象言語の公式規約に args/returns/raises の構造が無いため、判定できるのは「docstring の有無」のみ（ARGS_MISMATCH 相当は判定しない）",
         "違反が無ければ空配列が返る（全要素が適合）",
-        "違反があれば、次のフィールドを持つオブジェクトの配列で返る: path・elementKind・name（違反した要素の特定）・code（違反コード。MISSING_DOC_COMMENT/ARGS_MISMATCH のいずれか。ツール固有の診断は code に正規化して吸収する）・detail（ツールの元メッセージ。人が読むための補足）",
+        "違反があれば、次のフィールドを持つオブジェクトの配列で返る: path・elementKind・name（違反した要素の特定）・code（違反コード。MISSING_DOC_COMMENT/ARGS_MISMATCH/MISSING_ARGS_SECTION/MISSING_RETURNS_SECTION/MISSING_RAISES_SECTIONのいずれか。ツール固有の診断は code に正規化して吸収する）・detail（ツールの元メッセージ。人が読むための補足）",
         "1つの要素が複数の違反を同時に持つ場合は、要素ごとに複数のオブジェクトを返す（1違反=1オブジェクト）",
         "docstring の“意味”（要約行の語選びの適切さ等）は判定しない（機械判定できない範囲は対象外）",
-        "docstringの有無判定（MISSING_DOC_COMMENT）はclass/functionの要素のみを対象とし、module要素（ファイル自体）は対象外とする（モジュールレベルのdocstringは慣習的に必須とされないため）"
+        "docstringの有無判定（MISSING_DOC_COMMENT）はclass/functionの要素のみを対象とし、module要素（ファイル自体）は対象外とする（モジュールレベルのdocstringは慣習的に必須とされないため）",
+        "要約行のみの短いdocstringであっても、Args/Returns/Raisesセクションの要否は要約の長さに関わらず判定する（言語仕様で決まる構造上の要否は、書かれた分量に左右されない不変のルールであるため）",
+        "非公開要素（言語の命名規約上privateと判定できる要素。Pythonでは先頭が_の識別子）は、Args/Returns/Raisesセクションの要否判定の対象外とする（公開要素のみ必須というcoding-standard側の規約と一貫させる）"
       ]
     },
     "acceptanceCriteria": {
@@ -97,6 +99,10 @@
         "When kind が godoc/rustdoc のとき、エンジンは docstring の有無のみを判定するツールを起動し、ARGS_MISMATCH 相当の判定は行わない shall。",
         "When 既存 lint ツールが「引数の記載漏れ・余分な記載」を報告したとき、エンジンはこれを code=ARGS_MISMATCH として正規化する shall。",
         "When 要素の hasDocstring が false のとき、エンジンは code=MISSING_DOC_COMMENT の違反として報告する shall。",
+        "When 公開関数が引数を持つのにArgsセクションを欠いているとき、エンジンは code=MISSING_ARGS_SECTION の違反として報告する shall。",
+        "When 公開関数が戻り値を持つのにReturnsセクションを欠いているとき、エンジンは code=MISSING_RETURNS_SECTION の違反として報告する shall。",
+        "When 公開関数が例外を送出するのにRaisesセクションを欠いているとき、エンジンは code=MISSING_RAISES_SECTION の違反として報告する shall。",
+        "While 非公開要素であるとき、エンジンはMISSING_ARGS_SECTION/MISSING_RETURNS_SECTION/MISSING_RAISES_SECTIONの判定対象から除外する shall。",
         "While 全要素が適合しているとき、エンジンは空配列を返す（正常系）shall。",
         "If 対象言語に対応する DocstringSchema の kind が無いとき、エンジンは UNSUPPORTED_KIND エラーを返す shall。",
         "If kind に対応する既存 lint ツールが実行環境に存在しないとき、エンジンは TOOL_NOT_AVAILABLE エラーを返す shall。"
@@ -141,6 +147,34 @@
           "viewpoint": "違反：ARGS_MISMATCH（構造照合の核）",
           "gherkin": "Scenario: Args の引数名がシグネチャと不一致な要素を検出する\n  Given Args セクションの引数名が実シグネチャと異なる関数を含むコードベース\n  When 適合判定を実行する\n  Then その要素について ARGS_MISMATCH 違反が報告される",
           "covers": "受け入れ基準: ARGS_MISMATCH"
+        },
+        {
+          "name": "要約行のみの短いdocstringでもArgsセクション欠落を検出する",
+          "category": "異常系",
+          "viewpoint": "違反：MISSING_ARGS_SECTION（短いdocstringが構造チェックを免れないことの確認）",
+          "gherkin": "Scenario: 要約行のみの短いdocstringでもArgsセクション欠落を検出する\n  Given 引数を持つ公開関数が、要約行のみでArgsセクションを持たない短いdocstringを持つコードベース\n  When 適合判定を実行する\n  Then その要素について MISSING_ARGS_SECTION 違反が報告される",
+          "covers": "受け入れ基準: MISSING_ARGS_SECTION"
+        },
+        {
+          "name": "Returnsセクションの欠落を検出する",
+          "category": "異常系",
+          "viewpoint": "違反：MISSING_RETURNS_SECTION",
+          "gherkin": "Scenario: Returnsセクションの欠落を検出する\n  Given 戻り値を持つ公開関数が、Returnsセクションを持たないdocstringを持つコードベース\n  When 適合判定を実行する\n  Then その要素について MISSING_RETURNS_SECTION 違反が報告される",
+          "covers": "受け入れ基準: MISSING_RETURNS_SECTION"
+        },
+        {
+          "name": "Raisesセクションの欠落を検出する",
+          "category": "異常系",
+          "viewpoint": "違反：MISSING_RAISES_SECTION",
+          "gherkin": "Scenario: Raisesセクションの欠落を検出する\n  Given 例外を送出する公開関数が、Raisesセクションを持たないdocstringを持つコードベース\n  When 適合判定を実行する\n  Then その要素について MISSING_RAISES_SECTION 違反が報告される",
+          "covers": "受け入れ基準: MISSING_RAISES_SECTION"
+        },
+        {
+          "name": "非公開要素はセクション欠落判定の対象外とする",
+          "category": "境界値",
+          "viewpoint": "適用範囲：privateはcoding-standardの規約通り任意のまま",
+          "gherkin": "Scenario: 非公開要素はセクション欠落判定の対象外とする\n  Given 引数・戻り値・例外を持つがdocstringのセクションを欠く非公開関数を含むコードベース\n  When 適合判定を実行する\n  Then MISSING_ARGS_SECTION・MISSING_RETURNS_SECTION・MISSING_RAISES_SECTIONのいずれも報告されない",
+          "covers": "事後条件: 非公開要素は判定対象外"
         },
         {
           "name": "対応する kind が無い言語は UNSUPPORTED_KIND",

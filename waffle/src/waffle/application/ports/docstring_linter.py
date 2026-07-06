@@ -1,5 +1,6 @@
 """DocstringLinter port — kind ごとに確立された既存 lint ツールを呼び出し、
-docstringの引数名とシグネチャの不一致（ARGS_MISMATCH）を検出する Secondary Port。
+docstringの構造欠落（Args/Returns/Raisesセクションの有無・引数名の不一致）を
+検出する Secondary Port。
 
 docstringの有無（MISSING_DOC_COMMENT）はuc-scan-source-codeの結果（hasDocstring）
 から導出するため、このportの責務には含まれない。
@@ -19,7 +20,9 @@ class ToolNotAvailable(Exception):
 
 class DocstringLinter(Protocol):
     def lint(self, target_path: str, kind: str) -> list[dict]:
-        """target_path配下をkindの規約に従って検証し、引数名不一致の違反
-        ({path, elementKind, name, code:"ARGS_MISMATCH", detail})の配列を返す。
+        """target_path配下をkindの規約に従って検証し、構造違反
+        ({path, elementKind, name, code, detail})の配列を返す。
+        codeは ARGS_MISMATCH / MISSING_ARGS_SECTION / MISSING_RETURNS_SECTION /
+        MISSING_RAISES_SECTION のいずれか。非公開要素は対象外。
         """
         ...

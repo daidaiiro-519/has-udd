@@ -50,6 +50,7 @@ sequenceDiagram
 - 違反があれば、次のフィールドを持つオブジェクトの配列で返る: path・elementKind・name（違反した要素の特定）・code（違反コード。MISSING_DOC_COMMENT/ARGS_MISMATCH のいずれか。ツール固有の診断は code に正規化して吸収する）・detail（ツールの元メッセージ。人が読むための補足）
 - 1つの要素が複数の違反を同時に持つ場合は、要素ごとに複数のオブジェクトを返す（1違反=1オブジェクト）
 - docstring の“意味”（要約行の語選びの適切さ等）は判定しない（機械判定できない範囲は対象外）
+- docstringの有無判定（MISSING_DOC_COMMENT）はclass/functionの要素のみを対象とし、module要素（ファイル自体）は対象外とする（モジュールレベルのdocstringは慣習的に必須とされないため）
 
 ---
 
@@ -62,6 +63,12 @@ sequenceDiagram
 - While 全要素が適合しているとき、エンジンは空配列を返す（正常系）shall。
 - If 対象言語に対応する DocstringSchema の kind が無いとき、エンジンは UNSUPPORTED_KIND エラーを返す shall。
 - If kind に対応する既存 lint ツールが実行環境に存在しないとき、エンジンは TOOL_NOT_AVAILABLE エラーを返す shall。
+
+---
+
+## 操作保証
+
+- When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。
 
 ---
 
@@ -152,4 +159,21 @@ Scenario: 対応するツールが実行環境に無いとき TOOL_NOT_AVAILABLE
   Given kind に対応する lint ツールがインストールされていない環境
   When 適合判定を実行する
   Then TOOL_NOT_AVAILABLE エラーが返る
+```
+
+---
+
+## 操作保証シナリオ
+
+### 存在しないパスはINVALID_PATH
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | 解決契約：対象パスが実在しないとき、パスの解決に失敗しINVALID_PATHになる |
+
+```gherkin
+Scenario: 存在しないパスはINVALID_PATH
+  Given 実在しない対象パス
+  When 本usecaseを実行する
+  Then INVALID_PATHエラーが返る
 ```

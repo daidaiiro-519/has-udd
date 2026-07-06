@@ -112,3 +112,16 @@ def test_scan_source_codeは公開要素の一覧を返す(tmp_path):
 
     out = asyncio.run(_call("scan_source_code", {"path": str(tmp_path), "kind": "google"}))
     assert any(e["name"] == "f" for e in out)
+
+
+def test_lint_docstringは違反の配列を返す(tmp_path):
+    """
+    Given waffle MCPサーバ
+    When lint_docstringツールをkind=googleで呼ぶ
+    Then MCP出力は違反の配列（適合すれば空配列）
+    """
+    sample = tmp_path / "sample.py"
+    sample.write_text('def f():\n    """要約。"""\n    pass\n', encoding="utf-8")
+
+    out = asyncio.run(_call("lint_docstring", {"path": str(tmp_path), "kind": "google"}))
+    assert isinstance(out, list)

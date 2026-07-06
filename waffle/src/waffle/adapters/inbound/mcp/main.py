@@ -10,10 +10,12 @@ from fastmcp import FastMCP
 
 from waffle.adapters.outbound.fs import FsDocumentRepository
 from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
+from waffle.adapters.outbound.pydoclint_linter import PydoclintLinter
 from waffle.adapters.outbound.python_ast_source_scanner import PythonAstSourceScanner
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
 from waffle.application.usecases.check_scenario_drift_engine import CheckScenarioDriftEngine
 from waffle.application.usecases.check_spec_integrity_engine import CheckSpecIntegrityEngine
+from waffle.application.usecases.lint_docstring_engine import LintDocstringEngine
 from waffle.application.usecases.query_engine import QueryEngine
 from waffle.application.usecases.render_engine import RenderEngine
 from waffle.application.usecases.scaffold_engine import ScaffoldEngine
@@ -111,3 +113,9 @@ def check_scenario_drift(specPath: str, testPath: str) -> dict:
 def scan_source_code(path: str, kind: str) -> dict | list:
     """対象コードベースの公開要素のdocstringを構造化抽出（uc-scan-source-code）。"""
     return _dict(ScanSourceCodeEngine(_docs(), PythonAstSourceScanner()).run(path, kind))
+
+@mcp.tool
+def lint_docstring(path: str, kind: str) -> dict | list:
+    """対象コードベースのdocstringが規約どおりか既存lintツールで検証（uc-lint-docstring）。"""
+    scan_engine = ScanSourceCodeEngine(_docs(), PythonAstSourceScanner())
+    return _dict(LintDocstringEngine(scan_engine, PydoclintLinter()).run(path, kind))

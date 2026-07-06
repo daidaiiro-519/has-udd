@@ -148,3 +148,20 @@ def test_scan_source_codeは公開要素の一覧を返す(tmp_path):
     assert result.exit_code == 0, result.output
     data = json.loads(result.output)
     assert any(e["name"] == "f" for e in data)
+
+
+def test_lint_docstringは違反の配列を返す(tmp_path):
+    """
+    Given waffle CLI
+    When lint-docstring --path --kind google を実行する
+    Then 終了コードは0で、出力JSONは違反の配列（適合すれば空配列）
+    """
+    sample = tmp_path / "sample.py"
+    sample.write_text('def f():\n    """要約。"""\n    pass\n', encoding="utf-8")
+
+    result = _runner.invoke(app, [
+        "lint-docstring", "--path", str(tmp_path), "--kind", "google",
+    ])
+    assert result.exit_code == 0, result.output
+    data = json.loads(result.output)
+    assert isinstance(data, list)

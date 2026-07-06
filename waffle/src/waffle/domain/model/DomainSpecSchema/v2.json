@@ -134,7 +134,7 @@
         "implementationGuidance": { "$ref": "#/$defs/ImplementationGuidanceBlock" },
         "externalSolution":       { "$ref": "#/$defs/ExternalSolutionBlock" },
         "domainServices":         { "$ref": "#/$defs/DomainServicesBlock" },
-        "guaranteeScenarios":     { "$ref": "#/$defs/GuaranteeScenariosBlock" }
+        "domainServiceScenarios": { "$ref": "#/$defs/DomainServiceScenariosBlock" }
       }
     },
 
@@ -924,6 +924,46 @@
               "viewpoint": { "type": "string", "x-prompt-write": "観点: べき等性/一貫性/提供チャネルの一貫性 等＋検証の狙い。" },
               "gherkin":   { "type": "string", "x-prompt-write": "Given/When/Then。ドメイン語彙で書き、実装詳細は書かない。" },
               "covers":    { "type": "string", "x-prompt-write": "対応するOperationGuaranteesの項目への参照。" }
+            }
+          }
+        }
+      }
+    },
+
+    "DomainServiceScenariosBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "scenarios"],
+      "x-render-order": 7,
+      "x-render-level": 2,
+      "x-test-scenario": true,
+      "x-prompt-query": "domainServicesの各業務サービスのふるまいを検証するテストシナリオ(分類・観点・Gherkin)を持ちます。GuaranteeScenarios(usecase単位のデータアクセス層保証)とは意味が異なる別語彙——業務ロジック層の業務サービスが何を計算/判定するかを検証する。MD＋.featureにrenderされ、TestScenariosと同じ機構でネイティブテスト化されます。",
+      "x-render": [
+        { "as": "paragraph", "heading": "背景", "from": "background" },
+        { "as": "section", "from": "scenarios", "titleFrom": "name", "each": [
+          { "as": "kvtable", "columns": [
+            { "field": "category", "header": "分類" },
+            { "field": "viewpoint", "header": "観点" }
+          ] },
+          { "as": "code", "from": "gherkin", "lang": "gherkin" }
+        ] }
+      ],
+      "properties": {
+        "blockType":  { "type": "string", "const": "DomainServiceScenarios" },
+        "title":      { "type": "string", "const": "業務サービスシナリオ" },
+        "background": { "type": "string", "x-prompt-write": "複数シナリオ共通の前提。無ければ空文字。" },
+        "scenarios": {
+          "type": "array",
+          "minItems": 1,
+          "x-prompt-write": "1シナリオ1要素。domainServicesの各項目が何を計算/判定するかを最低1つのシナリオで検証する。",
+          "items": {
+            "type": "object",
+            "required": ["name", "category", "viewpoint", "gherkin"],
+            "properties": {
+              "name":      { "type": "string", "x-prompt-write": "シナリオ名（概要）。" },
+              "category":  { "type": "string", "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。" },
+              "viewpoint": { "type": "string", "x-prompt-write": "観点: 何を計算/判定するか＋検証の狙い。" },
+              "gherkin":   { "type": "string", "x-prompt-write": "Given/When/Then。ドメイン語彙で書き、実装詳細は書かない。" },
+              "covers":    { "type": "string", "x-prompt-write": "対応するdomainServicesの項目への参照。" }
             }
           }
         }

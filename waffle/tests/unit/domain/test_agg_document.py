@@ -1,12 +1,13 @@
 """agg-document（Document集約）の invariantScenarios に対応するネイティブテスト。
 
 lifecycle_guard（schema の x-lifecycle を読む薄い guard）・path_confinement
-（パス解決の不変条件を守る純粋なドメインサービス）・require_schema_ref
-（既にロード済みのDocumentのschemaRef有無を見るだけの純粋な判定）経由で実証する。
+（パス解決の不変条件を実装する、業務ロジックを含まない汎用ユーティリティ）・
+require_schema_ref（既にロード済みのDocumentのschemaRef有無を見るだけの純粋な判定）
+経由で実証する。
 """
 from waffle.domain.services.lifecycle_guard import next_status
-from waffle.domain.services.path_confinement import is_confined
 from waffle.domain.services.schema_ref_guard import require_schema_ref
+from waffle.shared.path_confinement import is_confined
 from waffle.shared.result import Err
 
 _SCHEMA = {

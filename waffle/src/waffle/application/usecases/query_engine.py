@@ -13,7 +13,7 @@ from pathlib import Path
 from waffle.application.ports.document_repository import DocumentRepository
 from waffle.application.ports.schema_repository import SchemaRepository
 from waffle.application.services.document_loading import load_document, load_schema
-from waffle.domain.services.path_confinement import is_confined
+from waffle.shared.path_confinement import is_confined
 from waffle.shared.result import Err, Ok, Result
 
 # 各 operation の必須パラメータ（path を除く）

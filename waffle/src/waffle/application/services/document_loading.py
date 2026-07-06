@@ -3,8 +3,8 @@ SchemaRepositoryを介する（port必須の）読込・エラーマッピング
 application層の共通ヘルパー。5つのengine(query/render/validate/scaffold/migrate)に
 同一ロジックが重複していたものを、ここに集約した。
 
-パス解決の核心（G6/G7）自体は port 不要の純粋ロジックであり
-domain/services/path_confinement.py が担う。ここはその判定結果を使い、port経由の
+パス解決の核心（G6/G7）自体は業務ロジックを含まない汎用の技術的関心事であり
+shared/path_confinement.py が担う。ここはその判定結果を使い、port経由の
 読込を実行してResultへマッピングする「編成」だけを担当する。
 """
 from __future__ import annotations
@@ -13,8 +13,8 @@ import json
 
 from waffle.application.ports.document_repository import DocumentRepository
 from waffle.application.ports.schema_repository import SchemaRepository
-from waffle.domain.services.path_confinement import is_confined
 from waffle.domain.services.schema_ref_guard import require_schema_ref
+from waffle.shared.path_confinement import is_confined
 from waffle.shared.result import Err, Ok, Result
 
 __all__ = ["load_document", "require_schema_ref", "load_schema"]

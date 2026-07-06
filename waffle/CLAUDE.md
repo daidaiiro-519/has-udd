@@ -49,7 +49,7 @@ JSON Schemaでdocument.jsonを検証・query・render・scaffoldする。
 ## 構造メモ
 
 - ワークスペース: `src/waffle/`（domain/application/adapters・ヘキサゴナル）・
-  `tests/`（pytest）・`features/`（behave）。
+  `tests/`（pytest。unit/integration/acceptance/contractの4層。behaveは全撤去済み）。
 - schema解決は`PackageSchemaRepository`（`adapters/outbound/schema_repo.py`）が
   `importlib.resources`でパッケージ内`domain/model/`（集約）・`domain/value_objects/`
   （値オブジェクト型定義）・`application/dto/`（usecase出力形状）の3箇所から行う

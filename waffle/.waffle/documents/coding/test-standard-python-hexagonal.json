@@ -144,6 +144,10 @@
         {
           "level": "推奨",
           "rule": "不変条件はテストダブルなしで検証する"
+        },
+        {
+          "level": "必須",
+          "rule": "テストファイル名は test_{対応するspecのdocumentIdをsnake_case化したもの}.py で統一する（domain/adapters/acceptanceの全層に適用。実装モジュール名を由来にした命名は禁止）"
         }
       ]
     }

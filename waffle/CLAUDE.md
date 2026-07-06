@@ -18,10 +18,19 @@ Claude Code自身がwaffleの最初のユーザーであり、ここでの振る
   `uv run waffle check-spec-integrity` / `check-scenario-drift` / `check-schema-version-drift`
 - **ソースコードのdocstring確認**: `uv run waffle scan-source-code` / `lint-docstring`
 
-**唯一の例外**: 既存document.jsonの**フィールド追加・削除**（scaffold fill後の構造変更）に
-対応するengineは現状無い（scaffoldはcreate/fillのみで、既存documentの編集操作が未実装）。
-この場合に限りEdit/Writeでの直接編集を許容するが、これは「サボって良い」ではなく
-**「engineが無いから仕方なく」**の扱い——気づいたら編集用usecaseの新設を検討する。
+**訂正（実測済み）**: 「既存document.jsonは編集engineが無い」は誤りだった。`scaffold fill`は
+`documentPath`が指す既存document（作成直後に限らない）に対して、schemaが`x-prompt-write`を
+宣言した任意のpathへ値を書き込める。**配列フィールドは丸ごと置き換え**なので、
+`content.valueObjects.items`のような配列パスに「既存要素＋追加/削除後の完全な配列」を
+valuesとして渡せば、値オブジェクトの追加・削除・entity属性の追加等はfillで行える
+（`waffle query`で現在値を取得→配列を組み立てる→`waffle scaffold fill`で書き込む、という手順）。
+実測でCLI経由の追加・削除・再validateまで動作確認済み。
+
+**残る唯一の例外**: schema自体が更新され、既存document.jsonに元から無かった
+トップレベルキーを新規追加する場合のみ。`fill`は対象キーが既にdocument内に存在する
+前提（`path in doc`）でしか書けず、`create`も既存documentがあれば中身を保護して
+上書きしない（新規必須フィールドの後追いマージはしない）。この場合に限りEdit/Writeを
+許容するが、頻発するようなら編集用usecaseの新設を検討する。
 
 ## 確定した意思決定（詳細は各ブレストdocを参照。ここでは結論だけ）
 

@@ -4,7 +4,7 @@
   "schemaRef": "DomainSpecSchema/v2",
   "specKind": "usecase",
   "status": "CREATED",
-  "subdomainRef": "sd-rendering",
+  "subdomainRef": "sd-document-engine",
   "aggregateRef": "agg-document",
   "tags": [
     "context:waffle-engines"

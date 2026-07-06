@@ -4,9 +4,9 @@
   "schemaRef": "DomainSpecSchema/v2",
   "specKind": "usecase",
   "status": "CREATED",
-  "subdomainRef": "sd-validation",
+  "subdomainRef": "sd-reconciliation",
   "tags": [
-    "context:has-udd-engines"
+    "context:waffle-engines"
   ],
   "content": {
     "title": {

@@ -14,3 +14,8 @@ Feature: agg-schema
     Given v1 と v2 の Schema
     When v2 から v1 へ移行しようとする
     Then 拒否される
+
+  Scenario: x-render は閉じた語彙にのみ従う
+    Given 未知の部品種別、または必須属性が欠けた x-render 宣言を持つ Schema
+    When x-render の適合を検証する
+    Then 不適合として拒否される

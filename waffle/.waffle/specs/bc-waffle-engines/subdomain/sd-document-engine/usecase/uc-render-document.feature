@@ -19,11 +19,6 @@ Feature: uc-render-document
     When deploy を有効にして render する
     Then canonical と deploy 先の両方に成果物が書かれる
 
-  Scenario: render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する
-    Given interfaceブロック(x-render宣言=table)を持つDocument
-    When render engine経由でrenderする
-    Then schemaのx-render宣言どおりに整形されたMarkdownテーブルが出力に含まれる
-
   Scenario: SkillSchemaをMarkdownにレンダリングする
     Given SkillSchemaのDocument
     When renderする
@@ -133,3 +128,8 @@ Feature: uc-render-document
     Given join/sepを指定したcolumns宣言と配列値を持つセル
     When renderする
     Then 配列の各要素がjoinテンプレートで整形されsepで連結される
+
+  Scenario: render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する
+    Given interfaceブロック(x-render宣言=table)を持つDocument
+    When render engine経由でrenderする
+    Then schemaのx-render宣言どおりに整形されたMarkdownテーブルが出力に含まれる

@@ -114,19 +114,6 @@ Scenario: deploy すると canonical と deploy 先の両方に書く
   Then canonical と deploy 先の両方に成果物が書かれる
 ```
 
-### render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する
-
-| 分類 | 観点 |
-|---|---|
-| 正常系 | 配線：render engineがschemaのx-render宣言を読み取りpart_rendererへ正しく渡す(part_renderer自体の整形保証とは別に、engine自体の配線を検証する) |
-
-```gherkin
-Scenario: render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する
-  Given interfaceブロック(x-render宣言=table)を持つDocument
-  When render engine経由でrenderする
-  Then schemaのx-render宣言どおりに整形されたMarkdownテーブルが出力に含まれる
-```
-
 ### SkillSchemaをMarkdownにレンダリングする
 
 | 分類 | 観点 |
@@ -415,4 +402,17 @@ Scenario: tableはjoin指定で配列セルを結合整形する
   Given join/sepを指定したcolumns宣言と配列値を持つセル
   When renderする
   Then 配列の各要素がjoinテンプレートで整形されsepで連結される
+```
+
+### render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | 配線：render engineがschemaのx-render宣言を読み取りpart_rendererへ正しく渡す(part_renderer自体の整形保証とは別に、engine自体の配線を検証する) |
+
+```gherkin
+Scenario: render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する
+  Given interfaceブロック(x-render宣言=table)を持つDocument
+  When render engine経由でrenderする
+  Then schemaのx-render宣言どおりに整形されたMarkdownテーブルが出力に含まれる
 ```

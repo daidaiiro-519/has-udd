@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "MigrationMetaSchema/v1",
+  "title": "Migration Meta Schema v1",
+  "description": "新schemaの各フィールドが宣言する x-migration（旧バージョンからの移行方法）を検証するメタスキーマ。RenderMetaSchemaと同じ立ち位置——閉じた語彙のうち大半(rename/default/value-map/discriminator-remap)はengineが機械的に実行する命令で、ai-inferのみがAIの推論を要し内部にpromptを持つ。x-migrationはx-prompt-writeと同義ではない（詳細はdocs/brainstorm/brainstorm-schema-versioning-migration.md論点3参照）。",
+
+  "$defs": {
+    "MigrationDeclaration": {
+      "type": "object",
+      "required": ["as"],
+      "additionalProperties": false,
+      "properties": {
+        "as": {
+          "enum": ["rename", "default", "value-map", "discriminator-remap", "ai-infer"],
+          "description": "移行方法の種類（閉じた語彙）。rename/default/value-map/discriminator-remapは機械的、ai-inferのみAIの推論を要する"
+        },
+        "from": {
+          "type": "string",
+          "description": "rename: 旧フィールド名。value-map: 値を読み取る旧フィールド名（フィールド名は変えず値だけ変換する）"
+        },
+        "value": {
+          "description": "default: 新規フィールドに設定する固定値（全Document共通）"
+        },
+        "mapping": {
+          "type": "object",
+          "description": "value-map: 旧値→新値の固定対応表（例: {\"Spec\": \"DomainSpec\"}）"
+        },
+        "rules": {
+          "type": "array",
+          "description": "discriminator-remap: 旧content内のフィールド構成（構造パターン）から新しい値を機械的に判定するルールの配列。上から順に評価し最初に一致したものを採用する",
+          "items": {
+            "type": "object",
+            "required": ["ifHasField", "then"],
+            "additionalProperties": false,
+            "properties": {
+              "ifHasField": { "type": "string", "description": "旧contentがこのフィールドを持っていれば一致とみなす" },
+              "then": { "description": "一致した場合に設定する値" }
+            }
+          }
+        },
+        "prompt": {
+          "type": "string",
+          "description": "ai-infer: 何を推論して書くべきかの自然言語の指示（x-prompt-write相当）。移行ワークシートとしてAIに提示される"
+        }
+      },
+      "allOf": [
+        { "if": { "properties": { "as": { "const": "rename" } } },              "then": { "required": ["from"] } },
+        { "if": { "properties": { "as": { "const": "default" } } },             "then": { "required": ["value"] } },
+        { "if": { "properties": { "as": { "const": "value-map" } } },           "then": { "required": ["from", "mapping"] } },
+        { "if": { "properties": { "as": { "const": "discriminator-remap" } } }, "then": { "required": ["rules"] } },
+        { "if": { "properties": { "as": { "const": "ai-infer" } } },            "then": { "required": ["prompt"] } }
+      ]
+    }
+  }
+}

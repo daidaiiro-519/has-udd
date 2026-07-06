@@ -1,0 +1,37 @@
+{
+  "documentId": "sd-docstring-linting",
+  "documentType": "DomainSpec",
+  "schemaRef": "DomainSpecSchema/v2",
+  "specKind": "subdomain",
+  "status": "CREATED",
+  "tags": ["context:waffle-engines"],
+  "content": {
+    "title": { "blockType": "Title", "title": "sd-docstring-linting" },
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
+      "text": "ソースコードの docstring が規約通りの構造か（必須セクションの有無・引数名と実シグネチャの整合）を、kind ごとに確立された既存 lint ツールへ判定を委ねて確認する業務領域。"
+    },
+    "category": {
+      "blockType": "SubdomainCategory",
+      "title": "カテゴリー",
+      "classification": "generic",
+      "rationale": "適合判定は kind ごとの実績あるパッケージ（pydoclint/eslint-plugin-jsdoc/Checkstyle JavadocMethod/revive/rustc 組み込み missing_docs）に委ねられ、waffle 独自の差別化を生まない。sd-validation と同じ理屈で一般（ただし対象データ・外部システムが異なるため別 subdomain）。"
+    },
+    "members": {
+      "blockType": "SubdomainMembers",
+      "title": "所属ユースケース",
+      "items": ["uc-lint-docstring"]
+    },
+    "implementationGuidance": {
+      "blockType": "ImplementationGuidance",
+      "title": "実装ガイド",
+      "text": "一般ゆえ既存ツールを薄く呼び出すだけ。適合判定そのものは既存ツールに委ね、waffle はツール起動・出力の正規化・境界適応だけを担う。"
+    },
+    "externalSolution": {
+      "blockType": "ExternalSolution",
+      "title": "外部解決策",
+      "text": "kind ごとの既存 lint ツール（pydoclint/eslint-plugin-jsdoc/Checkstyle JavadocMethod/revive/rustc 組み込み missing_docs）を採用する。適合判定そのものと違反詳細の抽出を委ねる。"
+    }
+  }
+}

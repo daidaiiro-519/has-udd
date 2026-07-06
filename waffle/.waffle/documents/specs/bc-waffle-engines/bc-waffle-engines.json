@@ -55,7 +55,7 @@
         },
         {
           "term": "reconcile",
-          "definition": "ソースコードとSpecの対応関係を保つこと。AIに生ソースを読ませず engine が構造化抽出・規約適合検証を担う。"
+          "definition": "スペックが嘘をつかないよう、2種類のドリフト（スペック内部の参照整合性・スペックとテストシナリオの対応関係）を機械的に検知し続けること。docstring の構造化抽出・規約適合検証（uc-scan-source-code/uc-lint-docstring）はreconcileが使う部品であり、reconcile本体ではない。"
         }
       ]
     },
@@ -65,7 +65,7 @@
       "items": [
         {
           "kind": "subdomain",
-          "members": "sd-document-engine / sd-validation / sd-reconciliation"
+          "members": "sd-document-engine / sd-validation / sd-source-code / sd-docstring-linting / sd-reconciliation"
         },
         {
           "kind": "aggregate",

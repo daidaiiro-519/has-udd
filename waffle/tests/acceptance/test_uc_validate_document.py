@@ -25,14 +25,16 @@ _DOGFOOD_DOCUMENTS = [
     (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/sd-document-engine.json", "VALIDATED"),
     (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-validation/sd-validation.json", "VALIDATED"),
     (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-reconciliation/sd-reconciliation.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-source-code/sd-source-code.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-docstring-linting/sd-docstring-linting.json", "VALIDATED"),
     (".waffle/documents/specs/bc-waffle-engines/aggregate/agg-document.json", "VALIDATED"),
     (".waffle/documents/specs/bc-waffle-engines/aggregate/agg-schema.json", "VALIDATED"),
     (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase/uc-query-document.json", "VALIDATED"),
     (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase/uc-render-document.json", "VALIDATED"),
     (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-validation/usecase/uc-validate-document.json", "VALIDATED"),
     (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase/uc-scaffold-document.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-reconciliation/usecase/uc-scan-source-code.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-reconciliation/usecase/uc-lint-docstring.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-source-code/usecase/uc-scan-source-code.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-docstring-linting/usecase/uc-lint-docstring.json", "VALIDATED"),
 ]
 
 

@@ -10,23 +10,23 @@
     "summary": {
       "blockType": "Summary",
       "title": "概要",
-      "text": "ソースコードベースを、AI に生ファイルを読ませず engine が機械的に構造抽出・検証する業務領域。docstring の構造化抽出（uc-scan-source-code）と規約適合検証（uc-lint-docstring）を通じて、コードと仕様の対応関係を保つ（reconcile）。"
+      "text": "スペック自身が嘘をつかないよう、2種類のドリフト（スペック内部の参照整合性・スペックとテストシナリオの対応関係）を機械的に検知し続ける業務領域。spec 同士（bc/subdomain/usecase の宣言と実ファイル）の参照整合性、および spec の TestScenarios と対応するテストコードのシナリオ名の整合という、2つの異なるデータ領域（Spec と ソースコード）をまたいで一貫性を保つ。"
     },
     "category": {
       "blockType": "SubdomainCategory",
       "title": "カテゴリー",
       "classification": "core",
-      "rationale": "sd-document-engine が Document(document.json) に対して適用する『AI に構造を推論させず engine が決定的に処理する』という Harness 原則を、対象をソースコードに広げて適用したもの。既製の静的解析ツールでは代替できない、waffle 独自の差別化。"
+      "rationale": "「陳腐化しない仕様」は waffle の差別化原理そのもの。spec 同士・spec とテストコードという独立して変化しうる2つの世界を突き合わせ続ける能力は、既製の静的解析ツールでは代替できない waffle 独自の関心事。"
     },
     "members": {
       "blockType": "SubdomainMembers",
       "title": "所属ユースケース",
-      "items": ["uc-scan-source-code", "uc-lint-docstring"]
+      "items": []
     },
     "implementationGuidance": {
       "blockType": "ImplementationGuidance",
       "title": "実装ガイド",
-      "text": "中核ゆえドメインモデルで厚く実装する。docstring の構造化抽出・規約適合判定は自前の決定的コードで書き、AIに生ソースを読ませない。"
+      "text": "中核ゆえドメインモデルで厚く実装する。中身となる2つのusecase（spec内参照整合性検査・spec↔テストシナリオドリフト検査）は設計中（scripts/check_spec_referential_integrity.py・scripts/check_scenario_drift.py が参照実装。正式なusecase化にあたっては既存のhexagonalアーキテクチャ（port/adapter）に則って再設計する）。"
     }
   }
 }

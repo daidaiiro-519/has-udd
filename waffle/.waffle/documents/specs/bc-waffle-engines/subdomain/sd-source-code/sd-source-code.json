@@ -1,0 +1,32 @@
+{
+  "documentId": "sd-source-code",
+  "documentType": "DomainSpec",
+  "schemaRef": "DomainSpecSchema/v2",
+  "specKind": "subdomain",
+  "status": "CREATED",
+  "tags": ["context:waffle-engines"],
+  "content": {
+    "title": { "blockType": "Title", "title": "sd-source-code" },
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
+      "text": "ソースコードから、AI に生ファイルを読ませず、docstring を DocstringSchema の kind の構造宣言に従って機械的に抽出したインデックスビューを提供する業務領域。sd-document-engine が Document(document.json) に対して適用する Harness 原則（AI に構造を推論させず engine が決定的に処理する）を、対象をソースコードに広げて適用したもの。"
+    },
+    "category": {
+      "blockType": "SubdomainCategory",
+      "title": "カテゴリー",
+      "classification": "core",
+      "rationale": "docstring を kind ごとの構造宣言（summary/body/args/returns/raises/attributes）に機械的に分解するロジックは既製の静的解析ツールでは代替できない、waffle 独自の差別化。sd-document-engine と同じ差別化原理（AI 0 で構造アクセス）をソースコードに適用したもの。"
+    },
+    "members": {
+      "blockType": "SubdomainMembers",
+      "title": "所属ユースケース",
+      "items": ["uc-scan-source-code"]
+    },
+    "implementationGuidance": {
+      "blockType": "ImplementationGuidance",
+      "title": "実装ガイド",
+      "text": "中核ゆえドメインモデルで厚く実装する。docstring の kind ごとの構造化抽出は自前の決定的コードで書き、AI に生ソースを読ませない。"
+    }
+  }
+}

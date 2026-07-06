@@ -3,7 +3,6 @@
   "$id": "PlatformSpec/v1",
   "title": "PlatformSpec v1 (DRAFT/PROTOTYPE v3 - 全11分類)",
   "description": "検証用プロトタイプ。specKind=コンポーネント軸11分類(Compute/Storage/Database/Networking/Security/Integration/Observability/CI-CD/IoT/ML/Analytics)。資源型5分類(compute/storage/database/networking/integration)はCapacity/Resilience/ComponentSecurityの共通三分ブロックを再利用し、残り6分類(security/observability/ci-cd/iot/ml/analytics)はそれぞれの自然な中身に合わせた専用/再利用ブロックを持つ。",
-  "x-schema-status": "PUBLISHED",
 
   "x-render-target": { "formats": ["md", "feature"], "path": ".waffle/specs/platform/{documentId}.md", "featurePath": ".waffle/specs/platform/{documentId}.feature" },
   "x-source-target": ".waffle/documents/specs/platform/{documentId}.json",

@@ -3,7 +3,6 @@
   "$id": "SkillSchema/v1",
   "title": "SkillSchema v1",
   "description": "waffle Skill document の Schema（engine / custom 両対応）",
-  "x-schema-status": "PUBLISHED",
   "x-render-target": {
     "formats": ["md"],
     "path": ".waffle/skills/{documentId}/SKILL.md",

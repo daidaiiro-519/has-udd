@@ -3,7 +3,6 @@
   "$id": "CodingSchema/v2",
   "title": "CodingSchema v2",
   "description": "has-udd Coding 集約の Schema。codingKind=tech-stack/architecture/coding-standard/test-standard（実装前に準備すべきものから逆算した4種）。ブロックはアーキ/スタック非依存で固定・中身がスタックで変わる。1スタック＝4 codingKind document（stack フィールドで束ねる）。カスタムアンカー(@spec/@stack)は使わない＝リンクは正典配置(architecture の ConceptPlacement)と検索(code_scan)で計算する（brainstorm-ai-era-detail-design 参照）。",
-  "x-schema-status": "PUBLISHED",
 
   "x-render-target": {
     "formats": ["md"],

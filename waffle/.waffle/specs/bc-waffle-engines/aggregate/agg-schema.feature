@@ -14,8 +14,3 @@ Feature: agg-schema
     Given 未知の部品種別、または必須属性が欠けた x-render 宣言を持つ Schema
     When x-render の適合を検証する
     Then 不適合として拒否される
-
-  Scenario: 全schemaがx_schema_statusを宣言している
-    Given Documentのschemaが指しうる型(DomainSpecSchema/PresentationSpecSchema/CodingSchema/SkillSchema)
-    When 各schemaファイルのx-schema-statusを確認する
-    Then 全てPUBLISHED/DEPRECATEDのいずれかを宣言している

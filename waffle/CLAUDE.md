@@ -21,14 +21,12 @@ JSON Schemaでdocument.jsonを検証・query・render・scaffoldする。
     経緯は`docs/brainstorm/brainstorm-schema-aggregate-zerobase.md`を参照。
   - **Schema集約（agg-schema）の対象は「Documentのschemaが指しうる型」のみ**
     （DomainSpecSchema/PresentationSpecSchema/CodingSchema/SkillSchema）。独自の識別
-    （documentType）とライフサイクル（x-schema-status）を持つ。`src/waffle/domain/model/`
-    に置く。
-  - **RenderMetaSchema/DocstringSchemaは集約ではない**（identity・x-schema-status・
-    ライフサイクルを持たない）。RenderMetaSchemaは他schemaのブロックに埋め込まれる
-    値オブジェクト（x-render宣言）の型定義で`src/waffle/domain/value_objects/`に置く。
-    DocstringSchemaはusecase(uc-scan-source-code)の出力データの形状定義であり、業務
-    ロジック(domain)ではなくusecaseの入出力契約(application)の関心事なので
-    `src/waffle/application/dto/`に置く。
+    （documentType）を持つ。`src/waffle/domain/model/`に置く。
+  - **RenderMetaSchema/DocstringSchemaは集約ではない**（identityを持たない）。
+    RenderMetaSchemaは他schemaのブロックに埋め込まれる値オブジェクト（x-render宣言）の
+    型定義で`src/waffle/domain/value_objects/`に置く。DocstringSchemaはusecase
+    (uc-scan-source-code)の出力データの形状定義であり、業務ロジック(domain)ではなく
+    usecaseの入出力契約(application)の関心事なので`src/waffle/application/dto/`に置く。
   - **schemaのバージョン移行機構（x-migration語彙・MigrationEngine）は撤去済み**
     （実際にx-migrationを必要とした実schemaが無く、各schemaの実document数も少数のため、
     機械的な一括移行は過剰と判断。ドリフト検知(`check_schema_version_drift.py`)のみ維持し、

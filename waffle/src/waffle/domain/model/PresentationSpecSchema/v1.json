@@ -3,7 +3,6 @@
   "$id": "PresentationSpecSchema/v1",
   "title": "PresentationSpecSchema v1",
   "description": "waffle の Spec 家族のうち、プレゼンテーション層（UI層・非DDD管轄）を扱う Spec。DomainSpecSchema（DDD管轄）とは別家族。specKind=screen/flow。業務ユースケース（DomainSpecSchemaのusecase）のパラメータから導出できる項目は書かない（都度クエリで引く前提）— ここに書くのは業務ユースケースからは導けないプロダクトの意図（画面が存在する理由・業務ユースケース外の項目・振る舞いの受け入れ契約）だけ。ビジュアル（Figma等）は URL 参照のみ。",
-  "x-schema-status": "PUBLISHED",
 
   "x-render-target": {
     "formats": ["md", "feature"],

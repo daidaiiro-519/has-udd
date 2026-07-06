@@ -17,7 +17,6 @@ from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
 
 _IN_SCOPE_SCHEMAS = ["SkillSchema/v1", "CodingSchema/v2", "DomainSpecSchema/v2", "PresentationSpecSchema/v1", "PlatformSpec/v1"]
-_VALID_STATUSES = {"PUBLISHED", "DEPRECATED"}
 
 
 # --- 値フィールドに oneOf を持てない ---
@@ -77,20 +76,6 @@ def test_x_render_は閉じた語彙にのみ従う(schema_ref):
     for name, bdef in schema["$defs"].items():
         if "x-render" in bdef:
             assert _lint_render(bdef["x-render"]) == [], f"{schema_ref}:{name} の x-render が不適合"
-
-
-# --- Documentのschemaが指しうる型は常にx-schema-statusを宣言する ---
-
-@pytest.mark.parametrize("schema_ref", _IN_SCOPE_SCHEMAS)
-def test_全schemaがx_schema_statusを宣言している(schema_ref):
-    """
-    Given Documentのschemaが指しうる型(DomainSpecSchema/PresentationSpecSchema/CodingSchema/SkillSchema)
-    When 各schemaファイルのx-schema-statusを確認する
-    Then 全てPUBLISHED/DEPRECATEDのいずれかを宣言している
-    """
-    schema = PackageSchemaRepository().load(schema_ref)
-    assert "x-schema-status" in schema, f"{schema_ref} は x-schema-status を宣言していない"
-    assert schema["x-schema-status"] in _VALID_STATUSES
 
 
 # --- 公開済みの版は後方互換を壊さない ---

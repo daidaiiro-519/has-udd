@@ -599,7 +599,7 @@
             "properties": {
               "name":          { "type": "string", "x-prompt-write": "コマンド名（命令形）。例: place / 確定する" },
               "description":   { "type": "string", "x-prompt-write": "何をするか・どの不変条件を守るかを1文で（実装手順は書かない）。" },
-              "requiresState": { "type": "string", "x-prompt-write": "実行に必要な前提状態。無ければ「（新規）」等。" },
+              "requiresState": { "type": ["string", "null"], "x-prompt-write": "実行に必要な前提状態。集約インスタンスがまだ存在しない新規生成コマンドの場合は null（曖昧な文字列プレースホルダーは使わない）。" },
               "postState":     { "type": "string", "x-prompt-write": "成功後の状態。" },
               "params": {
                 "type": "array",

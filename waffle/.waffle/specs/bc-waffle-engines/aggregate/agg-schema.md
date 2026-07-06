@@ -81,11 +81,11 @@ stateDiagram-v2
 
 ### publishVersion
 
-新しい版の Schema を公開し、以後その版で Document を作れるようにする（scaffoldability 不変条件を守る）。
+新しいバージョンインスタンス(name, version)を生成し公開する。以後その版で Document を作れるようにする（scaffoldability 不変条件を守る）。集約の同一性は(name, version)のペアであり、旧版は削除せず並存させたまま新版を独立したインスタンスとして生成する。
 
 | 前提 | 後 | 発行イベント |
 |---|---|---|
-| （新規） | PUBLISHED | SchemaVersionPublished |
+| None | PUBLISHED | SchemaVersionPublished |
 
 | 引数 | 意味 |
 |---|---|

@@ -160,8 +160,8 @@
       "items": [
         {
           "name": "publishVersion",
-          "description": "新しい版の Schema を公開し、以後その版で Document を作れるようにする（scaffoldability 不変条件を守る）。",
-          "requiresState": "（新規）",
+          "description": "新しいバージョンインスタンス(name, version)を生成し公開する。以後その版で Document を作れるようにする（scaffoldability 不変条件を守る）。集約の同一性は(name, version)のペアであり、旧版は削除せず並存させたまま新版を独立したインスタンスとして生成する。",
+          "requiresState": null,
           "postState": "PUBLISHED",
           "params": [
             {

@@ -114,14 +114,14 @@
           "name": "ブロックを丸ごと取得する",
           "category": "正常系",
           "viewpoint": "意味単位取得：ブロック取得で読み方の指針が付く",
-          "gherkin": "Scenario: ブロックを丸ごと取得する\n  Given query engine と対象 Document\n  When operation get_block を blockKey interface で実行する\n  Then value は対象ブロックであり、prompt に読み方の指針が付く",
+          "gherkin": "Scenario: ブロックを丸ごと取得する\n  Given 対象 Document\n  When operation get_block を blockKey interface で実行する\n  Then value は対象ブロックであり、prompt に読み方の指針が付く",
           "covers": "受け入れ基準: prompt に読み方の指針"
         },
         {
           "name": "条件に一致する配列要素だけを絞り込む",
           "category": "正常系",
           "viewpoint": "意味単位取得：フィルタで条件一致だけを返す",
-          "gherkin": "Scenario: 条件に一致する配列要素だけを絞り込む\n  Given query engine と対象 Document\n  When operation filter_items で required=true を指定する\n  Then value には required な要素だけが含まれる",
+          "gherkin": "Scenario: 条件に一致する配列要素だけを絞り込む\n  Given 対象 Document\n  When operation filter_items で required=true を指定する\n  Then value には required な要素だけが含まれる",
           "covers": "受け入れ基準: 意味単位を value で返す"
         },
         {
@@ -163,21 +163,21 @@
           "name": "scanは生テキストを返す",
           "category": "正常系",
           "viewpoint": "ファイル単位：scanはファイルをそのまま読む(prompt=null)",
-          "gherkin": "Scenario: scanは生テキストを返す\n  Given query engine と対象 Document\n  When operation scan を実行する\n  Then value は生テキストであり、prompt は null である",
+          "gherkin": "Scenario: scanは生テキストを返す\n  Given 対象 Document\n  When operation scan を実行する\n  Then value は生テキストであり、prompt は null である",
           "covers": "operation: scan"
         },
         {
           "name": "get_metaはメタ情報を返す",
           "category": "正常系",
           "viewpoint": "ファイル単位：get_metaはdocumentId等のメタフィールドのみを返す",
-          "gherkin": "Scenario: get_metaはメタ情報を返す\n  Given query engine と対象 Document\n  When operation get_meta を実行する\n  Then value にはdocumentId等のメタフィールドのみが含まれる",
+          "gherkin": "Scenario: get_metaはメタ情報を返す\n  Given 対象 Document\n  When operation get_meta を実行する\n  Then value にはdocumentId等のメタフィールドのみが含まれる",
           "covers": "operation: get_meta"
         },
         {
           "name": "index_scanはblockTypeとpromptをschemaから動的算出する",
           "category": "正常系",
           "viewpoint": "ファイル単位：index_scanは_indexを保存せず読み取り時に動的算出する",
-          "gherkin": "Scenario: index_scanはblockTypeとpromptをschemaから動的算出する\n  Given query engine と対象 Document\n  When operation index_scan を実行する\n  Then 各blockのblockTypeとx-prompt-query由来のpromptが返る",
+          "gherkin": "Scenario: index_scanはblockTypeとpromptをschemaから動的算出する\n  Given 対象 Document\n  When operation index_scan を実行する\n  Then 各blockのblockTypeとx-prompt-query由来のpromptが返る",
           "covers": "operation: index_scan"
         },
         {
@@ -191,21 +191,21 @@
           "name": "get_fieldはblockの1フィールドを返す",
           "category": "正常系",
           "viewpoint": "ブロック単位：get_fieldは指定フィールドのみを取り出す",
-          "gherkin": "Scenario: get_fieldはblockの1フィールドを返す\n  Given query engine と対象 Document\n  When operation get_field を blockKey, field で実行する\n  Then value は指定フィールドの値である",
+          "gherkin": "Scenario: get_fieldはblockの1フィールドを返す\n  Given 対象 Document\n  When operation get_field を blockKey, field で実行する\n  Then value は指定フィールドの値である",
           "covers": "operation: get_field"
         },
         {
           "name": "get_by_idは単一オブジェクトを返す",
           "category": "正常系",
           "viewpoint": "配列操作：get_by_idはidが一意である前提でリストでなく単一要素を返す(filter_itemsとの役割分離)",
-          "gherkin": "Scenario: get_by_idは単一オブジェクトを返す\n  Given query engine と対象 Document\n  When operation get_by_id を idField, idValue で実行する\n  Then 一致した単一の要素がvalueとして返る（配列ではない）",
+          "gherkin": "Scenario: get_by_idは単一オブジェクトを返す\n  Given 対象 Document\n  When operation get_by_id を idField, idValue で実行する\n  Then 一致した単一の要素がvalueとして返る（配列ではない）",
           "covers": "operation: get_by_id"
         },
         {
           "name": "find_allは全階層を再帰収集する",
           "category": "正常系",
           "viewpoint": "再帰：find_allはネスト構造の全階層からfieldNameの値を集める",
-          "gherkin": "Scenario: find_allは全階層を再帰収集する\n  Given query engine と対象 Document\n  When operation find_all を fieldName で実行する\n  Then 全階層に出現するfieldNameの値がvalueとして返る",
+          "gherkin": "Scenario: find_allは全階層を再帰収集する\n  Given 対象 Document\n  When operation find_all を fieldName で実行する\n  Then 全階層に出現するfieldNameの値がvalueとして返る",
           "covers": "operation: find_all"
         },
         {

@@ -4,7 +4,7 @@
 
 ## 概要
 
-検証済みの Document を schema の x-render に従って人間可読な成果物（SKILL.md / HTML / .feature）に描画し、配置先へ反映する。
+検証済みの Document を schema の x-render に従って人間可読な成果物（SKILL.md / HTML）に描画し、配置先へ反映する。
 
 ---
 
@@ -147,13 +147,13 @@ Scenario: CodingSchemaはMarkdownとして描画できる
 
 | 分類 | 観点 |
 |---|---|
-| 正常系 | schema種別横断：usecase Specは MainFlow をMermaidシーケンス図に、TestScenariosをMarkdown+.featureの両方に出す |
+| 正常系 | schema種別横断：usecase Specは MainFlow をMermaidシーケンス図に、TestScenariosをMarkdownに出す |
 
 ```gherkin
 Scenario: usecase_Specは基本フローをシーケンス図に受け入れシナリオをMarkdownに出す
   Given usecase SpecのDocument
   When renderする
-  Then 出力にmermaidのsequenceDiagramとテストシナリオ節が含まれ、feature出力にも同じシナリオが含まれる
+  Then 出力にmermaidのsequenceDiagramとテストシナリオ節が含まれる
 ```
 
 ### aggregate_Specは集約の構造とライフサイクルをMarkdownに出す

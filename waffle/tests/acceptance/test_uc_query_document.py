@@ -1,8 +1,4 @@
-"""uc-query-document の受け入れテスト（ネイティブpytest）。
-
-.waffle/specs/.../uc-query-document.feature は参照専用の仕様書であり、実行対象ではない。
-このファイルはその .feature の内容を読んで直接実装したもの（手編集前提・render で上書きされない）。
-"""
+"""uc-query-document の受け入れテスト（ネイティブpytest）。"""
 from waffle.adapters.outbound.fs import FsDocumentRepository
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
 from waffle.application.usecases.query_engine import QueryEngine

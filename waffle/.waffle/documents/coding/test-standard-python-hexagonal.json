@@ -33,7 +33,7 @@
         },
         {
           "item": "ゲート",
-          "value": "シナリオ（.feature）緑が必須（Stage B ゲート1）"
+          "value": "シナリオに対応するネイティブテスト緑が必須（Stage B ゲート1）"
         },
         {
           "item": "対象外",
@@ -57,8 +57,8 @@
         },
         {
           "testType": "acceptance",
-          "tool": "pytest（AIが .feature を読んで直接執筆）",
-          "target": "usecase（.feature は参照専用の仕様書）"
+          "tool": "pytest（AIがspecのTestScenariosを読んで直接執筆）",
+          "target": "usecase"
         },
         {
           "testType": "contract",
@@ -78,20 +78,12 @@
       "title": "シナリオの束ね方",
       "items": [
         {
-          "item": ".feature の生成元",
-          "rule": "spec の TestScenarios（手書きしない）"
-        },
-        {
-          "item": ".feature の配置",
-          "rule": ".waffle/specs/{contextRef}/subdomain/{subdomainRef}/usecase/{documentId}.feature（DomainSpecSchemaのx-render-target.featurePath通り・生成物・参照専用・実行対象ではない）"
-        },
-        {
           "item": "ネイティブテストの配置",
-          "rule": "tests/acceptance/test_{spec-id}.py（AIが .feature を見て執筆・手編集前提）"
+          "rule": "tests/acceptance/test_{spec-id}.py（AIがspecのTestScenariosを見て執筆・手編集前提）"
         },
         {
           "item": "対応関係",
-          "rule": "1 spec（usecase）＝1 .feature（参照専用・render生成）＝1 ネイティブテストファイル（AI執筆）"
+          "rule": "1 spec（usecase）＝1 ネイティブテストファイル（AI執筆）"
         },
         {
           "item": "ドリフト検知",
@@ -120,7 +112,7 @@
         },
         {
           "target": "usecase",
-          "testKind": "acceptance（ネイティブ・.feature は参照専用）",
+          "testKind": "acceptance（ネイティブ）",
           "path": "tests/acceptance/"
         },
         {
@@ -134,14 +126,6 @@
       "blockType": "TestRules",
       "title": "決定ルール",
       "items": [
-        {
-          "level": "必須",
-          "rule": ".feature は実行対象ではなく、AIが読んで実装すべき参照専用の仕様書とする"
-        },
-        {
-          "level": "必須",
-          "rule": ".feature は spec から生成する（手で書かない）"
-        },
         {
           "level": "禁止",
           "rule": "単体テストが実物の DB・外部サービスに依存する"

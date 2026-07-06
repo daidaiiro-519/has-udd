@@ -5,20 +5,13 @@
   "description": "waffle の Spec 家族のうち、業務ロジック層（ドメイン層・DDD管轄）を扱う Spec 集約（UDD の核）。旧称 SpecSchema（spec は DDD より広い上位概念であり、UI層を扱う PresentationSpecSchema が別家族として存在するため改名）。specKind=bounded-context/subdomain/aggregate/usecase（DDD 語彙に整合）。content はドメイン語彙のみ（技術スタック/アーキ構成は CodingTemplate の担当）。集約=Commands/Invariants/Lifecycle、ユースケース=基本フロー(シーケンス)、整合の契約=TestScenarios(Gherkin)。描画は MD を正本とする（Google OKF 整合のため HTML は生成しない・HTML が要る場合は既存技術で MD から導出する viewer 側の責務）。",
   "x-render-target": {
     "formats": [
-      "md",
-      "feature"
+      "md"
     ],
     "path": {
       "bounded-context": ".waffle/specs/{contextRef}/{documentId}.md",
       "aggregate": ".waffle/specs/{contextRef}/aggregate/{documentId}.md",
       "subdomain": ".waffle/specs/{contextRef}/subdomain/{documentId}/{documentId}.md",
       "usecase": ".waffle/specs/{contextRef}/subdomain/{subdomainRef}/usecase/{documentId}.md"
-    },
-    "featurePath": {
-      "bounded-context": ".waffle/specs/{contextRef}/{documentId}.feature",
-      "aggregate": ".waffle/specs/{contextRef}/aggregate/{documentId}.feature",
-      "subdomain": ".waffle/specs/{contextRef}/subdomain/{documentId}/{documentId}.feature",
-      "usecase": ".waffle/specs/{contextRef}/subdomain/{subdomainRef}/usecase/{documentId}.feature"
     }
   },
   "x-source-target": {
@@ -1783,7 +1776,6 @@
       ],
       "x-render-order": 10,
       "x-render-level": 2,
-      "x-test-scenario": true,
       "x-prompt-query": "集約の不変条件を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。仕様↔実装の整合点。MD（コードブロック表示）＋.feature に render され実行されます。",
       "x-render": [
         {
@@ -1877,7 +1869,6 @@
       ],
       "x-render-order": 10,
       "x-render-level": 2,
-      "x-test-scenario": true,
       "x-prompt-query": "usecaseの受け入れ基準(AcceptanceCriteria)を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。仕様↔実装の整合点。MD（コードブロック表示）＋.feature に render され実行されます。",
       "x-render": [
         {
@@ -2005,7 +1996,6 @@
       ],
       "x-render-order": 11,
       "x-render-level": 2,
-      "x-test-scenario": true,
       "x-prompt-query": "OperationGuaranteesの各保証を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。MD＋.featureにrenderされ、TestScenariosと同じ機構でネイティブテスト化されます。",
       "x-render": [
         {
@@ -2099,7 +2089,6 @@
       ],
       "x-render-order": 7,
       "x-render-level": 2,
-      "x-test-scenario": true,
       "x-prompt-query": "domainServicesの各業務サービスのふるまいを検証するテストシナリオ(分類・観点・Gherkin)を持ちます。GuaranteeScenarios(usecase単位のデータアクセス層保証)とは意味が異なる別語彙——業務ロジック層の業務サービスが何を計算/判定するかを検証する。MD＋.featureにrenderされ、TestScenariosと同じ機構でネイティブテスト化されます。",
       "x-render": [
         {

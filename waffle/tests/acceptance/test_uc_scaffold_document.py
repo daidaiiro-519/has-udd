@@ -1,7 +1,4 @@
-"""uc-scaffold-document の受け入れテスト（ネイティブpytest）。
-
-.waffle/specs/.../uc-scaffold-document.feature は参照専用の仕様書であり、実行対象ではない。
-"""
+"""uc-scaffold-document の受け入れテスト（ネイティブpytest）。"""
 from pathlib import Path
 
 from waffle.adapters.outbound.fs import FsDocumentRepository

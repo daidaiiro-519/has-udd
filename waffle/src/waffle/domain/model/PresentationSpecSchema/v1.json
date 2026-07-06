@@ -3,62 +3,113 @@
   "$id": "PresentationSpecSchema/v1",
   "title": "PresentationSpecSchema v1",
   "description": "waffle の Spec 家族のうち、プレゼンテーション層（UI層・非DDD管轄）を扱う Spec。DomainSpecSchema（DDD管轄）とは別家族。specKind=screen/flow。業務ユースケース（DomainSpecSchemaのusecase）のパラメータから導出できる項目は書かない（都度クエリで引く前提）— ここに書くのは業務ユースケースからは導けないプロダクトの意図（画面が存在する理由・業務ユースケース外の項目・振る舞いの受け入れ契約）だけ。ビジュアル（Figma等）は URL 参照のみ。",
-
   "x-render-target": {
-    "formats": ["md", "feature"],
+    "formats": [
+      "md"
+    ],
     "path": {
       "screen": ".waffle/specs/{contextRef}/screen/{documentId}.md",
-      "flow":   ".waffle/specs/{contextRef}/flow/{documentId}.md"
-    },
-    "featurePath": {
-      "screen": ".waffle/specs/{contextRef}/screen/{documentId}.feature",
-      "flow":   ".waffle/specs/{contextRef}/flow/{documentId}.feature"
+      "flow": ".waffle/specs/{contextRef}/flow/{documentId}.md"
     }
   },
   "x-source-target": {
     "screen": ".waffle/documents/specs/{contextRef}/screen/{documentId}.json",
-    "flow":   ".waffle/documents/specs/{contextRef}/flow/{documentId}.json"
+    "flow": ".waffle/documents/specs/{contextRef}/flow/{documentId}.json"
   },
-
   "x-lifecycle": {
     "transitions": [
-      { "from": null,        "to": "CREATED",    "command": "create" },
-      { "from": "CREATED",   "to": "VALIDATED",  "command": "validate" },
-      { "from": "VALIDATED", "to": "VALIDATED",  "command": "validate" },
-      { "from": "RENDERED",  "to": "RENDERED",   "command": "validate" },
-      { "from": "VALIDATED", "to": "RENDERED",   "command": "render" },
-      { "from": "VALIDATED", "to": "SUPERSEDED", "command": "supersede" },
-      { "from": "RENDERED",  "to": "SUPERSEDED", "command": "supersede" }
+      {
+        "from": null,
+        "to": "CREATED",
+        "command": "create"
+      },
+      {
+        "from": "CREATED",
+        "to": "VALIDATED",
+        "command": "validate"
+      },
+      {
+        "from": "VALIDATED",
+        "to": "VALIDATED",
+        "command": "validate"
+      },
+      {
+        "from": "RENDERED",
+        "to": "RENDERED",
+        "command": "validate"
+      },
+      {
+        "from": "VALIDATED",
+        "to": "RENDERED",
+        "command": "render"
+      },
+      {
+        "from": "VALIDATED",
+        "to": "SUPERSEDED",
+        "command": "supersede"
+      },
+      {
+        "from": "RENDERED",
+        "to": "SUPERSEDED",
+        "command": "supersede"
+      }
     ]
   },
-
   "type": "object",
-  "required": ["documentId", "documentType", "schemaRef", "specKind", "status", "content"],
+  "required": [
+    "documentId",
+    "documentType",
+    "schemaRef",
+    "specKind",
+    "status",
+    "content"
+  ],
   "properties": {
     "documentId": {
       "type": "string",
       "x-prompt-write": "この Spec を一意に識別する ID を kebab-case で。screen は scr-、flow は flow- 接頭辞を推奨。例: scr-order-form"
     },
-    "documentType": { "type": "string", "const": "PresentationSpec" },
-    "schemaRef":    { "type": "string", "const": "PresentationSpecSchema/v1" },
+    "documentType": {
+      "type": "string",
+      "const": "PresentationSpec"
+    },
+    "schemaRef": {
+      "type": "string",
+      "const": "PresentationSpecSchema/v1"
+    },
     "specKind": {
       "type": "string",
-      "enum": ["screen", "flow"],
+      "enum": [
+        "screen",
+        "flow"
+      ],
       "x-prompt-write": "screen=1つの画面（業務ユースケース外の項目・操作・振る舞い契約を持つ）/ flow=複数の業務ユースケースにまたがる一連の体験（E2Eシナリオの合成）。迷ったら: 単体の画面の中身→screen、業務ユースケースを跨ぐ旅の意味づけ→flow。"
     },
     "status": {
       "type": "string",
-      "enum": ["CREATED", "VALIDATED", "RENDERED", "SUPERSEDED"],
+      "enum": [
+        "CREATED",
+        "VALIDATED",
+        "RENDERED",
+        "SUPERSEDED"
+      ],
       "x-prompt-write": "作成直後は CREATED。検証通過で VALIDATED、render 済で RENDERED、後続版に置換で SUPERSEDED。"
     },
     "tags": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "x-prompt-write": "この Spec を分類するタグ。例: [\"context:orders\"]"
     },
-    "createdAt": { "type": "string", "format": "date-time" },
-    "updatedAt": { "type": "string", "format": "date-time" },
-
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
     "_index": {
       "description": "waffle が x-prompt-query から自動生成する。AI は直接書かない。",
       "readOnly": true,
@@ -68,198 +119,448 @@
           "type": "object",
           "additionalProperties": {
             "type": "object",
-            "required": ["blockType", "prompt"],
+            "required": [
+              "blockType",
+              "prompt"
+            ],
             "properties": {
-              "blockType": { "type": "string" },
-              "prompt":    { "type": "string" }
+              "blockType": {
+                "type": "string"
+              },
+              "prompt": {
+                "type": "string"
+              }
             }
           }
         }
       }
     },
-
-    "content": { "type": "object" }
+    "content": {
+      "type": "object"
+    }
   },
-
   "allOf": [
-    { "if":   { "properties": { "specKind": { "const": "screen" } }, "required": ["specKind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/ScreenContent" } } } },
-    { "if":   { "properties": { "specKind": { "const": "flow" } }, "required": ["specKind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/FlowContent" } } } }
+    {
+      "if": {
+        "properties": {
+          "specKind": {
+            "const": "screen"
+          }
+        },
+        "required": [
+          "specKind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/ScreenContent"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "specKind": {
+            "const": "flow"
+          }
+        },
+        "required": [
+          "specKind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/FlowContent"
+          }
+        }
+      }
+    }
   ],
-
   "$defs": {
-
     "ScreenContent": {
       "type": "object",
-      "required": ["title", "summary", "fields", "actions", "componentAcceptanceScenarios"],
+      "required": [
+        "title",
+        "summary",
+        "fields",
+        "actions",
+        "componentAcceptanceScenarios"
+      ],
       "additionalProperties": false,
       "properties": {
-        "title":                        { "$ref": "#/$defs/TitleBlock" },
-        "summary":                      { "$ref": "#/$defs/SummaryBlock" },
-        "fields":                       { "$ref": "#/$defs/FieldsBlock" },
-        "actions":                      { "$ref": "#/$defs/ActionsBlock" },
-        "componentAcceptanceScenarios": { "$ref": "#/$defs/AcceptanceScenariosBlock" },
-        "visualRef":                    { "$ref": "#/$defs/VisualRefBlock" }
+        "title": {
+          "$ref": "#/$defs/TitleBlock"
+        },
+        "summary": {
+          "$ref": "#/$defs/SummaryBlock"
+        },
+        "fields": {
+          "$ref": "#/$defs/FieldsBlock"
+        },
+        "actions": {
+          "$ref": "#/$defs/ActionsBlock"
+        },
+        "componentAcceptanceScenarios": {
+          "$ref": "#/$defs/AcceptanceScenariosBlock"
+        },
+        "visualRef": {
+          "$ref": "#/$defs/VisualRefBlock"
+        }
       }
     },
-
     "FlowContent": {
       "type": "object",
-      "required": ["title", "summary", "usecaseSequence"],
+      "required": [
+        "title",
+        "summary",
+        "usecaseSequence"
+      ],
       "additionalProperties": false,
       "properties": {
-        "title":           { "$ref": "#/$defs/TitleBlock" },
-        "summary":         { "$ref": "#/$defs/SummaryBlock" },
-        "usecaseSequence": { "$ref": "#/$defs/UsecaseSequenceBlock" }
+        "title": {
+          "$ref": "#/$defs/TitleBlock"
+        },
+        "summary": {
+          "$ref": "#/$defs/SummaryBlock"
+        },
+        "usecaseSequence": {
+          "$ref": "#/$defs/UsecaseSequenceBlock"
+        }
       }
     },
-
     "TitleBlock": {
       "type": "object",
-      "required": ["blockType", "title"],
+      "required": [
+        "blockType",
+        "title"
+      ],
       "x-render-order": 0,
       "x-render-level": 1,
       "x-prompt-query": "この Spec のタイトルを持ちます。documentId が使われ h1 になります。",
       "x-render": [],
       "properties": {
-        "blockType": { "type": "string", "const": "Title" },
-        "title":     { "type": "string", "x-prompt-write": "documentId をそのまま設定してください。" }
+        "blockType": {
+          "type": "string",
+          "const": "Title"
+        },
+        "title": {
+          "type": "string",
+          "x-prompt-write": "documentId をそのまま設定してください。"
+        }
       }
     },
-
     "SummaryBlock": {
       "type": "object",
-      "required": ["blockType", "title", "text"],
+      "required": [
+        "blockType",
+        "title",
+        "text"
+      ],
       "x-render-order": 1,
       "x-render-level": 2,
       "x-prompt-query": "この画面/フローが存在する理由を持ちます。業務ユースケースからは導けないプロダクトの意図（なぜこの画面か・なぜこの体験の組み立てか）を書く場所です。",
-      "x-render": [ { "as": "paragraph", "from": "text" } ],
+      "x-render": [
+        {
+          "as": "paragraph",
+          "from": "text"
+        }
+      ],
       "properties": {
-        "blockType": { "type": "string", "const": "Summary" },
-        "title":     { "type": "string", "const": "概要" },
-        "text":      { "type": "string", "x-prompt-write": "この画面/フローが何のために存在するかを1〜2文で（業務ユースケースの内容の繰り返しでなく、プロダクトとしての意図）。" }
+        "blockType": {
+          "type": "string",
+          "const": "Summary"
+        },
+        "title": {
+          "type": "string",
+          "const": "概要"
+        },
+        "text": {
+          "type": "string",
+          "x-prompt-write": "この画面/フローが何のために存在するかを1〜2文で（業務ユースケースの内容の繰り返しでなく、プロダクトとしての意図）。"
+        }
       }
     },
-
     "FieldsBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 2,
       "x-render-level": 2,
       "x-prompt-query": "この画面が持つ項目のうち、業務ユースケースの入力パラメータからは導出できないものだけを持ちます。業務ユースケースの入力に対応する項目は書かない（都度業務ユースケース側から引く）。",
       "x-render": [
-        { "as": "table", "from": "items", "columns": [
-          { "field": "name", "header": "項目" },
-          { "field": "inputType", "header": "種別" },
-          { "field": "required", "header": "必須" },
-          { "field": "description", "header": "説明（業務ユースケースにない理由）" }
-        ] }
+        {
+          "as": "table",
+          "from": "items",
+          "columns": [
+            {
+              "field": "name",
+              "header": "項目"
+            },
+            {
+              "field": "inputType",
+              "header": "種別"
+            },
+            {
+              "field": "required",
+              "header": "必須"
+            },
+            {
+              "field": "description",
+              "header": "説明（業務ユースケースにない理由）"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "Fields" },
-        "title":     { "type": "string", "const": "項目（業務ユースケース外）" },
+        "blockType": {
+          "type": "string",
+          "const": "Fields"
+        },
+        "title": {
+          "type": "string",
+          "const": "項目（業務ユースケース外）"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "業務ユースケースの入力パラメータに対応しない、UI都合の項目だけを列挙（例: パスワード確認欄・利用規約同意チェック）。業務ユースケースの入力と1対1対応する項目はここに書かない。無ければ空。",
           "items": {
             "type": "object",
-            "required": ["name", "inputType", "required", "description"],
+            "required": [
+              "name",
+              "inputType",
+              "required",
+              "description"
+            ],
             "properties": {
-              "name":        { "type": "string", "x-prompt-write": "項目名。例: パスワード（確認）" },
-              "inputType":   { "type": "string", "x-prompt-write": "入力/表示の種別。例: text / number / select / checkbox" },
-              "required":    { "type": "boolean", "x-prompt-write": "入力必須なら true。" },
-              "description": { "type": "string", "x-prompt-write": "何のための項目か、かつ、なぜ業務ユースケースの入力ではないのかを1文で。" }
+              "name": {
+                "type": "string",
+                "x-prompt-write": "項目名。例: パスワード（確認）"
+              },
+              "inputType": {
+                "type": "string",
+                "x-prompt-write": "入力/表示の種別。例: text / number / select / checkbox"
+              },
+              "required": {
+                "type": "boolean",
+                "x-prompt-write": "入力必須なら true。"
+              },
+              "description": {
+                "type": "string",
+                "x-prompt-write": "何のための項目か、かつ、なぜ業務ユースケースの入力ではないのかを1文で。"
+              }
             }
           }
         }
       }
     },
-
     "ActionsBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 3,
       "x-render-level": 2,
       "x-prompt-query": "この画面で実行できる操作(名前・契機・対応する業務ユースケース・遷移先)を持ちます。画面から画面への遷移もここに含みます（独立したFlowの遷移表は持ちません）。",
       "x-render": [
-        { "as": "table", "from": "items", "columns": [
-          { "field": "name", "header": "操作" },
-          { "field": "trigger", "header": "契機" },
-          { "field": "description", "header": "説明" },
-          { "field": "usecaseRef", "header": "対応する業務ユースケース", "code": true },
-          { "field": "leadsTo", "header": "遷移先", "code": true }
-        ] }
+        {
+          "as": "table",
+          "from": "items",
+          "columns": [
+            {
+              "field": "name",
+              "header": "操作"
+            },
+            {
+              "field": "trigger",
+              "header": "契機"
+            },
+            {
+              "field": "description",
+              "header": "説明"
+            },
+            {
+              "field": "usecaseRef",
+              "header": "対応する業務ユースケース",
+              "code": true
+            },
+            {
+              "field": "leadsTo",
+              "header": "遷移先",
+              "code": true
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "Actions" },
-        "title":     { "type": "string", "const": "操作" },
+        "blockType": {
+          "type": "string",
+          "const": "Actions"
+        },
+        "title": {
+          "type": "string",
+          "const": "操作"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "画面上の操作を列挙。無ければ空。",
           "items": {
             "type": "object",
-            "required": ["name", "trigger", "description"],
+            "required": [
+              "name",
+              "trigger",
+              "description"
+            ],
             "properties": {
-              "name":        { "type": "string", "x-prompt-write": "操作名。例: 注文を確定する" },
-              "trigger":     { "type": "string", "x-prompt-write": "操作の契機。例: 「確定」ボタン押下" },
-              "description": { "type": "string", "x-prompt-write": "何をするかを1文で。" },
-              "usecaseRef":  { "type": "string", "x-prompt-write": "この操作が対応する業務ユースケース（DomainSpecSchemaのusecase）の documentId（あれば）。例: uc-place-order。無ければ空文字。" },
-              "leadsTo":     { "type": "string", "x-prompt-write": "この操作の実行後に遷移する screen の documentId（あれば）。同じ画面に留まるなら空文字。" }
+              "name": {
+                "type": "string",
+                "x-prompt-write": "操作名。例: 注文を確定する"
+              },
+              "trigger": {
+                "type": "string",
+                "x-prompt-write": "操作の契機。例: 「確定」ボタン押下"
+              },
+              "description": {
+                "type": "string",
+                "x-prompt-write": "何をするかを1文で。"
+              },
+              "usecaseRef": {
+                "type": "string",
+                "x-prompt-write": "この操作が対応する業務ユースケース（DomainSpecSchemaのusecase）の documentId（あれば）。例: uc-place-order。無ければ空文字。"
+              },
+              "leadsTo": {
+                "type": "string",
+                "x-prompt-write": "この操作の実行後に遷移する screen の documentId（あれば）。同じ画面に留まるなら空文字。"
+              }
             }
           }
         }
       }
     },
-
     "VisualRefBlock": {
       "type": "object",
-      "required": ["blockType", "title", "url"],
+      "required": [
+        "blockType",
+        "title",
+        "url"
+      ],
       "x-render-order": 5,
       "x-render-level": 2,
       "x-prompt-query": "この画面の見た目（Figma等）への外部参照を持ちます。レイアウトそのものはここに持ちません。",
       "x-render": [
-        { "as": "keyvalue", "pairs": [
-          { "label": "参照先", "from": "url" },
-          { "label": "補足", "from": "note" }
-        ] }
+        {
+          "as": "keyvalue",
+          "pairs": [
+            {
+              "label": "参照先",
+              "from": "url"
+            },
+            {
+              "label": "補足",
+              "from": "note"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "VisualRef" },
-        "title":     { "type": "string", "const": "ビジュアル参照" },
-        "url":       { "type": "string", "x-prompt-write": "Figma等のURL。" },
-        "note":      { "type": "string", "x-prompt-write": "補足（バージョン・参照箇所等）。無ければ空文字。" }
+        "blockType": {
+          "type": "string",
+          "const": "VisualRef"
+        },
+        "title": {
+          "type": "string",
+          "const": "ビジュアル参照"
+        },
+        "url": {
+          "type": "string",
+          "x-prompt-write": "Figma等のURL。"
+        },
+        "note": {
+          "type": "string",
+          "x-prompt-write": "補足（バージョン・参照箇所等）。無ければ空文字。"
+        }
       }
     },
-
     "UsecaseSequenceBlock": {
       "type": "object",
-      "required": ["blockType", "title", "participants", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "participants",
+        "items"
+      ],
       "x-render-order": 2,
       "x-render-level": 2,
       "x-prompt-query": "この体験を構成する業務ユースケース（DomainSpecSchemaのusecase）の時系列を持ちます。E2Eテストはこの並びで各業務ユースケースのTestScenariosをUIステップバインディングで繋いで実行します。",
       "x-render": [
-        { "as": "sequence", "from": "items", "participantsFrom": "participants" },
-        { "as": "table", "from": "items", "columns": [
-          { "field": "from", "header": "主体" },
-          { "field": "to", "header": "業務ユースケース", "code": true },
-          { "field": "message", "header": "この旅における役割" }
-        ] }
+        {
+          "as": "sequence",
+          "from": "items",
+          "participantsFrom": "participants"
+        },
+        {
+          "as": "table",
+          "from": "items",
+          "columns": [
+            {
+              "field": "from",
+              "header": "主体"
+            },
+            {
+              "field": "to",
+              "header": "業務ユースケース",
+              "code": true
+            },
+            {
+              "field": "message",
+              "header": "この旅における役割"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "UsecaseSequence" },
-        "title":     { "type": "string", "const": "業務ユースケースの並び" },
+        "blockType": {
+          "type": "string",
+          "const": "UsecaseSequence"
+        },
+        "title": {
+          "type": "string",
+          "const": "業務ユースケースの並び"
+        },
         "participants": {
           "type": "array",
           "minItems": 1,
           "x-prompt-write": "この旅に登場する主体を列挙。人間（顧客等）は kind=actor（棒人間アイコン）、業務ユースケースは kind=participant で宣言する。",
           "items": {
             "type": "object",
-            "required": ["id", "kind"],
+            "required": [
+              "id",
+              "kind"
+            ],
             "properties": {
-              "id":    { "type": "string", "x-prompt-write": "識別子。人間主体は名前（例: 顧客）、業務ユースケースは documentId（例: uc-place-order）。" },
-              "kind":  { "type": "string", "enum": ["actor", "participant"], "x-prompt-write": "人間の主体なら actor（棒人間アイコン）、業務ユースケース等のシステム側なら participant。" },
-              "label": { "type": "string", "x-prompt-write": "表示名（任意・省略時はidそのまま）。" }
+              "id": {
+                "type": "string",
+                "x-prompt-write": "識別子。人間主体は名前（例: 顧客）、業務ユースケースは documentId（例: uc-place-order）。"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "actor",
+                  "participant"
+                ],
+                "x-prompt-write": "人間の主体なら actor（棒人間アイコン）、業務ユースケース等のシステム側なら participant。"
+              },
+              "label": {
+                "type": "string",
+                "x-prompt-write": "表示名（任意・省略時はidそのまま）。"
+              }
             }
           }
         },
@@ -269,56 +570,125 @@
           "x-prompt-write": "主体（顧客等）が各業務ユースケースを時系列に呼び出す形で列挙（kind=command）。",
           "items": {
             "type": "object",
-            "required": ["from", "to", "message", "kind"],
+            "required": [
+              "from",
+              "to",
+              "message",
+              "kind"
+            ],
             "properties": {
-              "from":    { "type": "string", "x-prompt-write": "この旅を辿る主体（participantsで宣言したid・例: 顧客）。" },
-              "to":      { "type": "string", "x-prompt-write": "呼び出す業務ユースケースのdocumentId（participantsで宣言したid・例: uc-place-order）。" },
-              "message": { "type": "string", "x-prompt-write": "この旅の中でこの業務ユースケースが果たす役割を1文で。" },
-              "kind":    { "type": "string", "enum": ["command"], "x-prompt-write": "常に command（業務ユースケースの実行呼び出し）。" }
+              "from": {
+                "type": "string",
+                "x-prompt-write": "この旅を辿る主体（participantsで宣言したid・例: 顧客）。"
+              },
+              "to": {
+                "type": "string",
+                "x-prompt-write": "呼び出す業務ユースケースのdocumentId（participantsで宣言したid・例: uc-place-order）。"
+              },
+              "message": {
+                "type": "string",
+                "x-prompt-write": "この旅の中でこの業務ユースケースが果たす役割を1文で。"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "command"
+                ],
+                "x-prompt-write": "常に command（業務ユースケースの実行呼び出し）。"
+              }
             }
           }
         }
       }
     },
-
     "AcceptanceScenariosBlock": {
       "type": "object",
-      "required": ["blockType", "title", "scenarios"],
+      "required": [
+        "blockType",
+        "title",
+        "scenarios"
+      ],
       "x-render-order": 4,
       "x-render-level": 2,
-      "x-test-scenario": true,
       "x-prompt-query": "この画面固有の振る舞い（業務ユースケースを介さない画面単体のロジック）の受け入れ契約(Gherkin)を持ちます。コンポーネントテストとしてMD＋.featureにrenderされ実行されます。",
       "x-render": [
-        { "as": "paragraph", "heading": "背景", "from": "background" },
-        { "as": "section", "from": "scenarios", "titleFrom": "name", "each": [
-          { "as": "kvtable", "columns": [
-            { "field": "category", "header": "分類" },
-            { "field": "viewpoint", "header": "観点" }
-          ] },
-          { "as": "code", "from": "gherkin", "lang": "gherkin" }
-        ] }
+        {
+          "as": "paragraph",
+          "heading": "背景",
+          "from": "background"
+        },
+        {
+          "as": "section",
+          "from": "scenarios",
+          "titleFrom": "name",
+          "each": [
+            {
+              "as": "kvtable",
+              "columns": [
+                {
+                  "field": "category",
+                  "header": "分類"
+                },
+                {
+                  "field": "viewpoint",
+                  "header": "観点"
+                }
+              ]
+            },
+            {
+              "as": "code",
+              "from": "gherkin",
+              "lang": "gherkin"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType":  { "type": "string", "const": "AcceptanceScenarios" },
-        "title":      { "type": "string", "const": "コンポーネント受け入れシナリオ" },
-        "background": { "type": "string", "x-prompt-write": "複数シナリオ共通の前提。無ければ空文字。" },
+        "blockType": {
+          "type": "string",
+          "const": "AcceptanceScenarios"
+        },
+        "title": {
+          "type": "string",
+          "const": "コンポーネント受け入れシナリオ"
+        },
+        "background": {
+          "type": "string",
+          "x-prompt-write": "複数シナリオ共通の前提。無ければ空文字。"
+        },
         "scenarios": {
           "type": "array",
           "minItems": 1,
           "x-prompt-write": "1シナリオ1要素で列挙。業務ユースケースを呼ばない画面単体の振る舞い（入力検証・表示条件・活性/非活性等）を検証する。",
           "items": {
             "type": "object",
-            "required": ["name", "category", "viewpoint", "gherkin"],
+            "required": [
+              "name",
+              "category",
+              "viewpoint",
+              "gherkin"
+            ],
             "properties": {
-              "name":      { "type": "string", "x-prompt-write": "シナリオ名（概要）。" },
-              "category":  { "type": "string", "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。" },
-              "viewpoint": { "type": "string", "x-prompt-write": "観点（入力検証/表示条件/活性状態 等）＋検証の狙い。" },
-              "gherkin":   { "type": "string", "x-prompt-write": "このシナリオの Given/When/Then（Scenario: 1つ・実行可能・.feature化）。" }
+              "name": {
+                "type": "string",
+                "x-prompt-write": "シナリオ名（概要）。"
+              },
+              "category": {
+                "type": "string",
+                "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。"
+              },
+              "viewpoint": {
+                "type": "string",
+                "x-prompt-write": "観点（入力検証/表示条件/活性状態 等）＋検証の狙い。"
+              },
+              "gherkin": {
+                "type": "string",
+                "x-prompt-write": "このシナリオの Given/When/Then（Scenario: 1つ・実行可能・.feature化）。"
+              }
             }
           }
         }
       }
     }
-
   }
 }

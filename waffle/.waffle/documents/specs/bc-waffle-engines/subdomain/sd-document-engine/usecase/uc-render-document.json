@@ -17,7 +17,7 @@
     "summary": {
       "blockType": "Summary",
       "title": "概要",
-      "text": "検証済みの Document を schema の x-render に従って人間可読な成果物（SKILL.md / HTML / .feature）に描画し、配置先へ反映する。"
+      "text": "検証済みの Document を schema の x-render に従って人間可読な成果物（SKILL.md / HTML）に描画し、配置先へ反映する。"
     },
     "actorIntent": {
       "blockType": "ActorIntent",
@@ -186,8 +186,8 @@
         {
           "name": "usecase_Specは基本フローをシーケンス図に受け入れシナリオをMarkdownに出す",
           "category": "正常系",
-          "viewpoint": "schema種別横断：usecase Specは MainFlow をMermaidシーケンス図に、TestScenariosをMarkdown+.featureの両方に出す",
-          "gherkin": "Scenario: usecase_Specは基本フローをシーケンス図に受け入れシナリオをMarkdownに出す\n  Given usecase SpecのDocument\n  When renderする\n  Then 出力にmermaidのsequenceDiagramとテストシナリオ節が含まれ、feature出力にも同じシナリオが含まれる",
+          "viewpoint": "schema種別横断：usecase Specは MainFlow をMermaidシーケンス図に、TestScenariosをMarkdownに出す",
+          "gherkin": "Scenario: usecase_Specは基本フローをシーケンス図に受け入れシナリオをMarkdownに出す\n  Given usecase SpecのDocument\n  When renderする\n  Then 出力にmermaidのsequenceDiagramとテストシナリオ節が含まれる",
           "covers": "schema種別: DomainSpecSchema(usecase)"
         },
         {

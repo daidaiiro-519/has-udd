@@ -1,7 +1,4 @@
-"""uc-validate-document の受け入れテスト（ネイティブpytest）。
-
-.waffle/specs/.../uc-validate-document.feature は参照専用の仕様書であり、実行対象ではない。
-"""
+"""uc-validate-document の受け入れテスト（ネイティブpytest）。"""
 import json
 import tempfile
 from pathlib import Path

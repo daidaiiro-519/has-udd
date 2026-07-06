@@ -11,7 +11,7 @@ AI に構造を推論させず、engine が決定的に Document を生成(scaff
 ## カテゴリー
 
 - **カテゴリー**: core
-- **根拠**: 『AI に構造を推論させず engine が構造を持つ／Spec を正本にして陳腐化させない UDD ループ』は waffle の競争優位の源泉であり、既製品で置換できない。ゆえに中核。旧 sd-rendering（補完）はこの subdomain に統合した——描画(render)は宣言的 x-render の閉じた語彙・複数種の Mermaid 図生成・決定的な .feature 抽出まで複雑化しており、単純な CRUD/ETL ではなくなっている。この複雑さは Harness 原則という同じ差別化に資するものであり、理由のない複雑化ではないため『補完→中核』の変化基準に合致する。対象データ（Document）・差別化原理（Harness 原則）が scaffold/query と同一である以上、subdomain を分ける意味も薄れていた。
+- **根拠**: 『AI に構造を推論させず engine が構造を持つ／Spec を正本にして陳腐化させない UDD ループ』は waffle の競争優位の源泉であり、既製品で置換できない。ゆえに中核。旧 sd-rendering（補完）はこの subdomain に統合した——描画(render)は宣言的 x-render の閉じた語彙・複数種の Mermaid 図生成まで複雑化しており、単純な CRUD/ETL ではなくなっている。この複雑さは Harness 原則という同じ差別化に資するものであり、理由のない複雑化ではないため『補完→中核』の変化基準に合致する。対象データ（Document）・差別化原理（Harness 原則）が scaffold/query と同一である以上、subdomain を分ける意味も薄れていた。
 
 ---
 

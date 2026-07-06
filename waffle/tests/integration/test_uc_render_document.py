@@ -1,12 +1,13 @@
-"""uc-render-document のguaranteeScenarios(operationGuaranteesと対)のうち、
-リポジトリ解決契約(対象パス/schemaRef)に対応する統合テスト。
+"""uc-render-document のguaranteeScenarios(operationGuaranteesと対)に対応する統合テスト。
 
-part_rendererの整形保証・決定性・配線保証は別途このファイルへ移設予定(task #80)。
+part_rendererの15件の整形保証はsd-document-engineのdomainServiceScenarios(domain層)へ
+再分類済み。ここはrender_engine自体が呼び出し元に約束する保証(決定性・配線・リポジトリ解決契約)
+のみを実engine+実adapterで検証する。
 """
 from waffle.adapters.outbound.fs import FsDocumentRepository
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
 from waffle.application.usecases.render_engine import RenderEngine
-from waffle.shared.result import Err
+from waffle.shared.result import Err, Ok
 
 
 def _engine() -> RenderEngine:
@@ -40,3 +41,31 @@ def test_解決できないschemaRefはINVALID_SCHEMA_REF():
     result = _engine().run(path, deploy=False)
     assert isinstance(result, Err), result
     assert result.details[0] == "INVALID_SCHEMA_REF"
+
+
+def test_render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する():
+    """
+    Given interfaceブロック(x-render宣言=table)を持つDocument
+    When render engine経由でrenderする(part_rendererを直接呼ばず)
+    Then schemaのx-render宣言どおりに整形されたMarkdownテーブルが出力に含まれる
+
+    (domainテストはpart_renderer.render_partsを直接呼ぶため、render_engineが実際に
+    schemaからx-render宣言を読み取りpart_rendererへ渡す配線そのものはここでしか検証されない)
+    """
+    result = _engine().run(".waffle/documents/skills/harness-query-engine.json", deploy=False)
+    assert isinstance(result, Ok), result
+    assert "| name | type | 必須 | 説明 | 例 |" in result.value["content"]
+    assert "| operation | string | ✓" in result.value["content"]
+
+
+def test_同じDocumentを2回renderしても同一の成果物になる():
+    """
+    Given 変更されていないDocument
+    When 同じDocumentを2回renderする
+    Then 1回目と2回目の成果物は同一である
+    """
+    first = _engine().run(".waffle/documents/skills/harness-query-engine.json", deploy=False)
+    second = _engine().run(".waffle/documents/skills/harness-query-engine.json", deploy=False)
+    assert isinstance(first, Ok), first
+    assert isinstance(second, Ok), second
+    assert first.value["content"] == second.value["content"]

@@ -1,8 +1,11 @@
-"""uc-migrate-schema-version の TestScenarios に対応するネイティブテスト。
+"""uc-migrate-schema-version の acceptanceScenarios のうち、x-migration処理
+(機械変換/ai-inferワークシート/value-map/discriminator-remap)に対応するネイティブテスト。
 
-brainstorm-schema-versioning-migration.mdの論点1〜3で合意した設計を実証する
-（合成データのPoC・git履歴から復元した実データPoCの両方を、pytestとして固定する）。
-agg-schema由来の2シナリオ(後方互換・移行方向)は test_agg_schema.py に集約した。
+publishVersion/deprecateVersionはtests/acceptance/（実FsDocumentRepository）へ移設済み。
+ここに残る4件は、x-migration宣言を持つ実schemaがバンドル済みschema群にまだ存在しない
+（どのschemaも現時点でv1→v2移行を必要としていない）ため、brainstorm-schema-versioning-
+migration.mdで合意した合成データPoC・git履歴復元の実データPoCをフェイクschemaで固定した、
+既知の例外的配置（本物のschema進化が発生した時点でtests/acceptance/へ再配置する）。
 """
 import json
 
@@ -62,56 +65,6 @@ class _FakeValidator:
 
 def _engine(files=None, schemas=None):
     return MigrationEngine(_FakeDocuments(files or {}), _FakeSchemas(schemas or {}), _FakeValidator())
-
-
-# --- publishVersion / deprecateVersion ---
-
-def test_publishVersionは未公開のschemaをPUBLISHEDにする():
-    """
-    Given x-schema-statusが未設定のSchemaファイル
-    When publishVersionを実行する
-    Then x-schema-statusがPUBLISHEDになる
-    """
-    files = {"schema/v2.json": {"documentId": "x"}}
-    result = _engine(files).run("publishVersion", {"schemaPath": "schema/v2.json"})
-    assert isinstance(result, Ok)
-    assert files["schema/v2.json"]["x-schema-status"] == "PUBLISHED"
-
-
-def test_publishVersionは既に公開済みのschemaを拒否する():
-    """
-    Given x-schema-statusが既に設定されたSchemaファイル
-    When publishVersionを実行する
-    Then ALREADY_PUBLISHEDエラーが返る
-    """
-    files = {"schema/v2.json": {"x-schema-status": "PUBLISHED"}}
-    result = _engine(files).run("publishVersion", {"schemaPath": "schema/v2.json"})
-    assert isinstance(result, Err)
-    assert result.details[0] == "ALREADY_PUBLISHED"
-
-
-def test_deprecateVersionはPUBLISHEDをDEPRECATEDにする():
-    """
-    Given PUBLISHEDのSchemaファイル
-    When deprecateVersionを実行する
-    Then x-schema-statusがDEPRECATEDになる
-    """
-    files = {"schema/v1.json": {"x-schema-status": "PUBLISHED"}}
-    result = _engine(files).run("deprecateVersion", {"schemaPath": "schema/v1.json"})
-    assert isinstance(result, Ok)
-    assert files["schema/v1.json"]["x-schema-status"] == "DEPRECATED"
-
-
-def test_deprecateVersionはPUBLISHED以外を拒否する():
-    """
-    Given PUBLISHED以外の状態のSchemaファイル
-    When deprecateVersionを実行する
-    Then INVALID_STATEエラーが返る
-    """
-    files = {"schema/v1.json": {"x-schema-status": "DEPRECATED"}}
-    result = _engine(files).run("deprecateVersion", {"schemaPath": "schema/v1.json"})
-    assert isinstance(result, Err)
-    assert result.details[0] == "INVALID_STATE"
 
 
 # --- prepareMigration / applyMigration（合成データPoC相当） ---

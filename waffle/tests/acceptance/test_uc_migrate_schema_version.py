@@ -1,10 +1,9 @@
-"""uc-migrate-schema-version の受け入れテスト（ネイティブpytest・実adapter結合）。
+"""uc-migrate-schema-version の acceptanceScenarios のうち、publishVersion/
+deprecateVersionに対応するネイティブテスト（実FsDocumentRepository結合）。
 
-.waffle/specs/.../uc-migrate-schema-version.feature は参照専用の仕様書であり、実行対象ではない。
-publishVersion/deprecateVersionは実際のFsDocumentRepositoryでファイルを読み書きする。
-prepareMigrationは実際のPackageSchemaRepository（importlib.resources経由）でschemaを解決する
-（toSchemaRefは実在のbundled schemaを使う。x-migration宣言を持つ実schemaはまだ無いため、
-機械変換0件の素通りとschemaRef解決自体の実証にとどめる）。
+prepareMigration/applyMigration（x-migration処理）は、x-migration宣言を持つ実schemaが
+バンドル済みschema群にまだ存在しないため、既知の例外としてtests/unit/application/へ
+フェイクschemaで固定してある（詳細はそちらのdocstring参照）。
 """
 import json
 
@@ -75,38 +74,3 @@ def test_deprecateVersionはPUBLISHED以外を拒否する(tmp_path):
     assert result.details[0] == "INVALID_STATE"
 
 
-def test_prepareMigrationは実在しないschemaRefを拒否する(tmp_path):
-    """
-    Given 解決できないtoSchemaRef
-    When prepareMigrationを実行する
-    Then INVALID_SCHEMA_REFエラーが返る（実際のPackageSchemaRepositoryで解決を試みる）
-    """
-    docs_dir = tmp_path / "docs"
-    docs_dir.mkdir()
-
-    result = _engine().run("prepareMigration", {
-        "fromSchemaRef": "Bogus/v1", "toSchemaRef": "Bogus/v2", "documentsDir": str(docs_dir),
-    })
-    assert isinstance(result, Err), result
-    assert result.details[0] == "INVALID_SCHEMA_REF"
-
-
-def test_prepareMigrationは実在のschemaRefを解決しx_migrationが無ければ素通りする(tmp_path):
-    """
-    Given x-migration宣言を持たない実在のtoSchemaRef(DomainSpecSchema/v2)と、
-        古いバージョンを参照するDocument
-    When prepareMigrationを実行する
-    Then 実際のPackageSchemaRepositoryでschemaが解決され、機械変換もai-inferワークシートも
-        0件のまま(schemaRefだけ更新された)partialDocumentが返る
-    """
-    docs_dir = tmp_path / "docs"
-    docs_dir.mkdir()
-    (docs_dir / "doc1.json").write_text(json.dumps({"schemaRef": "DomainSpecSchema/v1", "documentId": "x"}))
-
-    result = _engine().run("prepareMigration", {
-        "fromSchemaRef": "DomainSpecSchema/v1", "toSchemaRef": "DomainSpecSchema/v2", "documentsDir": str(docs_dir),
-    })
-    assert isinstance(result, Ok), result
-    partial = result.value["partialDocuments"][str(docs_dir / "doc1.json")]
-    assert partial["schemaRef"] == "DomainSpecSchema/v2"
-    assert result.value["worksheets"] == {}

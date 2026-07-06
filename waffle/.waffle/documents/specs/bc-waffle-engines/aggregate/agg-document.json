@@ -341,8 +341,8 @@
       ]
     },
     "maturityLifecycle": {
-      "blockType": "Lifecycle",
-      "title": "ライフサイクル",
+      "blockType": "MaturityLifecycle",
+      "title": "成熟度ライフサイクル",
       "states": [
         "DRAFT",
         "ACTIVE",

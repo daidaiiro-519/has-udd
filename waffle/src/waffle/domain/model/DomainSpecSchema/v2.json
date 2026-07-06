@@ -3,58 +3,109 @@
   "$id": "DomainSpecSchema/v2",
   "title": "DomainSpecSchema v2",
   "description": "waffle の Spec 家族のうち、業務ロジック層（ドメイン層・DDD管轄）を扱う Spec 集約（UDD の核）。旧称 SpecSchema（spec は DDD より広い上位概念であり、UI層を扱う PresentationSpecSchema が別家族として存在するため改名）。specKind=bounded-context/subdomain/aggregate/usecase（DDD 語彙に整合）。content はドメイン語彙のみ（技術スタック/アーキ構成は CodingTemplate の担当）。集約=Commands/Invariants/Lifecycle、ユースケース=基本フロー(シーケンス)、整合の契約=TestScenarios(Gherkin)。描画は MD を正本とする（Google OKF 整合のため HTML は生成しない・HTML が要る場合は既存技術で MD から導出する viewer 側の責務）。",
-
   "x-render-target": {
-    "formats": ["md", "feature"],
+    "formats": [
+      "md",
+      "feature"
+    ],
     "path": {
       "bounded-context": ".waffle/specs/{contextRef}/{documentId}.md",
-      "aggregate":       ".waffle/specs/{contextRef}/aggregate/{documentId}.md",
-      "subdomain":       ".waffle/specs/{contextRef}/subdomain/{documentId}/{documentId}.md",
-      "usecase":         ".waffle/specs/{contextRef}/subdomain/{subdomainRef}/usecase/{documentId}.md"
+      "aggregate": ".waffle/specs/{contextRef}/aggregate/{documentId}.md",
+      "subdomain": ".waffle/specs/{contextRef}/subdomain/{documentId}/{documentId}.md",
+      "usecase": ".waffle/specs/{contextRef}/subdomain/{subdomainRef}/usecase/{documentId}.md"
     },
     "featurePath": {
       "bounded-context": ".waffle/specs/{contextRef}/{documentId}.feature",
-      "aggregate":       ".waffle/specs/{contextRef}/aggregate/{documentId}.feature",
-      "subdomain":       ".waffle/specs/{contextRef}/subdomain/{documentId}/{documentId}.feature",
-      "usecase":         ".waffle/specs/{contextRef}/subdomain/{subdomainRef}/usecase/{documentId}.feature"
+      "aggregate": ".waffle/specs/{contextRef}/aggregate/{documentId}.feature",
+      "subdomain": ".waffle/specs/{contextRef}/subdomain/{documentId}/{documentId}.feature",
+      "usecase": ".waffle/specs/{contextRef}/subdomain/{subdomainRef}/usecase/{documentId}.feature"
     }
   },
   "x-source-target": {
     "bounded-context": ".waffle/documents/specs/{contextRef}/{documentId}.json",
-    "aggregate":       ".waffle/documents/specs/{contextRef}/aggregate/{documentId}.json",
-    "subdomain":       ".waffle/documents/specs/{contextRef}/subdomain/{documentId}/{documentId}.json",
-    "usecase":         ".waffle/documents/specs/{contextRef}/subdomain/{subdomainRef}/usecase/{documentId}.json"
+    "aggregate": ".waffle/documents/specs/{contextRef}/aggregate/{documentId}.json",
+    "subdomain": ".waffle/documents/specs/{contextRef}/subdomain/{documentId}/{documentId}.json",
+    "usecase": ".waffle/documents/specs/{contextRef}/subdomain/{subdomainRef}/usecase/{documentId}.json"
   },
-
   "x-lifecycle": {
     "transitions": [
-      { "from": null,        "to": "CREATED",    "command": "create" },
-      { "from": "CREATED",   "to": "VALIDATED",  "command": "validate" },
-      { "from": "VALIDATED", "to": "VALIDATED",  "command": "validate" },
-      { "from": "RENDERED",  "to": "RENDERED",   "command": "validate" },
-      { "from": "VALIDATED", "to": "RENDERED",   "command": "render" },
-      { "from": "VALIDATED", "to": "SUPERSEDED", "command": "supersede" },
-      { "from": "RENDERED",  "to": "SUPERSEDED", "command": "supersede" }
+      {
+        "from": null,
+        "to": "CREATED",
+        "command": "create"
+      },
+      {
+        "from": "CREATED",
+        "to": "VALIDATED",
+        "command": "validate"
+      },
+      {
+        "from": "VALIDATED",
+        "to": "VALIDATED",
+        "command": "validate"
+      },
+      {
+        "from": "RENDERED",
+        "to": "RENDERED",
+        "command": "validate"
+      },
+      {
+        "from": "VALIDATED",
+        "to": "RENDERED",
+        "command": "render"
+      },
+      {
+        "from": "VALIDATED",
+        "to": "SUPERSEDED",
+        "command": "supersede"
+      },
+      {
+        "from": "RENDERED",
+        "to": "SUPERSEDED",
+        "command": "supersede"
+      }
     ]
   },
-
   "type": "object",
-  "required": ["documentId", "documentType", "schemaRef", "specKind", "status", "content"],
+  "required": [
+    "documentId",
+    "documentType",
+    "schemaRef",
+    "specKind",
+    "status",
+    "content"
+  ],
   "properties": {
     "documentId": {
       "type": "string",
       "x-prompt-write": "この Spec を一意に識別する ID を kebab-case で。bounded-context は bc-、subdomain は sd-、aggregate は agg-、usecase は uc- 接頭辞を推奨。例: uc-place-order"
     },
-    "documentType": { "type": "string", "const": "DomainSpec" },
-    "schemaRef":    { "type": "string", "const": "DomainSpecSchema/v2" },
+    "documentType": {
+      "type": "string",
+      "const": "DomainSpec"
+    },
+    "schemaRef": {
+      "type": "string",
+      "const": "DomainSpecSchema/v2"
+    },
     "specKind": {
       "type": "string",
-      "enum": ["bounded-context", "subdomain", "aggregate", "usecase"],
+      "enum": [
+        "bounded-context",
+        "subdomain",
+        "aggregate",
+        "usecase"
+      ],
       "x-prompt-write": "DDDの階層で選ぶ。bounded-context=同じ言葉が通る境界(製品文脈・最外) / subdomain=その中の業務領域(中核/一般/補完・ユースケースの束) / aggregate=一貫性の単位(不変条件を持つ実体・名詞) / usecase=1つの操作(動詞)。迷ったら: 不変条件を持つ実体→aggregate、〜する操作→usecase、業務の括り→subdomain、文脈全体→bounded-context。"
     },
     "status": {
       "type": "string",
-      "enum": ["CREATED", "VALIDATED", "RENDERED", "SUPERSEDED"],
+      "enum": [
+        "CREATED",
+        "VALIDATED",
+        "RENDERED",
+        "SUPERSEDED"
+      ],
       "x-prompt-write": "作成直後は CREATED。検証通過で VALIDATED、render 済で RENDERED、後続版に置換で SUPERSEDED。"
     },
     "subdomainRef": {
@@ -67,12 +118,19 @@
     },
     "tags": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "x-prompt-write": "この Spec を分類するタグ。例: [\"context:orders\"]"
     },
-    "createdAt": { "type": "string", "format": "date-time" },
-    "updatedAt": { "type": "string", "format": "date-time" },
-
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
     "_index": {
       "description": "waffle が x-prompt-query から自動生成する。AI は直接書かない。",
       "readOnly": true,
@@ -82,376 +140,859 @@
           "type": "object",
           "additionalProperties": {
             "type": "object",
-            "required": ["blockType", "prompt"],
+            "required": [
+              "blockType",
+              "prompt"
+            ],
             "properties": {
-              "blockType": { "type": "string" },
-              "prompt":    { "type": "string" }
+              "blockType": {
+                "type": "string"
+              },
+              "prompt": {
+                "type": "string"
+              }
             }
           }
         }
       }
     },
-
-    "content": { "type": "object" }
+    "content": {
+      "type": "object"
+    }
   },
-
   "allOf": [
-    { "if":   { "properties": { "specKind": { "const": "bounded-context" } }, "required": ["specKind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/BoundedContextContent" } } } },
-    { "if":   { "properties": { "specKind": { "const": "subdomain" } }, "required": ["specKind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/SubdomainContent" } } } },
-    { "if":   { "properties": { "specKind": { "const": "aggregate" } }, "required": ["specKind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/AggregateContent" } } } },
-    { "if":   { "properties": { "specKind": { "const": "usecase" } }, "required": ["specKind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/UsecaseContent" } } } }
+    {
+      "if": {
+        "properties": {
+          "specKind": {
+            "const": "bounded-context"
+          }
+        },
+        "required": [
+          "specKind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/BoundedContextContent"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "specKind": {
+            "const": "subdomain"
+          }
+        },
+        "required": [
+          "specKind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/SubdomainContent"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "specKind": {
+            "const": "aggregate"
+          }
+        },
+        "required": [
+          "specKind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/AggregateContent"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "specKind": {
+            "const": "usecase"
+          }
+        },
+        "required": [
+          "specKind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/UsecaseContent"
+          }
+        }
+      }
+    }
   ],
-
   "$defs": {
-
     "BoundedContextContent": {
       "type": "object",
-      "required": ["title", "summary", "ubiquitousLanguage", "members"],
+      "required": [
+        "title",
+        "summary",
+        "ubiquitousLanguage",
+        "members"
+      ],
       "additionalProperties": false,
       "properties": {
-        "title":              { "$ref": "#/$defs/TitleBlock" },
-        "summary":            { "$ref": "#/$defs/SummaryBlock" },
-        "ubiquitousLanguage": { "$ref": "#/$defs/UbiquitousLanguageBlock" },
-        "members":            { "$ref": "#/$defs/MembersBlock" },
-        "contextMap":         { "$ref": "#/$defs/ContextMapBlock" }
+        "title": {
+          "$ref": "#/$defs/TitleBlock"
+        },
+        "summary": {
+          "$ref": "#/$defs/SummaryBlock"
+        },
+        "ubiquitousLanguage": {
+          "$ref": "#/$defs/UbiquitousLanguageBlock"
+        },
+        "members": {
+          "$ref": "#/$defs/MembersBlock"
+        },
+        "contextMap": {
+          "$ref": "#/$defs/ContextMapBlock"
+        }
       }
     },
-
     "SubdomainContent": {
       "type": "object",
-      "required": ["title", "summary", "category", "members", "implementationGuidance"],
+      "required": [
+        "title",
+        "summary",
+        "category",
+        "members",
+        "implementationGuidance"
+      ],
       "additionalProperties": false,
       "properties": {
-        "title":                  { "$ref": "#/$defs/TitleBlock" },
-        "summary":                { "$ref": "#/$defs/SummaryBlock" },
-        "category":               { "$ref": "#/$defs/SubdomainCategoryBlock" },
-        "members":                { "$ref": "#/$defs/SubdomainMembersBlock" },
-        "implementationGuidance": { "$ref": "#/$defs/ImplementationGuidanceBlock" },
-        "externalSolution":       { "$ref": "#/$defs/ExternalSolutionBlock" },
-        "domainServices":         { "$ref": "#/$defs/DomainServicesBlock" },
-        "domainServiceScenarios": { "$ref": "#/$defs/DomainServiceScenariosBlock" }
+        "title": {
+          "$ref": "#/$defs/TitleBlock"
+        },
+        "summary": {
+          "$ref": "#/$defs/SummaryBlock"
+        },
+        "category": {
+          "$ref": "#/$defs/SubdomainCategoryBlock"
+        },
+        "members": {
+          "$ref": "#/$defs/SubdomainMembersBlock"
+        },
+        "implementationGuidance": {
+          "$ref": "#/$defs/ImplementationGuidanceBlock"
+        },
+        "externalSolution": {
+          "$ref": "#/$defs/ExternalSolutionBlock"
+        },
+        "domainServices": {
+          "$ref": "#/$defs/DomainServicesBlock"
+        },
+        "domainServiceScenarios": {
+          "$ref": "#/$defs/DomainServiceScenariosBlock"
+        }
       }
     },
-
     "AggregateContent": {
       "type": "object",
-      "required": ["title", "summary", "aggregateRoot", "entities", "invariants", "commands"],
+      "required": [
+        "title",
+        "summary",
+        "aggregateRoot",
+        "entities",
+        "invariants",
+        "commands"
+      ],
       "additionalProperties": false,
       "properties": {
-        "title":             { "$ref": "#/$defs/TitleBlock" },
-        "summary":           { "$ref": "#/$defs/SummaryBlock" },
-        "aggregateRoot":     { "$ref": "#/$defs/AggregateRootBlock" },
-        "entities":          { "$ref": "#/$defs/EntitiesBlock" },
-        "valueObjects":      { "$ref": "#/$defs/ValueObjectsBlock" },
-        "invariants":        { "$ref": "#/$defs/InvariantsBlock" },
-        "lifecycle":         { "$ref": "#/$defs/LifecycleBlock" },
-        "maturityLifecycle": { "$ref": "#/$defs/LifecycleBlock" },
-        "commands":          { "$ref": "#/$defs/CommandsBlock" },
-        "domainEvents":      { "$ref": "#/$defs/DomainEventsBlock" },
-        "invariantScenarios": { "$ref": "#/$defs/InvariantScenariosBlock" }
+        "title": {
+          "$ref": "#/$defs/TitleBlock"
+        },
+        "summary": {
+          "$ref": "#/$defs/SummaryBlock"
+        },
+        "aggregateRoot": {
+          "$ref": "#/$defs/AggregateRootBlock"
+        },
+        "entities": {
+          "$ref": "#/$defs/EntitiesBlock"
+        },
+        "valueObjects": {
+          "$ref": "#/$defs/ValueObjectsBlock"
+        },
+        "invariants": {
+          "$ref": "#/$defs/InvariantsBlock"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/LifecycleBlock"
+        },
+        "maturityLifecycle": {
+          "$ref": "#/$defs/MaturityLifecycleBlock"
+        },
+        "commands": {
+          "$ref": "#/$defs/CommandsBlock"
+        },
+        "domainEvents": {
+          "$ref": "#/$defs/DomainEventsBlock"
+        },
+        "invariantScenarios": {
+          "$ref": "#/$defs/InvariantScenariosBlock"
+        }
       }
     },
-
     "UsecaseContent": {
       "type": "object",
-      "required": ["title", "summary", "actorIntent", "mainFlow", "postconditions", "acceptanceCriteria", "acceptanceScenarios"],
+      "required": [
+        "title",
+        "summary",
+        "actorIntent",
+        "mainFlow",
+        "postconditions",
+        "acceptanceCriteria",
+        "acceptanceScenarios"
+      ],
       "additionalProperties": false,
       "properties": {
-        "title":              { "$ref": "#/$defs/TitleBlock" },
-        "summary":            { "$ref": "#/$defs/SummaryBlock" },
-        "actorIntent":        { "$ref": "#/$defs/ActorIntentBlock" },
-        "externalActors":     { "$ref": "#/$defs/ExternalActorsBlock" },
-        "preconditions":      { "$ref": "#/$defs/PreconditionsBlock" },
-        "mainFlow":           { "$ref": "#/$defs/MainFlowBlock" },
-        "postconditions":     { "$ref": "#/$defs/PostconditionsBlock" },
-        "acceptanceCriteria": { "$ref": "#/$defs/AcceptanceCriteriaBlock" },
-        "errors":             { "$ref": "#/$defs/ErrorsBlock" },
-        "acceptanceScenarios": { "$ref": "#/$defs/AcceptanceScenariosBlock" },
-        "operationGuarantees":  { "$ref": "#/$defs/OperationGuaranteesBlock" },
-        "guaranteeScenarios":   { "$ref": "#/$defs/GuaranteeScenariosBlock" }
+        "title": {
+          "$ref": "#/$defs/TitleBlock"
+        },
+        "summary": {
+          "$ref": "#/$defs/SummaryBlock"
+        },
+        "actorIntent": {
+          "$ref": "#/$defs/ActorIntentBlock"
+        },
+        "externalActors": {
+          "$ref": "#/$defs/ExternalActorsBlock"
+        },
+        "preconditions": {
+          "$ref": "#/$defs/PreconditionsBlock"
+        },
+        "mainFlow": {
+          "$ref": "#/$defs/MainFlowBlock"
+        },
+        "postconditions": {
+          "$ref": "#/$defs/PostconditionsBlock"
+        },
+        "acceptanceCriteria": {
+          "$ref": "#/$defs/AcceptanceCriteriaBlock"
+        },
+        "errors": {
+          "$ref": "#/$defs/ErrorsBlock"
+        },
+        "acceptanceScenarios": {
+          "$ref": "#/$defs/AcceptanceScenariosBlock"
+        },
+        "operationGuarantees": {
+          "$ref": "#/$defs/OperationGuaranteesBlock"
+        },
+        "guaranteeScenarios": {
+          "$ref": "#/$defs/GuaranteeScenariosBlock"
+        }
       }
     },
-
     "TitleBlock": {
       "type": "object",
-      "required": ["blockType", "title"],
+      "required": [
+        "blockType",
+        "title"
+      ],
       "x-render-order": 0,
       "x-render-level": 1,
       "x-prompt-query": "この Spec のタイトルを持ちます。documentId が使われ h1 になります。",
       "x-render": [],
       "properties": {
-        "blockType": { "type": "string", "const": "Title" },
-        "title":     { "type": "string", "x-prompt-write": "documentId をそのまま設定してください。" }
+        "blockType": {
+          "type": "string",
+          "const": "Title"
+        },
+        "title": {
+          "type": "string",
+          "x-prompt-write": "documentId をそのまま設定してください。"
+        }
       }
     },
-
     "SummaryBlock": {
       "type": "object",
-      "required": ["blockType", "title", "text"],
+      "required": [
+        "blockType",
+        "title",
+        "text"
+      ],
       "x-render-order": 1,
       "x-render-level": 2,
       "x-prompt-query": "この Spec の概要を1〜2文で持ちます。人の即スキャンと AI の意図把握に使います。",
-      "x-render": [ { "as": "paragraph", "from": "text" } ],
+      "x-render": [
+        {
+          "as": "paragraph",
+          "from": "text"
+        }
+      ],
       "properties": {
-        "blockType": { "type": "string", "const": "Summary" },
-        "title":     { "type": "string", "const": "概要" },
-        "text":      { "type": "string", "x-prompt-write": "この文脈/業務領域/集約/ユースケースが何かを1〜2文で（ドメイン語彙のみ・技術用語禁止）。" }
+        "blockType": {
+          "type": "string",
+          "const": "Summary"
+        },
+        "title": {
+          "type": "string",
+          "const": "概要"
+        },
+        "text": {
+          "type": "string",
+          "x-prompt-write": "この文脈/業務領域/集約/ユースケースが何かを1〜2文で（ドメイン語彙のみ・技術用語禁止）。"
+        }
       }
     },
-
     "UbiquitousLanguageBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 2,
       "x-render-level": 2,
       "x-prompt-query": "この文脈のユビキタス言語(用語→定義)を持ちます。AI の grounding・語彙統一に使います。この bc 内に閉じます。",
       "x-render": [
-        { "as": "table", "from": "items", "columns": [
-          { "field": "term", "header": "用語", "code": true },
-          { "field": "definition", "header": "定義" }
-        ] }
+        {
+          "as": "table",
+          "from": "items",
+          "columns": [
+            {
+              "field": "term",
+              "header": "用語",
+              "code": true
+            },
+            {
+              "field": "definition",
+              "header": "定義"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "UbiquitousLanguage" },
-        "title":     { "type": "string", "const": "ユビキタス言語" },
+        "blockType": {
+          "type": "string",
+          "const": "UbiquitousLanguage"
+        },
+        "title": {
+          "type": "string",
+          "const": "ユビキタス言語"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "この文脈の主要な用語と定義を網羅的に列挙。業務エキスパートと同じ言葉で（技術用語を混ぜない）。",
           "items": {
             "type": "object",
-            "required": ["term", "definition"],
+            "required": [
+              "term",
+              "definition"
+            ],
             "properties": {
-              "term":       { "type": "string", "x-prompt-write": "用語（この文脈での呼び名）。" },
-              "definition": { "type": "string", "x-prompt-write": "その用語が指すものを1文で。" }
+              "term": {
+                "type": "string",
+                "x-prompt-write": "用語（この文脈での呼び名）。"
+              },
+              "definition": {
+                "type": "string",
+                "x-prompt-write": "その用語が指すものを1文で。"
+              }
             }
           }
         }
       }
     },
-
     "MembersBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 3,
       "x-render-level": 2,
       "x-prompt-query": "この bc に属する subdomain/aggregate/usecase の一覧を持ちます。",
       "x-render": [
-        { "as": "table", "from": "items", "columns": [
-          { "field": "kind", "header": "種別" },
-          { "field": "members", "header": "メンバー" }
-        ] }
+        {
+          "as": "table",
+          "from": "items",
+          "columns": [
+            {
+              "field": "kind",
+              "header": "種別"
+            },
+            {
+              "field": "members",
+              "header": "メンバー"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "Members" },
-        "title":     { "type": "string", "const": "構成要素" },
+        "blockType": {
+          "type": "string",
+          "const": "Members"
+        },
+        "title": {
+          "type": "string",
+          "const": "構成要素"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "種別ごとに所属メンバーの id を列挙。",
           "items": {
             "type": "object",
-            "required": ["kind", "members"],
+            "required": [
+              "kind",
+              "members"
+            ],
             "properties": {
-              "kind":    { "type": "string", "enum": ["subdomain", "aggregate", "usecase"], "x-prompt-write": "メンバーの種別。" },
-              "members": { "type": "string", "x-prompt-write": "その種別の id を「 / 」区切りで。例: sd-order-management / sd-payment" }
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "subdomain",
+                  "aggregate",
+                  "usecase"
+                ],
+                "x-prompt-write": "メンバーの種別。"
+              },
+              "members": {
+                "type": "string",
+                "x-prompt-write": "その種別の id を「 / 」区切りで。例: sd-order-management / sd-payment"
+              }
             }
           }
         }
       }
     },
-
     "ContextMapBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 4,
       "x-render-level": 2,
       "x-prompt-query": "他の bounded-context との連係(相手・関係種別・内容)を持ちます。",
       "x-render": [
-        { "as": "table", "from": "items", "columns": [
-          { "field": "counterpart", "header": "相手コンテキスト" },
-          { "field": "relationship", "header": "関係" },
-          { "field": "content", "header": "内容" }
-        ] }
+        {
+          "as": "table",
+          "from": "items",
+          "columns": [
+            {
+              "field": "counterpart",
+              "header": "相手コンテキスト"
+            },
+            {
+              "field": "relationship",
+              "header": "関係"
+            },
+            {
+              "field": "content",
+              "header": "内容"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "ContextMap" },
-        "title":     { "type": "string", "const": "文脈マップ" },
+        "blockType": {
+          "type": "string",
+          "const": "ContextMap"
+        },
+        "title": {
+          "type": "string",
+          "const": "文脈マップ"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "他 bc との関係を列挙。関係種別=パートナー/顧客・供給/従属/腐敗防止層/公開された言語 等。1 bc しか無ければ空。",
           "items": {
             "type": "object",
-            "required": ["counterpart", "relationship", "content"],
+            "required": [
+              "counterpart",
+              "relationship",
+              "content"
+            ],
             "properties": {
-              "counterpart":  { "type": "string", "x-prompt-write": "相手の bounded-context 名。" },
-              "relationship": { "type": "string", "x-prompt-write": "関係種別（パートナー/顧客・供給/腐敗防止層 等）。" },
-              "content":      { "type": "string", "x-prompt-write": "何を連係するかを1文で。" }
+              "counterpart": {
+                "type": "string",
+                "x-prompt-write": "相手の bounded-context 名。"
+              },
+              "relationship": {
+                "type": "string",
+                "x-prompt-write": "関係種別（パートナー/顧客・供給/腐敗防止層 等）。"
+              },
+              "content": {
+                "type": "string",
+                "x-prompt-write": "何を連係するかを1文で。"
+              }
             }
           }
         }
       }
     },
-
     "SubdomainCategoryBlock": {
       "type": "object",
-      "required": ["blockType", "title", "classification", "rationale"],
+      "required": [
+        "blockType",
+        "title",
+        "classification",
+        "rationale"
+      ],
       "x-render-order": 2,
       "x-render-level": 2,
       "x-prompt-query": "この業務領域のカテゴリー(中核/一般/補完)と根拠を持ちます。実装の厚みを駆動します。",
       "x-render": [
-        { "as": "keyvalue", "pairs": [
-          { "label": "カテゴリー", "from": "classification" },
-          { "label": "根拠", "from": "rationale" }
-        ] }
+        {
+          "as": "keyvalue",
+          "pairs": [
+            {
+              "label": "カテゴリー",
+              "from": "classification"
+            },
+            {
+              "label": "根拠",
+              "from": "rationale"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType":      { "type": "string", "const": "SubdomainCategory" },
-        "title":          { "type": "string", "const": "カテゴリー" },
-        "classification": { "type": "string", "enum": ["core", "supporting", "generic"], "x-prompt-write": "中核=core / 補完=supporting / 一般=generic。競争優位を生むか・既製品があるかで判定。" },
-        "rationale":      { "type": "string", "x-prompt-write": "そのカテゴリーである根拠（差別化の有無）。" }
-      }
-    },
-
-    "SubdomainMembersBlock": {
-      "type": "object",
-      "required": ["blockType", "title", "items"],
-      "x-render-order": 3,
-      "x-render-level": 2,
-      "x-prompt-query": "この業務領域に属するユースケースの一覧を持ちます。",
-      "x-render": [ { "as": "list", "from": "items" } ],
-      "properties": {
-        "blockType": { "type": "string", "const": "SubdomainMembers" },
-        "title":     { "type": "string", "const": "所属ユースケース" },
-        "items": {
-          "type": "array",
-          "x-prompt-write": "この業務領域に属する usecase の id を列挙。",
-          "items": { "type": "string" }
+        "blockType": {
+          "type": "string",
+          "const": "SubdomainCategory"
+        },
+        "title": {
+          "type": "string",
+          "const": "カテゴリー"
+        },
+        "classification": {
+          "type": "string",
+          "enum": [
+            "core",
+            "supporting",
+            "generic"
+          ],
+          "x-prompt-write": "中核=core / 補完=supporting / 一般=generic。競争優位を生むか・既製品があるかで判定。"
+        },
+        "rationale": {
+          "type": "string",
+          "x-prompt-write": "そのカテゴリーである根拠（差別化の有無）。"
         }
       }
     },
-
+    "SubdomainMembersBlock": {
+      "type": "object",
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
+      "x-render-order": 3,
+      "x-render-level": 2,
+      "x-prompt-query": "この業務領域に属するユースケースの一覧を持ちます。",
+      "x-render": [
+        {
+          "as": "list",
+          "from": "items"
+        }
+      ],
+      "properties": {
+        "blockType": {
+          "type": "string",
+          "const": "SubdomainMembers"
+        },
+        "title": {
+          "type": "string",
+          "const": "所属ユースケース"
+        },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "この業務領域に属する usecase の id を列挙。",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "ImplementationGuidanceBlock": {
       "type": "object",
-      "required": ["blockType", "title", "text"],
+      "required": [
+        "blockType",
+        "title",
+        "text"
+      ],
       "x-render-order": 4,
       "x-render-level": 2,
       "x-prompt-query": "この業務領域の実装の厚み(中核=厚い/一般=既製/補完=薄い)を持ちます。CodingTemplate の subdomainRichness の宣言元。",
-      "x-render": [ { "as": "paragraph", "from": "text" } ],
+      "x-render": [
+        {
+          "as": "paragraph",
+          "from": "text"
+        }
+      ],
       "properties": {
-        "blockType": { "type": "string", "const": "ImplementationGuidance" },
-        "title":     { "type": "string", "const": "実装ガイド" },
-        "text":      { "type": "string", "x-prompt-write": "実装方針を1〜2文で。中核=ドメインモデルで厚く/一般=既製ライブラリを薄く包む/補完=薄いトランザクションスクリプト。" }
+        "blockType": {
+          "type": "string",
+          "const": "ImplementationGuidance"
+        },
+        "title": {
+          "type": "string",
+          "const": "実装ガイド"
+        },
+        "text": {
+          "type": "string",
+          "x-prompt-write": "実装方針を1〜2文で。中核=ドメインモデルで厚く/一般=既製ライブラリを薄く包む/補完=薄いトランザクションスクリプト。"
+        }
       }
     },
-
     "ExternalSolutionBlock": {
       "type": "object",
-      "required": ["blockType", "title", "text"],
+      "required": [
+        "blockType",
+        "title",
+        "text"
+      ],
       "x-render-order": 5,
       "x-render-level": 2,
       "x-prompt-query": "一般の業務領域で採用する既製品(@stack の宛先)を持ちます。",
-      "x-render": [ { "as": "paragraph", "from": "text" } ],
+      "x-render": [
+        {
+          "as": "paragraph",
+          "from": "text"
+        }
+      ],
       "properties": {
-        "blockType": { "type": "string", "const": "ExternalSolution" },
-        "title":     { "type": "string", "const": "外部解決策" },
-        "text":      { "type": "string", "x-prompt-write": "採用する既製ライブラリ/サービス名と、それが @stack のどの能力に当たるか。中核/補完なら不要。" }
+        "blockType": {
+          "type": "string",
+          "const": "ExternalSolution"
+        },
+        "title": {
+          "type": "string",
+          "const": "外部解決策"
+        },
+        "text": {
+          "type": "string",
+          "x-prompt-write": "採用する既製ライブラリ/サービス名と、それが @stack のどの能力に当たるか。中核/補完なら不要。"
+        }
       }
     },
-
     "DomainServicesBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 6,
       "x-render-level": 2,
       "x-prompt-query": "業務サービス(ステートレス・複数集約にまたがる計算)を持ちます。集約に属さないためここ(subdomain)に置きます。",
       "x-render": [
-        { "as": "table", "from": "items", "columns": [
-          { "field": "name", "header": "業務サービス" },
-          { "field": "responsibility", "header": "責務" }
-        ] }
+        {
+          "as": "table",
+          "from": "items",
+          "columns": [
+            {
+              "field": "name",
+              "header": "業務サービス"
+            },
+            {
+              "field": "responsibility",
+              "header": "責務"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "DomainServices" },
-        "title":     { "type": "string", "const": "ドメインサービス" },
+        "blockType": {
+          "type": "string",
+          "const": "DomainServices"
+        },
+        "title": {
+          "type": "string",
+          "const": "ドメインサービス"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "複数集約に跨る/集約に収まらないステートレスな業務ロジックを列挙。無ければ空。",
           "items": {
             "type": "object",
-            "required": ["name", "responsibility"],
+            "required": [
+              "name",
+              "responsibility"
+            ],
             "properties": {
-              "name":           { "type": "string", "x-prompt-write": "業務サービス名。" },
-              "responsibility": { "type": "string", "x-prompt-write": "何を計算/判定するか・どの集約に跨るか・入力→出力（何を受け何を返すか）を1文で。実装手順は書かない。" }
+              "name": {
+                "type": "string",
+                "x-prompt-write": "業務サービス名。"
+              },
+              "responsibility": {
+                "type": "string",
+                "x-prompt-write": "何を計算/判定するか・どの集約に跨るか・入力→出力（何を受け何を返すか）を1文で。実装手順は書かない。"
+              }
             }
           }
         }
       }
     },
-
     "AggregateRootBlock": {
       "type": "object",
-      "required": ["blockType", "title", "name"],
+      "required": [
+        "blockType",
+        "title",
+        "name"
+      ],
       "x-render-order": 2,
       "x-render-level": 2,
       "x-prompt-query": "集約のルート名と外部集約参照を持ちます。集約境界の核です。",
       "x-render": [
-        { "as": "keyvalue", "pairs": [ { "label": "集約ルート", "from": "name" } ] },
-        { "as": "list", "heading": "外部参照（ID）", "from": "externalRefs" }
+        {
+          "as": "keyvalue",
+          "pairs": [
+            {
+              "label": "集約ルート",
+              "from": "name"
+            }
+          ]
+        },
+        {
+          "as": "list",
+          "heading": "外部参照（ID）",
+          "from": "externalRefs"
+        }
       ],
       "properties": {
-        "blockType":    { "type": "string", "const": "AggregateRoot" },
-        "title":        { "type": "string", "const": "集約ルート" },
-        "name":         { "type": "string", "x-prompt-write": "ルートエンティティ名（ドメイン語彙）。例: Order" },
+        "blockType": {
+          "type": "string",
+          "const": "AggregateRoot"
+        },
+        "title": {
+          "type": "string",
+          "const": "集約ルート"
+        },
+        "name": {
+          "type": "string",
+          "x-prompt-write": "ルートエンティティ名（ドメイン語彙）。例: Order"
+        },
         "externalRefs": {
           "type": "array",
           "x-prompt-write": "ID で参照する他集約を列挙（オブジェクトは内部に持たない・図6-4）。例: Customer, Product。無ければ空。",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
-
     "EntitiesBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 3,
       "x-render-level": 2,
       "x-prompt-query": "集約内のエンティティ(ルート＋子・識別子＋属性)を持ちます。ルートを通じてのみ変更されます。",
       "x-render": [
-        { "as": "section", "from": "items", "titleFrom": "name", "badge": { "from": "isRoot", "text": "集約ルート" }, "each": [
-          { "as": "paragraph", "from": "role" },
-          { "as": "table", "from": "attributes", "columns": [
-            { "field": "name", "header": "属性", "markField": "isId", "markSuffix": "（識別子）" },
-            { "field": "type", "header": "型" }
-          ] }
-        ] }
+        {
+          "as": "section",
+          "from": "items",
+          "titleFrom": "name",
+          "badge": {
+            "from": "isRoot",
+            "text": "集約ルート"
+          },
+          "each": [
+            {
+              "as": "paragraph",
+              "from": "role"
+            },
+            {
+              "as": "table",
+              "from": "attributes",
+              "columns": [
+                {
+                  "field": "name",
+                  "header": "属性",
+                  "markField": "isId",
+                  "markSuffix": "（識別子）"
+                },
+                {
+                  "field": "type",
+                  "header": "型"
+                }
+              ]
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "Entities" },
-        "title":     { "type": "string", "const": "エンティティ" },
+        "blockType": {
+          "type": "string",
+          "const": "Entities"
+        },
+        "title": {
+          "type": "string",
+          "const": "エンティティ"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "集約内エンティティ（識別子を持ち状態が変わる）を列挙。最低1つ＝集約ルート。",
           "items": {
             "type": "object",
-            "required": ["name", "role", "isRoot", "attributes"],
+            "required": [
+              "name",
+              "role",
+              "isRoot",
+              "attributes"
+            ],
             "properties": {
-              "name":       { "type": "string", "x-prompt-write": "エンティティ名。例: Order / OrderLine" },
-              "role":       { "type": "string", "x-prompt-write": "役割を1文で。" },
-              "isRoot":     { "type": "boolean", "x-prompt-write": "集約ルートなら true（1つだけ）。" },
+              "name": {
+                "type": "string",
+                "x-prompt-write": "エンティティ名。例: Order / OrderLine"
+              },
+              "role": {
+                "type": "string",
+                "x-prompt-write": "役割を1文で。"
+              },
+              "isRoot": {
+                "type": "boolean",
+                "x-prompt-write": "集約ルートなら true（1つだけ）。"
+              },
               "attributes": {
                 "type": "array",
                 "minItems": 1,
                 "x-prompt-write": "属性を列挙。識別子も属性の1つとして含め isId:true を付ける。型は値オブジェクト名で。",
                 "items": {
                   "type": "object",
-                  "required": ["name", "type"],
+                  "required": [
+                    "name",
+                    "type"
+                  ],
                   "properties": {
-                    "name": { "type": "string", "x-prompt-write": "属性名。例: status / orderId" },
-                    "type": { "type": "string", "x-prompt-write": "型（値オブジェクト名・他エンティティ・ID）。例: OrderStatus / OrderLine[] / customerId" },
-                    "isId": { "type": "boolean", "x-prompt-write": "この属性が識別子なら true（エンティティに1つ）。" }
+                    "name": {
+                      "type": "string",
+                      "x-prompt-write": "属性名。例: status / orderId"
+                    },
+                    "type": {
+                      "type": "string",
+                      "x-prompt-write": "型（値オブジェクト名・他エンティティ・ID）。例: OrderStatus / OrderLine[] / customerId"
+                    },
+                    "isId": {
+                      "type": "boolean",
+                      "x-prompt-write": "この属性が識別子なら true（エンティティに1つ）。"
+                    }
                   }
                 }
               }
@@ -460,205 +1001,442 @@
         }
       }
     },
-
     "ValueObjectsBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 4,
       "x-render-level": 2,
       "x-prompt-query": "値オブジェクト(属性の型カタログ・不変・振る舞い)を持ちます。エンティティ属性の型を定義します。",
       "x-render": [
-        { "as": "table", "from": "items", "columns": [
-          { "field": "name", "header": "値オブジェクト" },
-          { "field": "represents", "header": "表すもの" },
-          { "field": "behavior", "header": "振る舞い・制約" }
-        ] }
+        {
+          "as": "table",
+          "from": "items",
+          "columns": [
+            {
+              "field": "name",
+              "header": "値オブジェクト"
+            },
+            {
+              "field": "represents",
+              "header": "表すもの"
+            },
+            {
+              "field": "behavior",
+              "header": "振る舞い・制約"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "ValueObjects" },
-        "title":     { "type": "string", "const": "値オブジェクト" },
+        "blockType": {
+          "type": "string",
+          "const": "ValueObjects"
+        },
+        "title": {
+          "type": "string",
+          "const": "値オブジェクト"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "エンティティ属性の型となる値オブジェクトを列挙。無ければ空。",
           "items": {
             "type": "object",
-            "required": ["name", "represents", "behavior"],
+            "required": [
+              "name",
+              "represents",
+              "behavior"
+            ],
             "properties": {
-              "name":       { "type": "string", "x-prompt-write": "値オブジェクト名。例: Money" },
-              "represents": { "type": "string", "x-prompt-write": "何を表すか。例: 通貨つきの金額" },
-              "behavior":   { "type": "string", "x-prompt-write": "振る舞い・制約・等価判定。例: 不変。加算は同一通貨のみ。負値不可。" }
+              "name": {
+                "type": "string",
+                "x-prompt-write": "値オブジェクト名。例: Money"
+              },
+              "represents": {
+                "type": "string",
+                "x-prompt-write": "何を表すか。例: 通貨つきの金額"
+              },
+              "behavior": {
+                "type": "string",
+                "x-prompt-write": "振る舞い・制約・等価判定。例: 不変。加算は同一通貨のみ。負値不可。"
+              }
             }
           }
         }
       }
     },
-
     "InvariantsBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 5,
       "x-render-level": 2,
       "x-prompt-query": "集約が常に満たす不変条件(ルール＋enforce 方法)を持ちます。集約境界の核。最低1つ(0なら集約でない)。",
       "x-render": [
-        { "as": "table", "from": "items", "columns": [
-          { "field": "rule", "header": "ルール" },
-          { "field": "enforcement", "header": "守り方" },
-          { "field": "rationale", "header": "根拠" }
-        ] }
+        {
+          "as": "table",
+          "from": "items",
+          "columns": [
+            {
+              "field": "rule",
+              "header": "ルール"
+            },
+            {
+              "field": "enforcement",
+              "header": "守り方"
+            },
+            {
+              "field": "rationale",
+              "header": "根拠"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "Invariants" },
-        "title":     { "type": "string", "const": "不変条件" },
+        "blockType": {
+          "type": "string",
+          "const": "Invariants"
+        },
+        "title": {
+          "type": "string",
+          "const": "不変条件"
+        },
         "items": {
           "type": "array",
           "minItems": 1,
           "x-prompt-write": "集約が常に満たす不変条件を最低1つ列挙。1つも挙げられないなら、それは集約でなく値オブジェクトか単なるデータ。",
           "items": {
             "type": "object",
-            "required": ["rule", "enforcement"],
+            "required": [
+              "rule",
+              "enforcement"
+            ],
             "properties": {
-              "rule":        { "type": "string", "x-prompt-write": "不変条件（「〜は常に〜」の形）。" },
-              "enforcement": { "type": "string", "enum": ["schema", "guard"], "x-prompt-write": "静的(値/構造)=schema が守る / 動的(状態遷移など)=guard が守る。" },
-              "rationale":   { "type": "string", "x-prompt-write": "そのルールが要る根拠を短く。" }
+              "rule": {
+                "type": "string",
+                "x-prompt-write": "不変条件（「〜は常に〜」の形）。"
+              },
+              "enforcement": {
+                "type": "string",
+                "enum": [
+                  "schema",
+                  "guard"
+                ],
+                "x-prompt-write": "静的(値/構造)=schema が守る / 動的(状態遷移など)=guard が守る。"
+              },
+              "rationale": {
+                "type": "string",
+                "x-prompt-write": "そのルールが要る根拠を短く。"
+              }
             }
           }
         }
       }
     },
-
     "LifecycleBlock": {
       "type": "object",
-      "required": ["blockType", "title", "states", "transitions"],
+      "required": [
+        "blockType",
+        "title",
+        "states",
+        "transitions"
+      ],
       "x-render-order": 6,
       "x-render-level": 2,
       "x-prompt-query": "集約の状態と遷移表(from→to＋契機コマンド)を持ちます。遷移は guard が読んで enforce します。",
       "x-render": [
-        { "as": "statediagram", "from": "transitions" },
-        { "as": "table", "heading": "遷移", "from": "transitions", "columns": [
-          { "field": "from", "header": "from" },
-          { "field": "to", "header": "to" },
-          { "field": "command", "header": "command" },
-          { "field": "condition", "header": "条件" }
-        ] }
+        {
+          "as": "statediagram",
+          "from": "transitions"
+        },
+        {
+          "as": "table",
+          "heading": "遷移",
+          "from": "transitions",
+          "columns": [
+            {
+              "field": "from",
+              "header": "from"
+            },
+            {
+              "field": "to",
+              "header": "to"
+            },
+            {
+              "field": "command",
+              "header": "command"
+            },
+            {
+              "field": "condition",
+              "header": "条件"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "Lifecycle" },
-        "title":     { "type": "string", "const": "ライフサイクル" },
+        "blockType": {
+          "type": "string",
+          "const": "Lifecycle"
+        },
+        "title": {
+          "type": "string",
+          "const": "ライフサイクル"
+        },
         "states": {
           "type": "array",
           "x-prompt-write": "取りうる状態を列挙。例: PLACED, PAID, SHIPPED。状態を持たない集約なら空。",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
         "transitions": {
           "type": "array",
           "x-prompt-write": "状態遷移を列挙（from→to＋契機 command）。",
           "items": {
             "type": "object",
-            "required": ["from", "to", "command"],
+            "required": [
+              "from",
+              "to",
+              "command"
+            ],
             "properties": {
-              "from":      { "type": "string", "x-prompt-write": "遷移元の状態。" },
-              "to":        { "type": "string", "x-prompt-write": "遷移先の状態。" },
-              "command":   { "type": "string", "x-prompt-write": "遷移を起こすコマンド。" },
-              "condition": { "type": "string", "x-prompt-write": "遷移の追加条件があれば。無ければ空。" }
+              "from": {
+                "type": "string",
+                "x-prompt-write": "遷移元の状態。"
+              },
+              "to": {
+                "type": "string",
+                "x-prompt-write": "遷移先の状態。"
+              },
+              "command": {
+                "type": "string",
+                "x-prompt-write": "遷移を起こすコマンド。"
+              },
+              "condition": {
+                "type": "string",
+                "x-prompt-write": "遷移の追加条件があれば。無ければ空。"
+              }
             }
           }
         }
       }
     },
-
     "CommandsBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 7,
       "x-render-level": 2,
       "x-prompt-query": "集約の公開コマンド(状態変更・前提/後状態・発行イベント)を持ちます。外部はこれ経由でのみ状態を変えます。",
       "x-render": [
-        { "as": "section", "from": "items", "titleFrom": "name", "each": [
-          { "as": "paragraph", "from": "description" },
-          { "as": "kvtable", "columns": [
-            { "field": "requiresState", "header": "前提" },
-            { "field": "postState", "header": "後" },
-            { "field": "emits", "header": "発行イベント", "sep": ", " }
-          ] },
-          { "as": "table", "from": "params", "columns": [
-            { "field": "name", "header": "引数" },
-            { "field": "meaning", "header": "意味" }
-          ] }
-        ] }
+        {
+          "as": "section",
+          "from": "items",
+          "titleFrom": "name",
+          "each": [
+            {
+              "as": "paragraph",
+              "from": "description"
+            },
+            {
+              "as": "kvtable",
+              "columns": [
+                {
+                  "field": "requiresState",
+                  "header": "前提"
+                },
+                {
+                  "field": "postState",
+                  "header": "後"
+                },
+                {
+                  "field": "emits",
+                  "header": "発行イベント",
+                  "sep": ", "
+                }
+              ]
+            },
+            {
+              "as": "table",
+              "from": "params",
+              "columns": [
+                {
+                  "field": "name",
+                  "header": "引数"
+                },
+                {
+                  "field": "meaning",
+                  "header": "意味"
+                }
+              ]
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "Commands" },
-        "title":     { "type": "string", "const": "コマンド" },
+        "blockType": {
+          "type": "string",
+          "const": "Commands"
+        },
+        "title": {
+          "type": "string",
+          "const": "コマンド"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "集約が公開する状態変更コマンドを列挙（命令形・ドメイン語彙）。",
           "items": {
             "type": "object",
-            "required": ["name", "description"],
+            "required": [
+              "name",
+              "description"
+            ],
             "properties": {
-              "name":          { "type": "string", "x-prompt-write": "コマンド名（命令形）。例: place / 確定する" },
-              "description":   { "type": "string", "x-prompt-write": "何をするか・どの不変条件を守るかを1文で（実装手順は書かない）。" },
-              "requiresState": { "type": ["string", "null"], "x-prompt-write": "実行に必要な前提状態。集約インスタンスがまだ存在しない新規生成コマンドの場合は null（曖昧な文字列プレースホルダーは使わない）。" },
-              "postState":     { "type": "string", "x-prompt-write": "成功後の状態。" },
+              "name": {
+                "type": "string",
+                "x-prompt-write": "コマンド名（命令形）。例: place / 確定する"
+              },
+              "description": {
+                "type": "string",
+                "x-prompt-write": "何をするか・どの不変条件を守るかを1文で（実装手順は書かない）。"
+              },
+              "requiresState": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "x-prompt-write": "実行に必要な前提状態。集約インスタンスがまだ存在しない新規生成コマンドの場合は null（曖昧な文字列プレースホルダーは使わない）。"
+              },
+              "postState": {
+                "type": "string",
+                "x-prompt-write": "成功後の状態。"
+              },
               "params": {
                 "type": "array",
                 "x-prompt-write": "引数（ドメインデータ）。無ければ空。",
                 "items": {
                   "type": "object",
-                  "required": ["name", "meaning"],
+                  "required": [
+                    "name",
+                    "meaning"
+                  ],
                   "properties": {
-                    "name":    { "type": "string", "x-prompt-write": "引数名。" },
-                    "meaning": { "type": "string", "x-prompt-write": "意味を1文で。" }
+                    "name": {
+                      "type": "string",
+                      "x-prompt-write": "引数名。"
+                    },
+                    "meaning": {
+                      "type": "string",
+                      "x-prompt-write": "意味を1文で。"
+                    }
                   }
                 }
               },
               "emits": {
                 "type": "array",
                 "x-prompt-write": "発行するドメインイベント名（過去形）。無ければ空。",
-                "items": { "type": "string" }
+                "items": {
+                  "type": "string"
+                }
               }
             }
           }
         }
       }
     },
-
     "DomainEventsBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 8,
       "x-render-level": 2,
       "x-prompt-query": "集約が発行するドメインイベント(過去形・契機・ペイロード)を持ちます。",
       "x-render": [
-        { "as": "section", "from": "items", "titleFrom": "name", "each": [
-          { "as": "paragraph", "heading": "発行契機", "from": "raisedBy" },
-          { "as": "table", "heading": "ペイロード", "from": "payload", "columns": [
-            { "field": "name", "header": "項目" },
-            { "field": "meaning", "header": "意味" }
-          ] }
-        ] }
+        {
+          "as": "section",
+          "from": "items",
+          "titleFrom": "name",
+          "each": [
+            {
+              "as": "paragraph",
+              "heading": "発行契機",
+              "from": "raisedBy"
+            },
+            {
+              "as": "table",
+              "heading": "ペイロード",
+              "from": "payload",
+              "columns": [
+                {
+                  "field": "name",
+                  "header": "項目"
+                },
+                {
+                  "field": "meaning",
+                  "header": "意味"
+                }
+              ]
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "DomainEvents" },
-        "title":     { "type": "string", "const": "ドメインイベント" },
+        "blockType": {
+          "type": "string",
+          "const": "DomainEvents"
+        },
+        "title": {
+          "type": "string",
+          "const": "ドメインイベント"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "発行するドメインイベントを列挙。無ければ空。",
           "items": {
             "type": "object",
-            "required": ["name", "raisedBy"],
+            "required": [
+              "name",
+              "raisedBy"
+            ],
             "properties": {
-              "name":     { "type": "string", "x-prompt-write": "イベント名（必ず過去形）。例: OrderPlaced" },
-              "raisedBy": { "type": "string", "x-prompt-write": "どのコマンド/契機で発行されるか。" },
+              "name": {
+                "type": "string",
+                "x-prompt-write": "イベント名（必ず過去形）。例: OrderPlaced"
+              },
+              "raisedBy": {
+                "type": "string",
+                "x-prompt-write": "どのコマンド/契機で発行されるか。"
+              },
               "payload": {
                 "type": "array",
                 "x-prompt-write": "イベントが運ぶデータ。無ければ空。",
                 "items": {
                   "type": "object",
-                  "required": ["name", "meaning"],
+                  "required": [
+                    "name",
+                    "meaning"
+                  ],
                   "properties": {
-                    "name":    { "type": "string", "x-prompt-write": "項目名。" },
-                    "meaning": { "type": "string", "x-prompt-write": "意味を1文で。" }
+                    "name": {
+                      "type": "string",
+                      "x-prompt-write": "項目名。"
+                    },
+                    "meaning": {
+                      "type": "string",
+                      "x-prompt-write": "意味を1文で。"
+                    }
                   }
                 }
               }
@@ -667,82 +1445,167 @@
         }
       }
     },
-
     "ActorIntentBlock": {
       "type": "object",
-      "required": ["blockType", "title", "actor", "intent"],
+      "required": [
+        "blockType",
+        "title",
+        "actor",
+        "intent"
+      ],
       "x-render-order": 2,
       "x-render-level": 2,
       "x-prompt-query": "このユースケースの主アクター(誰が)と意図(何を達成したいか)を持ちます。",
       "x-render": [
-        { "as": "keyvalue", "pairs": [
-          { "label": "主アクター", "from": "actor" },
-          { "label": "意図", "from": "intent" }
-        ] }
+        {
+          "as": "keyvalue",
+          "pairs": [
+            {
+              "label": "主アクター",
+              "from": "actor"
+            },
+            {
+              "label": "意図",
+              "from": "intent"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "ActorIntent" },
-        "title":     { "type": "string", "const": "主アクターと意図" },
-        "actor":     { "type": "string", "x-prompt-write": "主アクター（業務上の役割）。例: 顧客" },
-        "intent":    { "type": "string", "x-prompt-write": "何を達成したいか（1文）。例: カートの商品を注文として確定する" }
+        "blockType": {
+          "type": "string",
+          "const": "ActorIntent"
+        },
+        "title": {
+          "type": "string",
+          "const": "主アクターと意図"
+        },
+        "actor": {
+          "type": "string",
+          "x-prompt-write": "主アクター（業務上の役割）。例: 顧客"
+        },
+        "intent": {
+          "type": "string",
+          "x-prompt-write": "何を達成したいか（1文）。例: カートの商品を注文として確定する"
+        }
       }
     },
-
     "ExternalActorsBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 3,
       "x-render-level": 2,
       "x-prompt-query": "このユースケースに関与する外部(副アクター・隣接コンテキスト)を持ちます。",
-      "x-render": [ { "as": "list", "from": "items" } ],
+      "x-render": [
+        {
+          "as": "list",
+          "from": "items"
+        }
+      ],
       "properties": {
-        "blockType": { "type": "string", "const": "ExternalActors" },
-        "title":     { "type": "string", "const": "関与する外部" },
+        "blockType": {
+          "type": "string",
+          "const": "ExternalActors"
+        },
+        "title": {
+          "type": "string",
+          "const": "関与する外部"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "関与する副アクター・隣接コンテキストを列挙（同じ外部システム＝業務領域の境界）。無ければ空。",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
-
     "PreconditionsBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 4,
       "x-render-level": 2,
       "x-prompt-query": "このユースケースの事前条件を持ちます。",
-      "x-render": [ { "as": "list", "from": "items" } ],
+      "x-render": [
+        {
+          "as": "list",
+          "from": "items"
+        }
+      ],
       "properties": {
-        "blockType": { "type": "string", "const": "Preconditions" },
-        "title":     { "type": "string", "const": "事前条件" },
+        "blockType": {
+          "type": "string",
+          "const": "Preconditions"
+        },
+        "title": {
+          "type": "string",
+          "const": "事前条件"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "操作開始前に成立している必要がある条件を列挙。無ければ空。",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
-
     "MainFlowBlock": {
       "type": "object",
-      "required": ["blockType", "title", "steps"],
+      "required": [
+        "blockType",
+        "title",
+        "steps"
+      ],
       "x-render-order": 5,
       "x-render-level": 2,
       "x-prompt-query": "このユースケースの基本フロー(相互作用)を持ちます。シーケンス図に描画されます。",
-      "x-render": [ { "as": "sequence", "from": "steps", "participantsFrom": "participants" } ],
+      "x-render": [
+        {
+          "as": "sequence",
+          "from": "steps",
+          "participantsFrom": "participants"
+        }
+      ],
       "properties": {
-        "blockType": { "type": "string", "const": "MainFlow" },
-        "title":     { "type": "string", "const": "基本フロー" },
+        "blockType": {
+          "type": "string",
+          "const": "MainFlow"
+        },
+        "title": {
+          "type": "string",
+          "const": "基本フロー"
+        },
         "participants": {
           "type": "array",
           "x-prompt-write": "stepsに登場する送り手/受け手のうち、主アクター（ActorIntentのactorと同じ名前）を kind=actor（棒人間アイコン）として宣言する。集約等のシステム側は宣言不要（省略時は participant として自動描画される）。無ければ空配列。",
           "items": {
             "type": "object",
-            "required": ["id", "kind"],
+            "required": [
+              "id",
+              "kind"
+            ],
             "properties": {
-              "id":   { "type": "string", "x-prompt-write": "識別子。stepsのfrom/toと同じ表記に揃える。" },
-              "kind": { "type": "string", "enum": ["actor", "participant"], "x-prompt-write": "人間/主アクターなら actor、集約等のシステム側なら participant。" }
+              "id": {
+                "type": "string",
+                "x-prompt-write": "識別子。stepsのfrom/toと同じ表記に揃える。"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "actor",
+                  "participant"
+                ],
+                "x-prompt-write": "人間/主アクターなら actor、集約等のシステム側なら participant。"
+              }
             }
           }
         },
@@ -751,263 +1614,663 @@
           "x-prompt-write": "主アクターと集約(と業務サービス・他集約)の相互作用を順に列挙。participant は必ずドメインの役者（技術コンポーネント=Controller/Repository/DB 等は書かない）。粒度は主要な相互作用のみ（内部処理の細部や UI 操作は書かない）。",
           "items": {
             "type": "object",
-            "required": ["from", "message", "kind"],
+            "required": [
+              "from",
+              "message",
+              "kind"
+            ],
             "properties": {
-              "from":    { "type": "string", "x-prompt-write": "送り手（ドメインの役者）。" },
-              "to":      { "type": "string", "x-prompt-write": "受け手（ドメインの役者）。event の場合は空でよい。" },
-              "message": { "type": "string", "x-prompt-write": "メッセージ（コマンド/返り値/イベント名）。" },
-              "kind":    { "type": "string", "enum": ["command", "self", "return", "event"], "x-prompt-write": "command=呼び出し / self=自分への処理 / return=返り値 / event=イベント発行。" }
+              "from": {
+                "type": "string",
+                "x-prompt-write": "送り手（ドメインの役者）。"
+              },
+              "to": {
+                "type": "string",
+                "x-prompt-write": "受け手（ドメインの役者）。event の場合は空でよい。"
+              },
+              "message": {
+                "type": "string",
+                "x-prompt-write": "メッセージ（コマンド/返り値/イベント名）。"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "command",
+                  "self",
+                  "return",
+                  "event"
+                ],
+                "x-prompt-write": "command=呼び出し / self=自分への処理 / return=返り値 / event=イベント発行。"
+              }
             }
           }
         }
       }
     },
-
     "PostconditionsBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 6,
       "x-render-level": 2,
       "x-prompt-query": "このユースケース成功後の事後条件(結果状態・発行イベント)を持ちます。",
-      "x-render": [ { "as": "list", "from": "items" } ],
+      "x-render": [
+        {
+          "as": "list",
+          "from": "items"
+        }
+      ],
       "properties": {
-        "blockType": { "type": "string", "const": "Postconditions" },
-        "title":     { "type": "string", "const": "事後条件" },
+        "blockType": {
+          "type": "string",
+          "const": "Postconditions"
+        },
+        "title": {
+          "type": "string",
+          "const": "事後条件"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "成功時に成立する結果（集約の状態変化・発行イベント）を列挙。",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
-
     "AcceptanceCriteriaBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 7,
       "x-render-level": 2,
       "x-prompt-query": "受け入れ条件(EARS)を持ちます。振る舞いの合否を定義します。",
-      "x-render": [ { "as": "list", "from": "items" } ],
+      "x-render": [
+        {
+          "as": "list",
+          "from": "items"
+        }
+      ],
       "properties": {
-        "blockType": { "type": "string", "const": "AcceptanceCriteria" },
-        "title":     { "type": "string", "const": "受け入れ基準" },
+        "blockType": {
+          "type": "string",
+          "const": "AcceptanceCriteria"
+        },
+        "title": {
+          "type": "string",
+          "const": "受け入れ基準"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "受け入れ条件を EARS で列挙（When/While/If … shall …）。一意・検証可能・ドメイン語彙のみ。",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
-
     "ErrorsBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 9,
       "x-render-level": 2,
       "x-prompt-query": "このユースケースの失敗モード(コード・条件)を持ちます。",
       "x-render": [
-        { "as": "table", "from": "items", "columns": [
-          { "field": "code", "header": "コード", "code": true },
-          { "field": "condition", "header": "条件" }
-        ] }
+        {
+          "as": "table",
+          "from": "items",
+          "columns": [
+            {
+              "field": "code",
+              "header": "コード",
+              "code": true
+            },
+            {
+              "field": "condition",
+              "header": "条件"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "Errors" },
-        "title":     { "type": "string", "const": "エラー" },
+        "blockType": {
+          "type": "string",
+          "const": "Errors"
+        },
+        "title": {
+          "type": "string",
+          "const": "エラー"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "失敗するコードと条件を列挙。ドメインの出来事として。無ければ空。",
           "items": {
             "type": "object",
-            "required": ["code", "condition"],
+            "required": [
+              "code",
+              "condition"
+            ],
             "properties": {
-              "code":      { "type": "string", "x-prompt-write": "エラーコード。例: OUT_OF_STOCK" },
-              "condition": { "type": "string", "x-prompt-write": "その失敗が起きる条件。" }
+              "code": {
+                "type": "string",
+                "x-prompt-write": "エラーコード。例: OUT_OF_STOCK"
+              },
+              "condition": {
+                "type": "string",
+                "x-prompt-write": "その失敗が起きる条件。"
+              }
             }
           }
         }
       }
     },
-
     "InvariantScenariosBlock": {
       "type": "object",
-      "required": ["blockType", "title", "scenarios"],
+      "required": [
+        "blockType",
+        "title",
+        "scenarios"
+      ],
       "x-render-order": 10,
       "x-render-level": 2,
       "x-test-scenario": true,
       "x-prompt-query": "集約の不変条件を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。仕様↔実装の整合点。MD（コードブロック表示）＋.feature に render され実行されます。",
       "x-render": [
-        { "as": "paragraph", "heading": "背景", "from": "background" },
-        { "as": "section", "from": "scenarios", "titleFrom": "name", "each": [
-          { "as": "kvtable", "columns": [
-            { "field": "category", "header": "分類" },
-            { "field": "viewpoint", "header": "観点" }
-          ] },
-          { "as": "code", "from": "gherkin", "lang": "gherkin" }
-        ] }
+        {
+          "as": "paragraph",
+          "heading": "背景",
+          "from": "background"
+        },
+        {
+          "as": "section",
+          "from": "scenarios",
+          "titleFrom": "name",
+          "each": [
+            {
+              "as": "kvtable",
+              "columns": [
+                {
+                  "field": "category",
+                  "header": "分類"
+                },
+                {
+                  "field": "viewpoint",
+                  "header": "観点"
+                }
+              ]
+            },
+            {
+              "as": "code",
+              "from": "gherkin",
+              "lang": "gherkin"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType":  { "type": "string", "const": "InvariantScenarios" },
-        "title":      { "type": "string", "const": "不変条件シナリオ" },
-        "background": { "type": "string", "x-prompt-write": "複数シナリオ共通の前提（Gherkin Background 相当）。無ければ空文字。" },
+        "blockType": {
+          "type": "string",
+          "const": "InvariantScenarios"
+        },
+        "title": {
+          "type": "string",
+          "const": "不変条件シナリオ"
+        },
+        "background": {
+          "type": "string",
+          "x-prompt-write": "複数シナリオ共通の前提（Gherkin Background 相当）。無ければ空文字。"
+        },
         "scenarios": {
           "type": "array",
           "minItems": 1,
           "x-prompt-write": "1シナリオ1要素で列挙。集約の各不変条件を網羅し、1不変条件1シナリオにする。各シナリオは分類・観点・Gherkin を持つ。",
           "items": {
             "type": "object",
-            "required": ["name", "category", "viewpoint", "gherkin"],
+            "required": [
+              "name",
+              "category",
+              "viewpoint",
+              "gherkin"
+            ],
             "properties": {
-              "name":      { "type": "string", "x-prompt-write": "シナリオ名（概要）。" },
-              "category":  { "type": "string", "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。" },
-              "viewpoint": { "type": "string", "x-prompt-write": "観点: 側面（状態遷移/計算整合/事前条件 等）＋検証の狙い。" },
-              "gherkin":   { "type": "string", "x-prompt-write": "このシナリオの Given/When/Then（Scenario: 1つ・実行可能・.feature 化）。ドメイン語彙で書き、実装詳細（クラス名/API/SQL/UI 操作）は書かない。" },
-              "covers":    { "type": "string", "x-prompt-write": "検証する不変条件への参照（任意・トレーサビリティ）。" }
+              "name": {
+                "type": "string",
+                "x-prompt-write": "シナリオ名（概要）。"
+              },
+              "category": {
+                "type": "string",
+                "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。"
+              },
+              "viewpoint": {
+                "type": "string",
+                "x-prompt-write": "観点: 側面（状態遷移/計算整合/事前条件 等）＋検証の狙い。"
+              },
+              "gherkin": {
+                "type": "string",
+                "x-prompt-write": "このシナリオの Given/When/Then（Scenario: 1つ・実行可能・.feature 化）。ドメイン語彙で書き、実装詳細（クラス名/API/SQL/UI 操作）は書かない。"
+              },
+              "covers": {
+                "type": "string",
+                "x-prompt-write": "検証する不変条件への参照（任意・トレーサビリティ）。"
+              }
             }
           }
         }
       }
     },
-
     "AcceptanceScenariosBlock": {
       "type": "object",
-      "required": ["blockType", "title", "scenarios"],
+      "required": [
+        "blockType",
+        "title",
+        "scenarios"
+      ],
       "x-render-order": 10,
       "x-render-level": 2,
       "x-test-scenario": true,
       "x-prompt-query": "usecaseの受け入れ基準(AcceptanceCriteria)を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。仕様↔実装の整合点。MD（コードブロック表示）＋.feature に render され実行されます。",
       "x-render": [
-        { "as": "paragraph", "heading": "背景", "from": "background" },
-        { "as": "section", "from": "scenarios", "titleFrom": "name", "each": [
-          { "as": "kvtable", "columns": [
-            { "field": "category", "header": "分類" },
-            { "field": "viewpoint", "header": "観点" }
-          ] },
-          { "as": "code", "from": "gherkin", "lang": "gherkin" }
-        ] }
+        {
+          "as": "paragraph",
+          "heading": "背景",
+          "from": "background"
+        },
+        {
+          "as": "section",
+          "from": "scenarios",
+          "titleFrom": "name",
+          "each": [
+            {
+              "as": "kvtable",
+              "columns": [
+                {
+                  "field": "category",
+                  "header": "分類"
+                },
+                {
+                  "field": "viewpoint",
+                  "header": "観点"
+                }
+              ]
+            },
+            {
+              "as": "code",
+              "from": "gherkin",
+              "lang": "gherkin"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType":  { "type": "string", "const": "AcceptanceScenarios" },
-        "title":      { "type": "string", "const": "受け入れシナリオ" },
-        "background": { "type": "string", "x-prompt-write": "複数シナリオ共通の前提（Gherkin Background 相当）。無ければ空文字。" },
+        "blockType": {
+          "type": "string",
+          "const": "AcceptanceScenarios"
+        },
+        "title": {
+          "type": "string",
+          "const": "受け入れシナリオ"
+        },
+        "background": {
+          "type": "string",
+          "x-prompt-write": "複数シナリオ共通の前提（Gherkin Background 相当）。無ければ空文字。"
+        },
         "scenarios": {
           "type": "array",
           "minItems": 1,
           "x-prompt-write": "1シナリオ1要素で列挙。検証観点（正常系／異常系（事前条件違反・各エラー）／境界値）を網羅し、1ルール1シナリオにする。各シナリオは分類・観点・Gherkin を持つ。",
           "items": {
             "type": "object",
-            "required": ["name", "category", "viewpoint", "gherkin"],
+            "required": [
+              "name",
+              "category",
+              "viewpoint",
+              "gherkin"
+            ],
             "properties": {
-              "name":      { "type": "string", "x-prompt-write": "シナリオ名（概要）。" },
-              "category":  { "type": "string", "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。" },
-              "viewpoint": { "type": "string", "x-prompt-write": "観点: 側面（状態遷移/計算整合/事前条件 等）＋検証の狙い。" },
-              "gherkin":   { "type": "string", "x-prompt-write": "このシナリオの Given/When/Then（Scenario: 1つ・実行可能・.feature 化）。ドメイン語彙で書き、実装詳細（クラス名/API/SQL/UI 操作）は書かない。" },
-              "covers":    { "type": "string", "x-prompt-write": "検証する受け入れ基準への参照（任意・トレーサビリティ）。" }
+              "name": {
+                "type": "string",
+                "x-prompt-write": "シナリオ名（概要）。"
+              },
+              "category": {
+                "type": "string",
+                "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。"
+              },
+              "viewpoint": {
+                "type": "string",
+                "x-prompt-write": "観点: 側面（状態遷移/計算整合/事前条件 等）＋検証の狙い。"
+              },
+              "gherkin": {
+                "type": "string",
+                "x-prompt-write": "このシナリオの Given/When/Then（Scenario: 1つ・実行可能・.feature 化）。ドメイン語彙で書き、実装詳細（クラス名/API/SQL/UI 操作）は書かない。"
+              },
+              "covers": {
+                "type": "string",
+                "x-prompt-write": "検証する受け入れ基準への参照（任意・トレーサビリティ）。"
+              }
             }
           }
         }
       }
     },
-
     "OperationGuaranteesBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
+      "required": [
+        "blockType",
+        "title",
+        "items"
+      ],
       "x-render-order": 8,
       "x-render-level": 2,
       "x-prompt-query": "このusecaseがデータアクセス層（依存する資源）に対して呼び出し元に約束する、機能・非機能上の保証（べき等性・一貫性・提供チャネルの一貫性等）を持ちます。",
       "x-render": [
-        { "as": "list", "from": "items" }
+        {
+          "as": "list",
+          "from": "items"
+        }
       ],
       "properties": {
-        "blockType": { "type": "string", "const": "OperationGuarantees" },
-        "title":     { "type": "string", "const": "操作保証" },
+        "blockType": {
+          "type": "string",
+          "const": "OperationGuarantees"
+        },
+        "title": {
+          "type": "string",
+          "const": "操作保証"
+        },
         "items": {
           "type": "array",
           "x-prompt-write": "保証をEARSで列挙（When/While/If … shall …）。書いてよいのは『何を保証するか』だけ（べき等性・一貫性・提供チャネルの一貫性等）。『どう実現するか』（具体的なDB技法・ロック機構・実装技術）は書かない（CodingSchemaのcode-templateの領分）。判定基準（このusecaseに書くか、集約のinvariantsに書くか）: 同じ資源を操作する複数usecaseの間で、この保証内容が重複するか？ 重複するなら集約（agg-*.json）のinvariants/invariantScenariosに書く。このusecase固有の業務理由でのみ必要な保証だけをここに書く。性能の生数値（応答時間・スループット等）は書かない（CodingSchemaのtestTypes: non-functional-performanceの領分）。",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
-
     "GuaranteeScenariosBlock": {
       "type": "object",
-      "required": ["blockType", "title", "scenarios"],
+      "required": [
+        "blockType",
+        "title",
+        "scenarios"
+      ],
       "x-render-order": 11,
       "x-render-level": 2,
       "x-test-scenario": true,
       "x-prompt-query": "OperationGuaranteesの各保証を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。MD＋.featureにrenderされ、TestScenariosと同じ機構でネイティブテスト化されます。",
       "x-render": [
-        { "as": "paragraph", "heading": "背景", "from": "background" },
-        { "as": "section", "from": "scenarios", "titleFrom": "name", "each": [
-          { "as": "kvtable", "columns": [
-            { "field": "category", "header": "分類" },
-            { "field": "viewpoint", "header": "観点" }
-          ] },
-          { "as": "code", "from": "gherkin", "lang": "gherkin" }
-        ] }
+        {
+          "as": "paragraph",
+          "heading": "背景",
+          "from": "background"
+        },
+        {
+          "as": "section",
+          "from": "scenarios",
+          "titleFrom": "name",
+          "each": [
+            {
+              "as": "kvtable",
+              "columns": [
+                {
+                  "field": "category",
+                  "header": "分類"
+                },
+                {
+                  "field": "viewpoint",
+                  "header": "観点"
+                }
+              ]
+            },
+            {
+              "as": "code",
+              "from": "gherkin",
+              "lang": "gherkin"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType":  { "type": "string", "const": "GuaranteeScenarios" },
-        "title":      { "type": "string", "const": "操作保証シナリオ" },
-        "background": { "type": "string", "x-prompt-write": "複数シナリオ共通の前提。無ければ空文字。" },
+        "blockType": {
+          "type": "string",
+          "const": "GuaranteeScenarios"
+        },
+        "title": {
+          "type": "string",
+          "const": "操作保証シナリオ"
+        },
+        "background": {
+          "type": "string",
+          "x-prompt-write": "複数シナリオ共通の前提。無ければ空文字。"
+        },
         "scenarios": {
           "type": "array",
           "minItems": 1,
           "x-prompt-write": "1シナリオ1要素。OperationGuaranteesの各項目を最低1つのシナリオで検証する。呼び出し経路（直接engine呼び出し／CLI／MCP）をまたいで同じ保証が成立するかを確認したい場合は、経路ごとにシナリオを分けてよい（同じ保証・異なるバインディング）。",
           "items": {
             "type": "object",
-            "required": ["name", "category", "viewpoint", "gherkin"],
+            "required": [
+              "name",
+              "category",
+              "viewpoint",
+              "gherkin"
+            ],
             "properties": {
-              "name":      { "type": "string", "x-prompt-write": "シナリオ名（概要）。" },
-              "category":  { "type": "string", "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。" },
-              "viewpoint": { "type": "string", "x-prompt-write": "観点: べき等性/一貫性/提供チャネルの一貫性 等＋検証の狙い。" },
-              "gherkin":   { "type": "string", "x-prompt-write": "Given/When/Then。ドメイン語彙で書き、実装詳細は書かない。" },
-              "covers":    { "type": "string", "x-prompt-write": "対応するOperationGuaranteesの項目への参照。" }
+              "name": {
+                "type": "string",
+                "x-prompt-write": "シナリオ名（概要）。"
+              },
+              "category": {
+                "type": "string",
+                "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。"
+              },
+              "viewpoint": {
+                "type": "string",
+                "x-prompt-write": "観点: べき等性/一貫性/提供チャネルの一貫性 等＋検証の狙い。"
+              },
+              "gherkin": {
+                "type": "string",
+                "x-prompt-write": "Given/When/Then。ドメイン語彙で書き、実装詳細は書かない。"
+              },
+              "covers": {
+                "type": "string",
+                "x-prompt-write": "対応するOperationGuaranteesの項目への参照。"
+              }
             }
           }
         }
       }
     },
-
     "DomainServiceScenariosBlock": {
       "type": "object",
-      "required": ["blockType", "title", "scenarios"],
+      "required": [
+        "blockType",
+        "title",
+        "scenarios"
+      ],
       "x-render-order": 7,
       "x-render-level": 2,
       "x-test-scenario": true,
       "x-prompt-query": "domainServicesの各業務サービスのふるまいを検証するテストシナリオ(分類・観点・Gherkin)を持ちます。GuaranteeScenarios(usecase単位のデータアクセス層保証)とは意味が異なる別語彙——業務ロジック層の業務サービスが何を計算/判定するかを検証する。MD＋.featureにrenderされ、TestScenariosと同じ機構でネイティブテスト化されます。",
       "x-render": [
-        { "as": "paragraph", "heading": "背景", "from": "background" },
-        { "as": "section", "from": "scenarios", "titleFrom": "name", "each": [
-          { "as": "kvtable", "columns": [
-            { "field": "category", "header": "分類" },
-            { "field": "viewpoint", "header": "観点" }
-          ] },
-          { "as": "code", "from": "gherkin", "lang": "gherkin" }
-        ] }
+        {
+          "as": "paragraph",
+          "heading": "背景",
+          "from": "background"
+        },
+        {
+          "as": "section",
+          "from": "scenarios",
+          "titleFrom": "name",
+          "each": [
+            {
+              "as": "kvtable",
+              "columns": [
+                {
+                  "field": "category",
+                  "header": "分類"
+                },
+                {
+                  "field": "viewpoint",
+                  "header": "観点"
+                }
+              ]
+            },
+            {
+              "as": "code",
+              "from": "gherkin",
+              "lang": "gherkin"
+            }
+          ]
+        }
       ],
       "properties": {
-        "blockType":  { "type": "string", "const": "DomainServiceScenarios" },
-        "title":      { "type": "string", "const": "業務サービスシナリオ" },
-        "background": { "type": "string", "x-prompt-write": "複数シナリオ共通の前提。無ければ空文字。" },
+        "blockType": {
+          "type": "string",
+          "const": "DomainServiceScenarios"
+        },
+        "title": {
+          "type": "string",
+          "const": "業務サービスシナリオ"
+        },
+        "background": {
+          "type": "string",
+          "x-prompt-write": "複数シナリオ共通の前提。無ければ空文字。"
+        },
         "scenarios": {
           "type": "array",
           "minItems": 1,
           "x-prompt-write": "1シナリオ1要素。domainServicesの各項目が何を計算/判定するかを最低1つのシナリオで検証する。",
           "items": {
             "type": "object",
-            "required": ["name", "category", "viewpoint", "gherkin"],
+            "required": [
+              "name",
+              "category",
+              "viewpoint",
+              "gherkin"
+            ],
             "properties": {
-              "name":      { "type": "string", "x-prompt-write": "シナリオ名（概要）。" },
-              "category":  { "type": "string", "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。" },
-              "viewpoint": { "type": "string", "x-prompt-write": "観点: 何を計算/判定するか＋検証の狙い。" },
-              "gherkin":   { "type": "string", "x-prompt-write": "Given/When/Then。ドメイン語彙で書き、実装詳細は書かない。" },
-              "covers":    { "type": "string", "x-prompt-write": "対応するdomainServicesの項目への参照。" }
+              "name": {
+                "type": "string",
+                "x-prompt-write": "シナリオ名（概要）。"
+              },
+              "category": {
+                "type": "string",
+                "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。"
+              },
+              "viewpoint": {
+                "type": "string",
+                "x-prompt-write": "観点: 何を計算/判定するか＋検証の狙い。"
+              },
+              "gherkin": {
+                "type": "string",
+                "x-prompt-write": "Given/When/Then。ドメイン語彙で書き、実装詳細は書かない。"
+              },
+              "covers": {
+                "type": "string",
+                "x-prompt-write": "対応するdomainServicesの項目への参照。"
+              }
+            }
+          }
+        }
+      }
+    },
+    "MaturityLifecycleBlock": {
+      "type": "object",
+      "required": [
+        "blockType",
+        "title",
+        "states",
+        "transitions"
+      ],
+      "x-render-order": 6,
+      "x-render-level": 2,
+      "x-prompt-query": "CodingSchema/SkillSchema系の成熟度状態と遷移表(from→to＋契機コマンド)を持ちます。遷移は guard が読んで enforce します。",
+      "x-render": [
+        {
+          "as": "statediagram",
+          "from": "transitions"
+        },
+        {
+          "as": "table",
+          "heading": "遷移",
+          "from": "transitions",
+          "columns": [
+            {
+              "field": "from",
+              "header": "from"
+            },
+            {
+              "field": "to",
+              "header": "to"
+            },
+            {
+              "field": "command",
+              "header": "command"
+            },
+            {
+              "field": "condition",
+              "header": "条件"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "blockType": {
+          "type": "string",
+          "const": "MaturityLifecycle"
+        },
+        "title": {
+          "type": "string",
+          "const": "成熟度ライフサイクル"
+        },
+        "states": {
+          "type": "array",
+          "x-prompt-write": "取りうる状態を列挙。例: PLACED, PAID, SHIPPED。状態を持たない集約なら空。",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transitions": {
+          "type": "array",
+          "x-prompt-write": "状態遷移を列挙（from→to＋契機 command）。",
+          "items": {
+            "type": "object",
+            "required": [
+              "from",
+              "to",
+              "command"
+            ],
+            "properties": {
+              "from": {
+                "type": "string",
+                "x-prompt-write": "遷移元の状態。"
+              },
+              "to": {
+                "type": "string",
+                "x-prompt-write": "遷移先の状態。"
+              },
+              "command": {
+                "type": "string",
+                "x-prompt-write": "遷移を起こすコマンド。"
+              },
+              "condition": {
+                "type": "string",
+                "x-prompt-write": "遷移の追加条件があれば。無ければ空。"
+              }
             }
           }
         }
       }
     }
-
   }
 }

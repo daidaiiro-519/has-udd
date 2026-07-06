@@ -82,7 +82,7 @@ stateDiagram-v2
 
 ---
 
-## ライフサイクル
+## 成熟度ライフサイクル
 
 ```mermaid
 stateDiagram-v2

@@ -139,7 +139,8 @@
       "blockType": "OperationGuarantees",
       "title": "操作保証",
       "items": [
-        "When 同じ Document を複数回 render したとき、engine は常に同一の成果物を生成する shall（決定的：入力が同じなら出力も同じ）。"
+        "When 同じ Document を複数回 render したとき、engine は常に同一の成果物を生成する shall（決定的：入力が同じなら出力も同じ）。",
+        "When x-render が RenderMetaSchema の各部品種別（paragraph/list/table/keyvalue/code/section/kvtable/sequence/statediagram/architecture/flowchart）を宣言したとき、engine はその種別ごとの整形規則に従って決定的に描画する shall。"
       ]
     },
     "guaranteeScenarios": {
@@ -153,6 +154,111 @@
           "viewpoint": "決定性：入力が変わらなければ出力も変わらない",
           "gherkin": "Scenario: 同じDocumentを2回renderしても同一の成果物になる\n  Given 変更されていないDocument\n  When 同じDocumentを2回renderする\n  Then 1回目と2回目の成果物は同一である",
           "covers": "操作保証: renderの決定性"
+        },
+        {
+          "name": "paragraph・listが正しく整形される",
+          "category": "正常系",
+          "viewpoint": "paragraph/listの整形保証",
+          "gherkin": "Scenario: paragraph/listが正しく整形される\n  Given paragraph/listを宣言するx-render\n  When renderする\n  Then paragraphは地の文、listは箇条書きとして整形される",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "tableはパイプ文字をエスケープしboolを整形する",
+          "category": "境界値",
+          "viewpoint": "tableのセルエスケープ・bool整形保証",
+          "gherkin": "Scenario: tableはパイプ文字をエスケープしboolを整形する\n  Given パイプ文字やbool値を含む行データ\n  When tableとしてrenderする\n  Then パイプ文字はエスケープされ、boolは✓/-に整形される",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "sectionは入れ子とitemLabelを整形する",
+          "category": "正常系",
+          "viewpoint": "sectionの入れ子・itemLabel整形保証",
+          "gherkin": "Scenario: sectionは入れ子とitemLabelを整形する\n  Given itemLabelを持つsection宣言と入れ子のeach部品\n  When renderする\n  Then 各itemの見出しにitemLabelが付与され、入れ子の部品も正しく描画される",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "keyvalueが正しく整形される",
+          "category": "正常系",
+          "viewpoint": "keyvalueの整形保証",
+          "gherkin": "Scenario: keyvalueが正しく整形される\n  Given keyvalueを宣言するx-render\n  When renderする\n  Then ラベルと値の組が箇条書きとして整形される",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "sectionはbadgeで条件付き強調を付与する",
+          "category": "境界値",
+          "viewpoint": "sectionのbadge（条件付き強調）保証",
+          "gherkin": "Scenario: sectionはbadgeで条件付き強調を付与する\n  Given badge条件を満たすitemを含むsection宣言\n  When renderする\n  Then 条件を満たすitemの見出しにのみ強調語が付与される",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "tableはmarkFieldで識別子を太字強調する",
+          "category": "境界値",
+          "viewpoint": "tableのmarkField（識別子強調）保証",
+          "gherkin": "Scenario: tableはmarkFieldで識別子を太字強調する\n  Given markFieldが真の行を含むtable宣言\n  When renderする\n  Then 該当セルが太字＋markSuffixで強調される",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "statediagramが正しいMermaid構文になる",
+          "category": "正常系",
+          "viewpoint": "statediagramのMermaid構文生成保証",
+          "gherkin": "Scenario: statediagramが正しいMermaid構文になる\n  Given 状態遷移の配列を宣言するx-render\n  When renderする\n  Then stateDiagram-v2として正しいMermaid構文が生成される",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "statediagramは疑似状態を表現する",
+          "category": "境界値",
+          "viewpoint": "statediagramの疑似状態（choice/fork/join）保証",
+          "gherkin": "Scenario: statediagramは疑似状態を表現する\n  Given pseudoStatesFromで疑似状態を宣言するx-render\n  When renderする\n  Then choice/fork/joinの疑似状態宣言がMermaid構文の先頭に出力される",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "sequenceはactor・participantを区別する",
+          "category": "境界値",
+          "viewpoint": "sequenceのactor/participant区別保証",
+          "gherkin": "Scenario: sequenceはactor/participantを区別する\n  Given kind:actor/participantを含む参加者宣言\n  When renderする\n  Then actor/participantそれぞれの宣言がMermaid構文で区別される",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "sequenceはloop・altを入れ子で表現する",
+          "category": "正常系",
+          "viewpoint": "sequenceのloop/alt入れ子保証",
+          "gherkin": "Scenario: sequenceはloop/altを入れ子で表現する\n  Given loop/alt種別のstepを含むsteps配列\n  When renderする\n  Then loop/altブロックが正しく入れ子のMermaid構文になる",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "sequenceはactivate・deactivateを表現する",
+          "category": "境界値",
+          "viewpoint": "sequenceのactivate/deactivate保証",
+          "gherkin": "Scenario: sequenceはactivate/deactivateを表現する\n  Given activate/deactivateフラグを持つstep\n  When renderする\n  Then Mermaidのアクティベーション記法(+/-)が正しく付与される",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "architectureが正しいMermaid構文になる",
+          "category": "正常系",
+          "viewpoint": "architectureのMermaid構文生成保証",
+          "gherkin": "Scenario: architectureが正しいMermaid構文になる\n  Given zones/connectionsを宣言するx-render\n  When renderする\n  Then architecture-betaとして正しいMermaid構文が生成される",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "flowchartが正しいMermaid構文になる",
+          "category": "正常系",
+          "viewpoint": "flowchartのMermaid構文生成保証",
+          "gherkin": "Scenario: flowchartが正しいMermaid構文になる\n  Given stages/transitionsを宣言するx-render\n  When renderする\n  Then flowchart LRとして正しいMermaid構文が生成される",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "kvtableは単一行として整形される",
+          "category": "境界値",
+          "viewpoint": "kvtableの単一行整形保証",
+          "gherkin": "Scenario: kvtableは単一行として整形される\n  Given kvtableを宣言するx-render\n  When renderする\n  Then block自身の値が1行のtableとして整形される",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "tableはjoin指定で配列セルを結合整形する",
+          "category": "境界値",
+          "viewpoint": "tableのjoin（配列セル結合）保証",
+          "gherkin": "Scenario: tableはjoin指定で配列セルを結合整形する\n  Given join/sepを指定したcolumns宣言と配列値を持つセル\n  When renderする\n  Then 配列の各要素がjoinテンプレートで整形されsepで連結される",
+          "covers": "操作保証: 各部品種別ごとの整形規則"
         }
       ]
     }

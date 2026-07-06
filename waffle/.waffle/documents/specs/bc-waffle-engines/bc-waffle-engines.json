@@ -73,7 +73,7 @@
         },
         {
           "kind": "usecase",
-          "members": "uc-scaffold-document / uc-query-document / uc-validate-document / uc-render-document / uc-scan-source-code / uc-lint-docstring"
+          "members": "uc-scaffold-document / uc-query-document / uc-validate-document / uc-render-document / uc-scan-source-code / uc-lint-docstring / uc-check-spec-integrity / uc-check-scenario-drift"
         }
       ]
     }

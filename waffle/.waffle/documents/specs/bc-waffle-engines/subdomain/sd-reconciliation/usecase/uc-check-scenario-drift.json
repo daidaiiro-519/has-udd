@@ -1,0 +1,172 @@
+{
+  "documentId": "uc-check-scenario-drift",
+  "documentType": "DomainSpec",
+  "schemaRef": "DomainSpecSchema/v2",
+  "specKind": "usecase",
+  "status": "CREATED",
+  "subdomainRef": "sd-reconciliation",
+  "tags": ["context:waffle-engines"],
+  "content": {
+    "title": {
+      "blockType": "Title",
+      "title": "uc-check-scenario-drift"
+    },
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
+      "text": "spec の TestScenarios（acceptanceScenarios/guaranteeScenarios/invariantScenarios/domainServiceScenarios）が宣言するシナリオ名と、対応するテストファイルの test_* 関数名を突き合わせ、未実装のシナリオ・宣言に対応しない孤立テストを機械的に検出する。"
+    },
+    "actorIntent": {
+      "blockType": "ActorIntent",
+      "title": "主アクターと意図",
+      "actor": "Orchestrator（HarnessAgent）",
+      "intent": "specのシナリオ宣言とテストコードの対応関係が保たれているかを確認したい"
+    },
+    "externalActors": {
+      "blockType": "ExternalActors",
+      "title": "関与する外部",
+      "items": [
+        "DocumentRepository（spec.json・テストファイルの読込に使う既存 port）"
+      ]
+    },
+    "preconditions": {
+      "blockType": "Preconditions",
+      "title": "事前条件",
+      "items": [
+        "対象 spec.json のパスと、対応するテストファイル(.py)のパスが両方与えられている"
+      ]
+    },
+    "mainFlow": {
+      "blockType": "MainFlow",
+      "title": "基本フロー",
+      "steps": [
+        {
+          "from": "Orchestrator",
+          "to": "SpecTree",
+          "message": "spec.jsonとテストファイルのパスを指定してドリフト検査を依頼する",
+          "kind": "command"
+        },
+        {
+          "from": "SpecTree",
+          "to": "SpecTree",
+          "message": "spec.jsonの4種のシナリオブロックからシナリオ名を集め、非単語文字を_に置換しtest_を前置した名前の集合に変換する（sanitize）",
+          "kind": "self"
+        },
+        {
+          "from": "SpecTree",
+          "to": "SpecTree",
+          "message": "テストファイルをASTで解析し、test_で始まる関数定義の名前を集める",
+          "kind": "self"
+        },
+        {
+          "from": "SpecTree",
+          "to": "SpecTree",
+          "message": "2つの名前集合を突き合わせる",
+          "kind": "self"
+        },
+        {
+          "from": "SpecTree",
+          "to": "Orchestrator",
+          "message": "missing_in_tests・orphaned_in_tests・matchedの3つの文字列配列を返す",
+          "kind": "return"
+        }
+      ]
+    },
+    "postconditions": {
+      "blockType": "Postconditions",
+      "title": "事後条件",
+      "items": [
+        "返り値は次の3フィールドを持つ: missing_in_tests（specが宣言するが対応するテスト関数が無いシナリオ名）・orphaned_in_tests（テストファイルにあるがどのシナリオ宣言にも対応しない関数名）・matched（両方に存在する名前）",
+        "対象となるシナリオブロックはacceptanceScenarios/guaranteeScenarios/invariantScenarios/domainServiceScenariosの4種",
+        "シナリオ名からテスト関数名への変換規則（sanitize）は、非単語文字を_に置換しtest_を前置する",
+        "テスト関数名の抽出はASTのみで行い、実行や意味理解はしない",
+        "missing_in_tests・orphaned_in_tests両方が空配列であれば、シナリオとテストの対応関係が保たれている（正常系）"
+      ]
+    },
+    "acceptanceCriteria": {
+      "blockType": "AcceptanceCriteria",
+      "title": "受け入れ基準",
+      "items": [
+        "When specが宣言するシナリオに対応するテスト関数がテストファイルに無いとき、エンジンはそのシナリオ名（sanitize後）をmissing_in_testsに含める shall。",
+        "When テストファイルの関数が、どのシナリオ宣言にも対応しないとき、エンジンはその関数名をorphaned_in_testsに含める shall。",
+        "When シナリオ名（sanitize後）とテスト関数名が一致するとき、エンジンはその名前をmatchedに含める shall。",
+        "While 全シナリオに対応するテストが存在し孤立テストも無いとき、エンジンはmissing_in_tests・orphaned_in_tests両方を空配列で返す shall。",
+        "If 対象のspec.jsonまたはテストファイルが存在しないとき、エンジンはINVALID_PATHエラーを返す shall。",
+        "If テストファイルが構文解析できないとき、エンジンはINVALID_SOURCEエラーを返す shall。"
+      ]
+    },
+    "errors": {
+      "blockType": "Errors",
+      "title": "エラー",
+      "items": [
+        {
+          "code": "INVALID_SOURCE",
+          "condition": "対象のテストファイルが構文解析できない（Pythonのパーサでエラー）"
+        }
+      ]
+    },
+    "operationGuarantees": {
+      "blockType": "OperationGuarantees",
+      "title": "操作保証",
+      "items": [
+        "When 対象のspec.jsonまたはテストファイルが存在しないとき、engine は INVALID_PATH エラーを返す shall（リポジトリによる解決プロセス自体の契約・DocumentRepositoryを介して判定する）。"
+      ]
+    },
+    "guaranteeScenarios": {
+      "blockType": "GuaranteeScenarios",
+      "title": "操作保証シナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "存在しないspec.jsonはINVALID_PATH",
+          "category": "異常系",
+          "viewpoint": "エラー：spec.jsonの不在",
+          "gherkin": "Scenario: 存在しないspec.jsonはINVALID_PATH\n  When 存在しないspec.jsonのパスでドリフト検査を実行する\n  Then INVALID_PATHエラーが返る",
+          "covers": "操作保証: spec.jsonが存在しないときINVALID_PATH"
+        },
+        {
+          "name": "存在しないテストファイルはINVALID_PATH",
+          "category": "異常系",
+          "viewpoint": "エラー：テストファイルの不在",
+          "gherkin": "Scenario: 存在しないテストファイルはINVALID_PATH\n  When 存在しないテストファイルのパスでドリフト検査を実行する\n  Then INVALID_PATHエラーが返る",
+          "covers": "操作保証: テストファイルが存在しないときINVALID_PATH"
+        }
+      ]
+    },
+    "acceptanceScenarios": {
+      "blockType": "AcceptanceScenarios",
+      "title": "受け入れシナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "全シナリオに対応するテストがあり孤立も無いとき整合していると判定する",
+          "category": "正常系",
+          "viewpoint": "整合：missing/orphaned両方空配列は正常系",
+          "gherkin": "Scenario: 全シナリオに対応するテストがあり孤立も無いとき整合していると判定する\n  Given 宣言する全シナリオに対応するtest_*関数を持つテストファイル\n  When ドリフト検査を実行する\n  Then missing_in_tests・orphaned_in_tests両方が空配列で返る",
+          "covers": "受け入れ基準: 全シナリオ対応で空配列"
+        },
+        {
+          "name": "宣言されたシナリオに対応するテストが無いことを検出する",
+          "category": "異常系",
+          "viewpoint": "ドリフト：宣言はあるがテスト未実装",
+          "gherkin": "Scenario: 宣言されたシナリオに対応するテストが無いことを検出する\n  Given シナリオを宣言するが対応するtest_*関数を持たないテストファイル\n  When ドリフト検査を実行する\n  Then missing_in_testsにそのシナリオ名（sanitize後）が含まれる",
+          "covers": "受け入れ基準: missing_in_tests"
+        },
+        {
+          "name": "宣言に対応しないテスト関数を検出する",
+          "category": "異常系",
+          "viewpoint": "ドリフト：テストはあるが宣言が無い",
+          "gherkin": "Scenario: 宣言に対応しないテスト関数を検出する\n  Given どのシナリオ宣言にも対応しないtest_*関数を含むテストファイル\n  When ドリフト検査を実行する\n  Then orphaned_in_testsにその関数名が含まれる",
+          "covers": "受け入れ基準: orphaned_in_tests"
+        },
+        {
+          "name": "構文解析できないテストファイルはINVALID_SOURCE",
+          "category": "異常系",
+          "viewpoint": "エラー：テストファイルの構文エラー",
+          "gherkin": "Scenario: 構文解析できないテストファイルはINVALID_SOURCE\n  Given 構文が壊れたテストファイル\n  When ドリフト検査を実行する\n  Then INVALID_SOURCEエラーが返る",
+          "covers": "エラー: INVALID_SOURCE"
+        }
+      ]
+    }
+  }
+}

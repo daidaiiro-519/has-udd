@@ -17,8 +17,11 @@
 
 ## 所属ユースケース
 
+- uc-check-spec-integrity
+- uc-check-scenario-drift
+
 ---
 
 ## 実装ガイド
 
-中核ゆえドメインモデルで厚く実装する。中身となる2つのusecase（spec内参照整合性検査・spec↔テストシナリオドリフト検査）は設計中（scripts/check_spec_referential_integrity.py・scripts/check_scenario_drift.py が参照実装。正式なusecase化にあたっては既存のhexagonalアーキテクチャ（port/adapter）に則って再設計する）。
+中核ゆえドメインモデルで厚く実装する。scripts/check_spec_referential_integrity.py・scripts/check_scenario_drift.py はあくまで参照実装であり、正式な実装は既存のhexagonalアーキテクチャ（port/adapter）に則って再設計する（既存のDocumentRepository portを再利用し、新規portは追加しない）。

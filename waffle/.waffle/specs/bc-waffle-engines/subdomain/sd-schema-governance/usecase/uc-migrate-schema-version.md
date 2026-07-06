@@ -68,7 +68,6 @@ sequenceDiagram
 | `ALREADY_PUBLISHED` | publishVersionの対象が既にx-schema-statusを持つ |
 | `INVALID_STATE` | deprecateVersionの対象がPUBLISHEDでない |
 | `INVALID_MIGRATION_DIRECTION` | fromSchemaRefのバージョン番号がtoSchemaRef以上 |
-| `INVALID_SCHEMA_REF` | schemaRefを解決できない |
 
 ---
 

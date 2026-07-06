@@ -5,12 +5,10 @@ inbound（driving）側のエントリは run()。
 """
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 from waffle.application.ports.document_repository import DocumentRepository
 from waffle.application.ports.schema_repository import SchemaRepository
 from waffle.application.ports.validator import Validator
+from waffle.application.services.document_loading import load_document, load_schema, require_schema_ref
 from waffle.domain.services.lifecycle_guard import next_status
 from waffle.shared.result import Err, Ok, Result
 
@@ -29,23 +27,20 @@ class ValidateEngine:
         self._validator = validator
 
     def run(self, document_path: str) -> Result[dict]:
-        # G6: パストラバーサル拒否
-        if ".." in Path(document_path).parts:
-            return _err("INVALID_PATH", f"パストラバーサルは許可されません: {document_path}")
-        try:
-            document = self._documents.load(document_path)
-        except FileNotFoundError:
-            return _err("INVALID_PATH", f"ファイルが見つかりません: {document_path}")
-        except json.JSONDecodeError:
-            return _err("INVALID_JSON", f"JSON として解釈できません: {document_path}")
+        loaded = load_document(self._documents, document_path)
+        if isinstance(loaded, Err):
+            return loaded
+        document = loaded.value
 
-        schema_ref = document.get("schemaRef")
-        if not schema_ref:
-            return _err("MISSING_SCHEMA_REF", "document に schemaRef がありません")
-        try:
-            schema = self._schemas.load(schema_ref)
-        except (FileNotFoundError, ModuleNotFoundError):
-            return _err("INVALID_SCHEMA_REF", f"schema を解決できません: {schema_ref}")
+        schema_ref_result = require_schema_ref(document)
+        if isinstance(schema_ref_result, Err):
+            return schema_ref_result
+        schema_ref = schema_ref_result.value
+
+        schema_result = load_schema(self._schemas, schema_ref)
+        if isinstance(schema_result, Err):
+            return schema_result
+        schema = schema_result.value
 
         # 検証は JSON Schema 適合のみ（x-render の RenderMetaSchema lint は別責務）。
         errors = self._validator.validate(document, schema)

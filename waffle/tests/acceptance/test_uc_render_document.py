@@ -64,6 +64,21 @@ def test_deploy_すると_canonical_と_deploy_先の両方に書く():
     assert ".claude/skills/harness-query-engine/SKILL.md" in result.value["deployed"]
 
 
+def test_render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する():
+    """
+    Given interfaceブロック(x-render宣言=table)を持つDocument
+    When render engine経由でrenderする(part_rendererを直接呼ばず)
+    Then schemaのx-render宣言どおりに整形されたMarkdownテーブルが出力に含まれる
+
+    (domainテストはpart_renderer.render_partsを直接呼ぶため、render_engineが実際に
+    schemaからx-render宣言を読み取りpart_rendererへ渡す配線そのものはここでしか検証されない)
+    """
+    result = _engine().run(".waffle/documents/skills/harness-query-engine.json", deploy=False)
+    assert isinstance(result, Ok), result
+    assert "| name | type | 必須 | 説明 | 例 |" in result.value["content"]
+    assert "| operation | string | ✓" in result.value["content"]
+
+
 def test_同じDocumentを2回renderしても同一の成果物になる():
     """
     Given 変更されていないDocument

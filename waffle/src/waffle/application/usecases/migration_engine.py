@@ -9,12 +9,10 @@ migrateDocumentsはscaffoldのcreate/fillと同じ2段階に分ける:
 """
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 from waffle.application.ports.document_repository import DocumentRepository
 from waffle.application.ports.schema_repository import SchemaRepository
 from waffle.application.ports.validator import Validator
+from waffle.application.services.document_loading import load_document, load_schema
 from waffle.domain.services.schema_versioning import is_forward_migration
 from waffle.shared.result import Err, Ok, Result
 
@@ -45,14 +43,7 @@ class MigrationEngine:
         return _err("INVALID_OPERATION", f"未知の operation: {operation}")
 
     def _load_schema_file(self, schema_path: str) -> Result[dict]:
-        if ".." in Path(schema_path).parts:
-            return _err("INVALID_PATH", f"パストラバーサルは許可されません: {schema_path}")
-        try:
-            return Ok(self._documents.load(schema_path))
-        except FileNotFoundError:
-            return _err("INVALID_PATH", f"ファイルが見つかりません: {schema_path}")
-        except json.JSONDecodeError:
-            return _err("INVALID_JSON", f"JSON として解釈できません: {schema_path}")
+        return load_document(self._documents, schema_path)
 
     def _publish_version(self, params: dict) -> Result[dict]:
         schema_path = params.get("schemaPath")
@@ -92,10 +83,10 @@ class MigrationEngine:
             return _err("MISSING_PARAM", "prepareMigration には fromSchemaRef, toSchemaRef, documentsDir が必要です")
         if not is_forward_migration(from_ref, to_ref):
             return _err("INVALID_MIGRATION_DIRECTION", f"移行は版を上げる方向にのみ行えます: {from_ref} -> {to_ref}")
-        try:
-            to_schema = self._schemas.load(to_ref)
-        except (FileNotFoundError, ModuleNotFoundError):
-            return _err("INVALID_SCHEMA_REF", f"schema を解決できません: {to_ref}")
+        schema_result = load_schema(self._schemas, to_ref)
+        if isinstance(schema_result, Err):
+            return schema_result
+        to_schema = schema_result.value
 
         migrations = _collect_migrations(to_schema)
         mechanical = {f: m for f, m in migrations.items() if m["as"] != "ai-infer"}
@@ -130,10 +121,10 @@ class MigrationEngine:
         answers = params.get("answers") or {}
         if not to_ref or partial_documents is None:
             return _err("MISSING_PARAM", "applyMigration には toSchemaRef, partialDocuments が必要です")
-        try:
-            to_schema = self._schemas.load(to_ref)
-        except (FileNotFoundError, ModuleNotFoundError):
-            return _err("INVALID_SCHEMA_REF", f"schema を解決できません: {to_ref}")
+        schema_result = load_schema(self._schemas, to_ref)
+        if isinstance(schema_result, Err):
+            return schema_result
+        to_schema = schema_result.value
 
         migrated: list[str] = []
         rejected: list[dict] = []

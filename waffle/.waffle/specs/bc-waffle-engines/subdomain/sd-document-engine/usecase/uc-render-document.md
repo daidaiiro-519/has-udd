@@ -59,11 +59,6 @@ sequenceDiagram
 
 ## エラー
 
-| コード | 条件 |
-|---|---|
-| `MISSING_SCHEMA_REF` | schemaRef が無い（描画しない） |
-| `INVALID_PATH` | 対象パスが存在しない |
-
 ---
 
 ## テストシナリオ

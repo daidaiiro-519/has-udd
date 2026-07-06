@@ -7,12 +7,13 @@
 """
 from __future__ import annotations
 
-import json
 import re
 from pathlib import Path
 
 from waffle.application.ports.document_repository import DocumentRepository
 from waffle.application.ports.schema_repository import SchemaRepository
+from waffle.application.services.document_loading import load_document, load_schema
+from waffle.domain.services.path_confinement import is_confined
 from waffle.shared.result import Err, Ok, Result
 
 # 各 operation の必須パラメータ（path を除く）
@@ -51,7 +52,7 @@ class QueryEngine:
             return _err("MISSING_PARAM", f"{operation} には {', '.join(missing)} が必要です")
 
         # G6: パストラバーサル拒否（全 operation・読み取り対象を制限）
-        if ".." in Path(path).parts:
+        if not is_confined(path):
             return _err("INVALID_PATH", f"パストラバーサルは許可されません: {path}")
 
         # Group 1: ファイル/ディレクトリ単位（schema 不要なものを先に処理）
@@ -64,19 +65,19 @@ class QueryEngine:
             return self._index_scan_dir(path)
 
         # それ以外は document を読む
-        try:
-            doc = self._documents.load(path)
-        except FileNotFoundError:
-            return _err("INVALID_PATH", f"ファイルが見つかりません: {path}")
-        except json.JSONDecodeError:
-            return _err("INVALID_JSON", f"JSON として解釈できません: {path}")
+        loaded = load_document(self._documents, path)
+        if isinstance(loaded, Err):
+            return loaded
+        doc = loaded.value
 
         # schemaRef を持たない通常ファイル → raw フォールバック
         if not isinstance(doc, dict) or "schemaRef" not in doc:
             return Ok({"type": "raw", "content": self._documents.read_text(path)})
 
-        schema = self._schemas.load(doc["schemaRef"])
-        return self._dispatch(operation, doc, schema, params)
+        schema_result = load_schema(self._schemas, doc["schemaRef"])
+        if isinstance(schema_result, Err):
+            return schema_result
+        return self._dispatch(operation, doc, schema_result.value, params)
 
     # --- ディスパッチ ---
 

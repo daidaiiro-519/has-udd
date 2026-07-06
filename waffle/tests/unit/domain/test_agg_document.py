@@ -1,8 +1,10 @@
 """agg-document（Document集約）の unitTestScenarios に対応するネイティブテスト。
 
-lifecycle_guard（schema の x-lifecycle を読む薄い guard）経由で実証する。
+lifecycle_guard（schema の x-lifecycle を読む薄い guard）・path_confinement
+（パス解決の不変条件を守る純粋なドメインサービス）経由で実証する。
 """
 from waffle.domain.services.lifecycle_guard import next_status
+from waffle.domain.services.path_confinement import is_confined
 
 _SCHEMA = {
     "x-lifecycle": {
@@ -79,3 +81,24 @@ def test_DEPRECATED_は終端():
 
 def test_schema_without_lifecycle_returns_none():
     assert next_status({}, "ACTIVE", "validate") is None
+
+
+# --- パス解決はプロジェクトルート内に閉じ込められる（G6/G7） ---
+
+def test_パストラバーサルを含むパスは拒否される():
+    """
+    Given '..' を含む対象パス
+    When 任意の operation・command を実行する
+    Then INVALID_PATH エラーが返り、プロジェクトルート外へはアクセスしない
+    """
+    assert is_confined("docs/../../etc/passwd") is False
+    assert is_confined("docs/valid.json") is True
+
+
+def test_ディレクトリ横断はプロジェクトルート外を拒否する():
+    """
+    Given プロジェクトルート外を指すディレクトリパス
+    When index_scan_dir を実行する
+    Then INVALID_PATH エラーが返る
+    """
+    assert is_confined("../outside") is False

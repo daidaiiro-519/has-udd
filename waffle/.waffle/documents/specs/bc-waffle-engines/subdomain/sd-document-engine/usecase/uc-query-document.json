@@ -92,10 +92,6 @@
           "condition": "operation が定義外"
         },
         {
-          "code": "INVALID_PATH",
-          "condition": "対象パスが存在しない"
-        },
-        {
           "code": "MISSING_PARAM",
           "condition": "必須パラメータが欠落"
         },

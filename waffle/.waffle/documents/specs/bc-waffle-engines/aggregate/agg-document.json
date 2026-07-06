@@ -118,6 +118,16 @@
           "rule": "Document のパス解決は、いかなる operation・command からも常にプロジェクトルート内に閉じ込められる（パストラバーサルを許さない）",
           "enforcement": "guard",
           "rationale": "ファイルアクセスというデータアクセス層の技術的関心事だが、Document 集約が扱う全ての操作に横断的に適用される不変条件であり、特定 usecase の業務シナリオではなく集約の不変条件として一箇所で保証する"
+        },
+        {
+          "rule": "存在しないパスを対象にした操作は、いかなる operation・command からも常に INVALID_PATH として拒否される",
+          "enforcement": "guard",
+          "rationale": "query/render/lint/scan 等、複数 usecase が同じ「対象パスが存在しない」状況に個別に対応していた（重複）。Document 集約が扱う全ての操作に横断的に適用される不変条件として一箇所で保証する"
+        },
+        {
+          "rule": "schemaRef を持たない Document を対象にした、schema 解決を要する操作は、いかなる operation・command からも常に MISSING_SCHEMA_REF として拒否される",
+          "enforcement": "guard",
+          "rationale": "「schemaRef は常に存在する」は理想状態の不変条件だが、scaffold 直後の未検証 Document 等、実際には欠けている状態が生じうる。render/validate が個別に対応していた（重複）この防御的振る舞いを集約の不変条件として一箇所で保証する"
         }
       ]
     },
@@ -388,6 +398,20 @@
           "viewpoint": "パス解決：index_scan_dir 等のディレクトリ横断操作もルート外を拒否する",
           "gherkin": "Scenario: ディレクトリ横断はプロジェクトルート外を拒否する\n  Given プロジェクトルート外を指すディレクトリパス\n  When index_scan_dir を実行する\n  Then INVALID_PATH エラーが返る",
           "covers": "不変条件: パス解決はプロジェクトルート内に閉じ込められる"
+        },
+        {
+          "name": "存在しないパスはINVALID_PATHとして拒否される",
+          "category": "異常系",
+          "viewpoint": "パス解決：対象パスが実在しない場合はどの operation・command でも同じ扱いになる",
+          "gherkin": "Scenario: 存在しないパスはINVALID_PATHとして拒否される\n  Given 実在しない対象パス\n  When 任意の operation・command を実行する\n  Then INVALID_PATH エラーが返る",
+          "covers": "不変条件: 存在しないパスへの操作はINVALID_PATHとして拒否される"
+        },
+        {
+          "name": "schemaRefを持たないDocumentはMISSING_SCHEMA_REFとして拒否される",
+          "category": "異常系",
+          "viewpoint": "パス解決：schema 解決を要する operation・command は schemaRef 欠如を同じ扱いにする",
+          "gherkin": "Scenario: schemaRefを持たないDocumentはMISSING_SCHEMA_REFとして拒否される\n  Given schemaRef を持たない Document\n  When schema 解決を要する operation・command を実行する\n  Then MISSING_SCHEMA_REF エラーが返る",
+          "covers": "不変条件: schemaRefを持たないDocumentへの操作はMISSING_SCHEMA_REFとして拒否される"
         }
       ]
     },

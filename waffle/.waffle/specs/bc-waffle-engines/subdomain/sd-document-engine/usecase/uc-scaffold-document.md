@@ -65,7 +65,6 @@ sequenceDiagram
 | コード | 条件 |
 |---|---|
 | `MISSING_DISCRIMINATOR` | 分岐のある schema で discriminator が未指定（候補 enum を案内） |
-| `INVALID_SCHEMA_REF` | 未知の schemaRef |
 | `SKIPPED` | 未知 path / const / discriminator への書き込み（書き込まず skipped に記録） |
 
 ---

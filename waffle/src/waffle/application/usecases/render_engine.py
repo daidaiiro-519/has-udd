@@ -11,10 +11,10 @@ x-render-target.path の場所へ deploy する application use case。
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 from waffle.application.ports.document_repository import DocumentRepository
 from waffle.application.ports.schema_repository import SchemaRepository
+from waffle.application.services.document_loading import load_document, load_schema, require_schema_ref
 from waffle.domain.services import path_template
 from waffle.domain.services.part_renderer import render_parts
 from waffle.domain.services.schema_discriminator import discriminator_key
@@ -40,23 +40,20 @@ class RenderEngine:
         self._schemas = schemas
 
     def run(self, document_path: str, deploy: bool = True) -> Result[dict]:
-        # G6: パストラバーサル拒否
-        if ".." in Path(document_path).parts:
-            return _err("INVALID_PATH", f"パストラバーサルは許可されません: {document_path}")
-        try:
-            doc = self._documents.load(document_path)
-        except FileNotFoundError:
-            return _err("INVALID_PATH", f"ファイルが見つかりません: {document_path}")
-        except json.JSONDecodeError:
-            return _err("INVALID_JSON", f"JSON として解釈できません: {document_path}")
+        loaded = load_document(self._documents, document_path)
+        if isinstance(loaded, Err):
+            return loaded
+        doc = loaded.value
 
-        schema_ref = doc.get("schemaRef")
-        if not schema_ref:
-            return _err("MISSING_SCHEMA_REF", "document に schemaRef がありません")
-        try:
-            schema = self._schemas.load(schema_ref)
-        except (FileNotFoundError, ModuleNotFoundError):
-            return _err("INVALID_SCHEMA_REF", f"schema を解決できません: {schema_ref}")
+        schema_ref_result = require_schema_ref(doc)
+        if isinstance(schema_ref_result, Err):
+            return schema_ref_result
+        schema_ref = schema_ref_result.value
+
+        schema_result = load_schema(self._schemas, schema_ref)
+        if isinstance(schema_result, Err):
+            return schema_result
+        schema = schema_result.value
 
         # render は schema 適合検証をしない（検証は uc-validate-document の責務・疎結合）。
         # 不正な構造の document は best-effort で描画される（Orchestrator が事前 validate する前提）。

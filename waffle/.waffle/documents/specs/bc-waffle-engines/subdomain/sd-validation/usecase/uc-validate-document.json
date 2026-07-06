@@ -94,10 +94,6 @@
         {
           "code": "VALIDATION_FAILED",
           "condition": "schema に不適合（違反詳細つきで失敗・status は変えない）"
-        },
-        {
-          "code": "MISSING_SCHEMA_REF",
-          "condition": "schemaRef が無い"
         }
       ]
     },

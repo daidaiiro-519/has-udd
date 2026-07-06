@@ -1,9 +1,10 @@
-"""agg-document の不変条件（G6/G7: パス解決はプロジェクトルート内に閉じ込められる）を検証する
-unitレベルのネイティブテスト。
+"""agg-document の不変条件（G6/G7: パス解決はプロジェクトルート内に閉じ込められる）が、
+実際の engine + 実adapterの組み合わせで正しく配線されていることを検証する統合テスト。
 
-.waffle/specs/.../agg-document.feature（unitTestScenarios）は参照専用の仕様書であり、実行対象ではない。
-この不変条件は Document 集約が扱う全ての operation・command に横断的に適用されるため、
-特定usecaseの受け入れテストではなく、集約レベルのunitテストとしてここに置く。
+不変条件そのもの（純粋ロジック）は domain/services/path_confinement.py として抽出され、
+tests/unit/domain/test_agg_document.py で port 不要のまま検証済み。ここでは
+「各engineが is_confined() を正しく呼び、INVALID_PATH へ正しくマッピングしているか」という
+配線（実FsDocumentRepository/PackageSchemaRepository/JsonSchemaValidator経由）だけを確認する。
 """
 from waffle.adapters.outbound.fs import FsDocumentRepository
 from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator

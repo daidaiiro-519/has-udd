@@ -92,10 +92,6 @@
       "title": "エラー",
       "items": [
         {
-          "code": "INVALID_PATH",
-          "condition": "対象パスが存在しない"
-        },
-        {
           "code": "UNSUPPORTED_KIND",
           "condition": "対象言語に対応する DocstringSchema の kind が無い"
         },

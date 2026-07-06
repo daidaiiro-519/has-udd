@@ -6,9 +6,14 @@
   "status": "CREATED",
   "subdomainRef": "sd-schema-governance",
   "aggregateRef": "agg-schema",
-  "tags": ["context:waffle-engines"],
+  "tags": [
+    "context:waffle-engines"
+  ],
   "content": {
-    "title": { "blockType": "Title", "title": "uc-migrate-schema-version" },
+    "title": {
+      "blockType": "Title",
+      "title": "uc-migrate-schema-version"
+    },
     "summary": {
       "blockType": "Summary",
       "title": "概要",
@@ -33,17 +38,60 @@
       "blockType": "MainFlow",
       "title": "基本フロー",
       "participants": [
-        { "id": "Orchestrator", "kind": "actor" }
+        {
+          "id": "Orchestrator",
+          "kind": "actor"
+        }
       ],
       "steps": [
-        { "from": "Orchestrator", "to": "Schema", "message": "publishVersion する", "kind": "command" },
-        { "from": "Schema", "to": "Schema", "message": "x-schema-status を PUBLISHED に更新", "kind": "self" },
-        { "from": "Schema", "to": "", "message": "SchemaVersionPublished", "kind": "event" },
-        { "from": "Schema", "to": "Orchestrator", "message": "公開結果を返す", "kind": "return" },
-        { "from": "Orchestrator", "to": "Document", "message": "prepareMigration で機械変換+ワークシート生成", "kind": "command" },
-        { "from": "Document", "to": "Orchestrator", "message": "ai-infer分のワークシートを返す", "kind": "return" },
-        { "from": "Orchestrator", "to": "Document", "message": "applyMigration でAI回答をマージし実証的検証の上で書き込む", "kind": "command" },
-        { "from": "Document", "to": "Orchestrator", "message": "移行結果（migrated/rejected）を返す", "kind": "return" }
+        {
+          "from": "Orchestrator",
+          "to": "Schema",
+          "message": "publishVersion する",
+          "kind": "command"
+        },
+        {
+          "from": "Schema",
+          "to": "Schema",
+          "message": "x-schema-status を PUBLISHED に更新",
+          "kind": "self"
+        },
+        {
+          "from": "Schema",
+          "to": "",
+          "message": "SchemaVersionPublished",
+          "kind": "event"
+        },
+        {
+          "from": "Schema",
+          "to": "Orchestrator",
+          "message": "公開結果を返す",
+          "kind": "return"
+        },
+        {
+          "from": "Orchestrator",
+          "to": "Document",
+          "message": "prepareMigration で機械変換+ワークシート生成",
+          "kind": "command"
+        },
+        {
+          "from": "Document",
+          "to": "Orchestrator",
+          "message": "ai-infer分のワークシートを返す",
+          "kind": "return"
+        },
+        {
+          "from": "Orchestrator",
+          "to": "Document",
+          "message": "applyMigration でAI回答をマージし実証的検証の上で書き込む",
+          "kind": "command"
+        },
+        {
+          "from": "Document",
+          "to": "Orchestrator",
+          "message": "移行結果（migrated/rejected）を返す",
+          "kind": "return"
+        }
       ]
     },
     "postconditions": {
@@ -73,10 +121,18 @@
       "blockType": "Errors",
       "title": "エラー",
       "items": [
-        { "code": "ALREADY_PUBLISHED", "condition": "publishVersionの対象が既にx-schema-statusを持つ" },
-        { "code": "INVALID_STATE", "condition": "deprecateVersionの対象がPUBLISHEDでない" },
-        { "code": "INVALID_MIGRATION_DIRECTION", "condition": "fromSchemaRefのバージョン番号がtoSchemaRef以上" },
-        { "code": "INVALID_SCHEMA_REF", "condition": "schemaRefを解決できない" }
+        {
+          "code": "ALREADY_PUBLISHED",
+          "condition": "publishVersionの対象が既にx-schema-statusを持つ"
+        },
+        {
+          "code": "INVALID_STATE",
+          "condition": "deprecateVersionの対象がPUBLISHEDでない"
+        },
+        {
+          "code": "INVALID_MIGRATION_DIRECTION",
+          "condition": "fromSchemaRefのバージョン番号がtoSchemaRef以上"
+        }
       ]
     },
     "testScenarios": {

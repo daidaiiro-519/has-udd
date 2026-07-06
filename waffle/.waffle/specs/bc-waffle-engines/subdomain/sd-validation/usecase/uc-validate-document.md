@@ -56,7 +56,6 @@ sequenceDiagram
 | コード | 条件 |
 |---|---|
 | `VALIDATION_FAILED` | schema に不適合（違反詳細つきで失敗・status は変えない） |
-| `MISSING_SCHEMA_REF` | schemaRef が無い |
 
 ---
 

@@ -89,16 +89,7 @@
     "errors": {
       "blockType": "Errors",
       "title": "エラー",
-      "items": [
-        {
-          "code": "MISSING_SCHEMA_REF",
-          "condition": "schemaRef が無い（描画しない）"
-        },
-        {
-          "code": "INVALID_PATH",
-          "condition": "対象パスが存在しない"
-        }
-      ]
+      "items": []
     },
     "testScenarios": {
       "blockType": "TestScenarios",

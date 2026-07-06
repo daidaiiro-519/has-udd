@@ -139,6 +139,11 @@
           "rule": "Documentのschemaが指しうる型は常にx-schema-statusを宣言する",
           "enforcement": "schema",
           "rationale": "第4のドリフト検知(check_schema_version_drift.py)がバージョンの状態を判定できることを保証する"
+        },
+        {
+          "rule": "解決できないschemaRefを対象にした操作は、いかなる operation・command からも常に INVALID_SCHEMA_REF として拒否される",
+          "enforcement": "guard",
+          "rationale": "scaffold/migrateDocuments 等、複数 usecase が同じ「schemaRef を解決できない」状況に個別に対応していた（重複）。Schema 集約が扱う全ての操作に横断的に適用される不変条件として一箇所で保証する"
         }
       ]
     },
@@ -339,6 +344,13 @@
           "viewpoint": "不変条件: Documentのschemaが指しうる型は常にx-schema-statusを宣言する",
           "gherkin": "Scenario: 全schemaがx_schema_statusを宣言している\n  Given Documentのschemaが指しうる型(DomainSpecSchema/PresentationSpecSchema/CodingSchema/SkillSchema)\n  When 各schemaファイルのx-schema-statusを確認する\n  Then 全てPUBLISHED/DEPRECATEDのいずれかを宣言している",
           "covers": "不変条件: Documentのschemaが指しうる型は常にx-schema-statusを宣言する"
+        },
+        {
+          "name": "解決できないschemaRefはINVALID_SCHEMA_REFとして拒否される",
+          "category": "異常系",
+          "viewpoint": "不変条件: 解決できないschemaRefへの操作はINVALID_SCHEMA_REFとして拒否される",
+          "gherkin": "Scenario: 解決できないschemaRefはINVALID_SCHEMA_REFとして拒否される\n  Given 解決できないschemaRef\n  When 任意のoperation・commandを実行する\n  Then INVALID_SCHEMA_REFエラーが返る",
+          "covers": "不変条件: 解決できないschemaRefを対象にした操作はINVALID_SCHEMA_REFとして拒否される"
         }
       ]
     }

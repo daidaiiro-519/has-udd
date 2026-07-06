@@ -57,7 +57,6 @@ sequenceDiagram
 | コード | 条件 |
 |---|---|
 | `INVALID_OPERATION` | operation が定義外 |
-| `INVALID_PATH` | 対象パスが存在しない |
 | `MISSING_PARAM` | 必須パラメータが欠落 |
 | `NOT_FOUND` | 指定した blockKey/idValue に一致する要素が存在しない |
 | `INVALID_PATTERN` | filter_pattern の正規表現が不正 |

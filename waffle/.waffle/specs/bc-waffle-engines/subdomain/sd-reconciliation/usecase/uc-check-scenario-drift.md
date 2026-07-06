@@ -15,12 +15,6 @@ spec の TestScenarios（acceptanceScenarios/guaranteeScenarios/invariantScenari
 
 ---
 
-## 関与する外部
-
-- DocumentRepository（spec.json・テストファイルの読込に使う既存 port）
-
----
-
 ## 事前条件
 
 - 対象 spec.json のパスと、対応するテストファイル(.py)のパスが両方与えられている
@@ -63,7 +57,7 @@ sequenceDiagram
 
 ## 操作保証
 
-- When 対象のspec.jsonまたはテストファイルが存在しないとき、engine は INVALID_PATH エラーを返す shall（リポジトリによる解決プロセス自体の契約・DocumentRepositoryを介して判定する）。
+- When 対象のspec.jsonまたはテストファイルが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。
 
 ---
 

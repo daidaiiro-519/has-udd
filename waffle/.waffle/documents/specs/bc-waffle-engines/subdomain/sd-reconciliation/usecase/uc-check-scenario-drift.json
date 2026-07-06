@@ -22,13 +22,6 @@
       "actor": "Orchestrator（HarnessAgent）",
       "intent": "specのシナリオ宣言とテストコードの対応関係が保たれているかを確認したい"
     },
-    "externalActors": {
-      "blockType": "ExternalActors",
-      "title": "関与する外部",
-      "items": [
-        "DocumentRepository（spec.json・テストファイルの読込に使う既存 port）"
-      ]
-    },
     "preconditions": {
       "blockType": "Preconditions",
       "title": "事前条件",
@@ -109,7 +102,7 @@
       "blockType": "OperationGuarantees",
       "title": "操作保証",
       "items": [
-        "When 対象のspec.jsonまたはテストファイルが存在しないとき、engine は INVALID_PATH エラーを返す shall（リポジトリによる解決プロセス自体の契約・DocumentRepositoryを介して判定する）。"
+        "When 対象のspec.jsonまたはテストファイルが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
       ]
     },
     "guaranteeScenarios": {

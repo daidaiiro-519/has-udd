@@ -24,4 +24,4 @@
 
 ## 実装ガイド
 
-中核ゆえドメインモデルで厚く実装する。scripts/check_spec_referential_integrity.py・scripts/check_scenario_drift.py はあくまで参照実装であり、正式な実装は既存のhexagonalアーキテクチャ（port/adapter）に則って再設計する（既存のDocumentRepository portを再利用し、新規portは追加しない）。
+中核ゆえドメインモデルで厚く実装する。宣言と実態の突き合わせ、シナリオ名とテスト関数名の突き合わせは自前の決定的コードで書き、AIに判定を委ねない。

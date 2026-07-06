@@ -53,8 +53,8 @@ sequenceDiagram
 
 ## 操作保証
 
-- When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（リポジトリによる解決プロセス自体の契約・DocumentRepositoryを介して判定する）。
-- When 対象のschemaRefを解決できないとき、engine は INVALID_SCHEMA_REF エラーを返す shall（リポジトリによる解決プロセス自体の契約・SchemaRepositoryを介して判定する）。
+- When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。
+- When 対象のschemaRefを解決できないとき、engine は INVALID_SCHEMA_REF エラーを返す shall（schemaを特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。
 
 ---
 
@@ -154,7 +154,7 @@ Scenario: 不正なJSONはINVALID_JSON
 
 | 分類 | 観点 |
 |---|---|
-| 異常系 | リポジトリ解決契約：対象パスが実在しないとき、DocumentRepositoryを介した解決に失敗しINVALID_PATHになる |
+| 異常系 | 解決契約：対象パスが実在しないとき、パスの解決に失敗しINVALID_PATHになる |
 
 ```gherkin
 Scenario: 存在しないパスはINVALID_PATH
@@ -167,7 +167,7 @@ Scenario: 存在しないパスはINVALID_PATH
 
 | 分類 | 観点 |
 |---|---|
-| 異常系 | リポジトリ解決契約：schemaRefを解決できないとき、SchemaRepositoryを介した解決に失敗しINVALID_SCHEMA_REFになる |
+| 異常系 | 解決契約：schemaRefを解決できないとき、schemaの解決に失敗しINVALID_SCHEMA_REFになる |
 
 ```gherkin
 Scenario: 解決できないschemaRefはINVALID_SCHEMA_REF

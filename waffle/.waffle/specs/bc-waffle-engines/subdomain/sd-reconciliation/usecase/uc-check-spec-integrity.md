@@ -15,12 +15,6 @@ bounded-context が宣言する members(subdomain/usecase) と、ディスク上
 
 ---
 
-## 関与する外部
-
-- DocumentRepository（bc.json・各 subdomain.json の読込に使う既存 port）
-
----
-
 ## 事前条件
 
 - 対象 bounded-context の bc.json のパスが与えられている
@@ -64,7 +58,7 @@ sequenceDiagram
 
 ## 操作保証
 
-- When 対象のbc.jsonが存在しないとき、engine は INVALID_PATH エラーを返す shall（リポジトリによる解決プロセス自体の契約・DocumentRepositoryを介して判定する）。
+- When 対象のbc.jsonが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。
 
 ---
 

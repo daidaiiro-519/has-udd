@@ -266,6 +266,13 @@
           "viewpoint": "状態: migrateDocuments は版を上げる方向にのみ",
           "gherkin": "Scenario: 移行は版を上げる方向にのみ行う\n  Given v1 と v2 の Schema\n  When v2 から v1 へ移行しようとする\n  Then 拒否される",
           "covers": "コマンド: migrateDocuments"
+        },
+        {
+          "name": "x-render は閉じた語彙にのみ従う",
+          "category": "異常系",
+          "viewpoint": "不変条件: 各ブロックの x-render は常に RenderMetaSchema の閉じた語彙にのみ従う",
+          "gherkin": "Scenario: x-render は閉じた語彙にのみ従う\n  Given 未知の部品種別、または必須属性が欠けた x-render 宣言を持つ Schema\n  When x-render の適合を検証する\n  Then 不適合として拒否される",
+          "covers": "不変条件: 各ブロックの x-render は常に RenderMetaSchema の閉じた語彙にのみ従う"
         }
       ]
     }

@@ -17,7 +17,7 @@ def _lint(parts):
 
 # --- 描画 ---
 
-def test_paragraph_and_list_md():
+def test_paragraph_listが正しく整形される():
     md = render_parts(
         [{"as": "paragraph", "from": "text"}, {"as": "list", "from": "items"}],
         {"text": "説明", "items": ["a", "b"]}, 3,
@@ -26,7 +26,7 @@ def test_paragraph_and_list_md():
     assert "- a\n- b" in md
 
 
-def test_table_escapes_pipe_and_formats_bool():
+def test_tableはパイプ文字をエスケープしboolを整形する():
     parts = [{"as": "table", "from": "rows", "columns": [
         {"field": "name"}, {"field": "type"}, {"field": "required", "header": "必須"}]}]
     data = {"rows": [
@@ -40,7 +40,7 @@ def test_table_escapes_pipe_and_formats_bool():
     assert "| ✓ |" in md and "| - |" in md   # bool は ✓/-
 
 
-def test_section_nesting_with_item_label():
+def test_sectionは入れ子とitemLabelを整形する():
     parts = [{"as": "section", "from": "items", "titleFrom": "title", "itemLabel": "Step", "each": [
         {"as": "paragraph", "from": "summary"}, {"as": "list", "from": "bullets"}]}]
     data = {"items": [{"title": "選ぶ", "summary": "要点", "bullets": ["x", "y"]}]}
@@ -50,13 +50,13 @@ def test_section_nesting_with_item_label():
     assert "- x\n- y" in md
 
 
-def test_keyvalue_md():
+def test_keyvalueが正しく整形される():
     parts = [{"as": "keyvalue", "from": "refs", "labelFrom": "path", "valueFrom": "desc"}]
     data = {"refs": [{"path": "a.md", "desc": "説明A"}]}
     assert "- **a.md**: 説明A" in render_parts(parts, data, 3)
 
 
-def test_section_badge_marks_root():
+def test_sectionはbadgeで条件付き強調を付与する():
     parts = [{"as": "section", "from": "items", "titleFrom": "name",
               "badge": {"from": "isRoot", "text": "集約ルート"}, "each": [
                   {"as": "paragraph", "from": "role"}]}]
@@ -68,7 +68,7 @@ def test_section_badge_marks_root():
     assert "一貫性単位" in md
 
 
-def test_table_mark_field_bolds_identifier():
+def test_tableはmarkFieldで識別子を太字強調する():
     parts = [{"as": "table", "from": "attrs", "columns": [
         {"field": "name", "header": "属性", "markField": "isId", "markSuffix": "（識別子）"},
         {"field": "type", "header": "型"}]}]
@@ -79,7 +79,7 @@ def test_table_mark_field_bolds_identifier():
     assert "| status | Status |" in md
 
 
-def test_statediagram_md():
+def test_statediagramが正しいMermaid構文になる():
     parts = [{"as": "statediagram", "from": "transitions"}]
     data = {"transitions": [
         {"from": "A", "to": "B", "command": "cmd"},
@@ -93,7 +93,7 @@ def test_statediagram_md():
     assert "open_state --> C: go" in md
 
 
-def test_architecture_zones_and_connections_md():
+def test_architectureが正しいMermaid構文になる():
     parts = [{"as": "architecture", "from": "zones", "connectionsFrom": "connections"}]
     data = {
         "zones": [
@@ -110,7 +110,7 @@ def test_architecture_zones_and_connections_md():
     assert "lb:R --> L:app" in md
 
 
-def test_flowchart_stages_and_transitions_md():
+def test_flowchartが正しいMermaid構文になる():
     parts = [{"as": "flowchart", "from": "stages", "transitionsFrom": "transitions"}]
     data = {
         "stages": [{"id": "staging", "label": "Staging"}, {"id": "production", "label": "Production"}],
@@ -123,7 +123,7 @@ def test_flowchart_stages_and_transitions_md():
     assert 'staging -->|"承認"| production' in md  # 非ASCIIラベルはクォート必須
 
 
-def test_sequence_participants_actor_vs_participant():
+def test_sequenceはactor_participantを区別する():
     parts = [{"as": "sequence", "from": "items", "participantsFrom": "participants"}]
     data = {
         "participants": [
@@ -138,7 +138,7 @@ def test_sequence_participants_actor_vs_participant():
     assert "顧客->>uc_place_order: 注文する" in md
 
 
-def test_sequence_loop_and_alt_nesting():
+def test_sequenceはloop_altを入れ子で表現する():
     parts = [{"as": "sequence", "from": "items"}]
     data = {"items": [
         {"kind": "loop", "message": "3件分", "steps": [
@@ -156,7 +156,7 @@ def test_sequence_loop_and_alt_nesting():
     assert md.count("end") == 2
 
 
-def test_sequence_activate_deactivate():
+def test_sequenceはactivate_deactivateを表現する():
     parts = [{"as": "sequence", "from": "items"}]
     data = {"items": [
         {"from": "A", "to": "B", "message": "呼出", "kind": "command", "activate": True},
@@ -167,7 +167,7 @@ def test_sequence_activate_deactivate():
     assert "B-->>-A: 応答" in md
 
 
-def test_statediagram_pseudo_states():
+def test_statediagramは疑似状態を表現する():
     parts = [{"as": "statediagram", "from": "transitions", "pseudoStatesFrom": "pseudoStates"}]
     data = {
         "pseudoStates": [{"id": "判定", "kind": "choice"}],
@@ -178,7 +178,7 @@ def test_statediagram_pseudo_states():
     assert "A --> 判定: check" in md
 
 
-def test_kvtable_single_row():
+def test_kvtableは単一行として整形される():
     parts = [{"as": "kvtable", "columns": [
         {"field": "category", "header": "分類"},
         {"field": "viewpoint", "header": "観点"}]}]
@@ -190,7 +190,7 @@ def test_kvtable_single_row():
     assert "正常系" in lines[2] and "状態遷移" in lines[2]
 
 
-def test_table_join_column():
+def test_tableはjoin指定で配列セルを結合整形する():
     parts = [{"as": "table", "from": "items", "columns": [
         {"field": "name", "header": "エンティティ"},
         {"field": "attributes", "header": "属性", "join": "{name}: {type}"}]}]
@@ -217,8 +217,9 @@ def test_lint_rejects_missing_required_attr():
 
 
 @pytest.mark.parametrize("schema_ref", ["SkillSchema/v1", "CodingSchema/v2", "DomainSpecSchema/v2", "PresentationSpecSchema/v1", "PlatformSpec/v1"])
-def test_schema_xrender_conforms(schema_ref):
-    """全 schema の全 block の x-render が RenderMetaSchema に適合する（誤設定・旧 {md,html} 形式の混入を防ぐ）。"""
+def test_x_render_は閉じた語彙にのみ従う(schema_ref):
+    """agg-schema(Schema集約)の不変条件「各ブロックのx-renderは常にRenderMetaSchemaの閉じた語彙にのみ従う」の実証。
+    全 schema の全 block の x-render が RenderMetaSchema に適合する（誤設定・旧 {md,html} 形式の混入を防ぐ）。"""
     schema = PackageSchemaRepository().load(schema_ref)
     for name, bdef in schema["$defs"].items():
         if "x-render" in bdef:

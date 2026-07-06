@@ -11,9 +11,8 @@ JSON Schemaでdocument.jsonを検証・query・render・scaffoldする。
   そのもの）に残し、engine部分には独立の名称「Waffle」を与えた。
   経緯は `docs/brainstorm/brainstorm-has-udd-oss-separation.md`（論点1〜5）を参照。
 - **バンドルされているschema（SkillSchema/DomainSpecSchema/PresentationSpecSchema/
-  CodingSchema/RenderMetaSchema/DocstringSchema）はWaffle自身の資産**（has-uddから借りた
-  外部依存ではない）。`src/waffle/domain/model/`に同梱を維持する。schemaを外部化する設計は
-  採用しない（ユーザー判断）。
+  CodingSchema/RenderMetaSchema/MigrationMetaSchema/DocstringSchema）はWaffle自身の資産**
+  （has-uddから借りた外部依存ではない）。schemaを外部化する設計は採用しない（ユーザー判断）。
   - `SpecSchema`は`DomainSpecSchema`に改名済み（spec は DDD より広い上位概念であり、
     UI層を扱う非DDDの`PresentationSpecSchema`と対で「Spec家族」を構成するため）。
     `DomainSpecSchema`=業務ロジック層（DDD管轄・specKind=bounded-context/subdomain/
@@ -21,9 +20,14 @@ JSON Schemaでdocument.jsonを検証・query・render・scaffoldする。
     specKind=screen/flow・ビジュアルはFigma等へのURL参照のみ）。
     経緯は`docs/brainstorm/brainstorm-schema-aggregate-zerobase.md`を参照。
   - **Schema集約（agg-schema）の対象は「Documentのschemaが指しうる型」のみ**
-    （DomainSpecSchema/PresentationSpecSchema/CodingSchema/SkillSchema）。
-    RenderMetaSchema/DocstringSchemaは派生構造（x-render部品／code_scan出力）を検証する
-    別概念であり対象外。
+    （DomainSpecSchema/PresentationSpecSchema/CodingSchema/SkillSchema）。独自の識別
+    （documentType）とライフサイクル（x-schema-status）を持つ。`src/waffle/domain/model/`
+    に置く。
+  - **RenderMetaSchema/MigrationMetaSchema/DocstringSchemaは集約ではない**（identity・
+    x-schema-status・ライフサイクルを持たない）。RenderMetaSchema/MigrationMetaSchemaは
+    他schemaのブロックに埋め込まれる値オブジェクト（x-render宣言／x-migration宣言）の
+    型定義、DocstringSchemaはusecase(uc-scan-source-code)の出力データの形状定義であり、
+    どちらも独立した実体ではない。`src/waffle/domain/vocabulary/`に分離して置く。
 - この`waffle/`ディレクトリは`loomdb/`と同じく**自己完結**しており、
   `git subtree split --prefix=waffle`でそのまま独立リポジトリに切り出せる想定。
 - `document.json`のパス規約（`x-source-target`/`x-render-target`）は`.has-udd/`ではなく
@@ -43,5 +47,6 @@ JSON Schemaでdocument.jsonを検証・query・render・scaffoldする。
 - ワークスペース: `src/waffle/`（domain/application/adapters・ヘキサゴナル）・
   `tests/`（pytest）・`features/`（behave）。
 - schema解決は`PackageSchemaRepository`（`adapters/outbound/schema_repo.py`）が
-  `importlib.resources`でパッケージ内`domain/model/`から行う（外部プロジェクトからの
-  差し替え口は現状なし）。
+  `importlib.resources`でパッケージ内`domain/model/`（集約）と`domain/vocabulary/`
+  （値オブジェクト型定義・usecase出力形状。集約ではない）の2箇所から行う
+  （外部プロジェクトからの差し替え口は現状なし）。

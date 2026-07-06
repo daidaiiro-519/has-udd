@@ -8,6 +8,11 @@ from waffle.domain.services.part_renderer import render_parts
 # --- 描画 ---
 
 def test_paragraph_listが正しく整形される():
+    """
+    Given paragraph/listを宣言するx-render
+    When renderする
+    Then paragraphは地の文、listは箇条書きとして整形される
+    """
     md = render_parts(
         [{"as": "paragraph", "from": "text"}, {"as": "list", "from": "items"}],
         {"text": "説明", "items": ["a", "b"]}, 3,
@@ -17,6 +22,11 @@ def test_paragraph_listが正しく整形される():
 
 
 def test_tableはパイプ文字をエスケープしboolを整形する():
+    """
+    Given パイプ文字やbool値を含む行データ
+    When tableとしてrenderする
+    Then パイプ文字はエスケープされ、boolは✓/-に整形される
+    """
     parts = [{"as": "table", "from": "rows", "columns": [
         {"field": "name"}, {"field": "type"}, {"field": "required", "header": "必須"}]}]
     data = {"rows": [
@@ -31,6 +41,11 @@ def test_tableはパイプ文字をエスケープしboolを整形する():
 
 
 def test_sectionは入れ子とitemLabelを整形する():
+    """
+    Given itemLabelを持つsection宣言と入れ子のeach部品
+    When renderする
+    Then 各itemの見出しにitemLabelが付与され、入れ子の部品も正しく描画される
+    """
     parts = [{"as": "section", "from": "items", "titleFrom": "title", "itemLabel": "Step", "each": [
         {"as": "paragraph", "from": "summary"}, {"as": "list", "from": "bullets"}]}]
     data = {"items": [{"title": "選ぶ", "summary": "要点", "bullets": ["x", "y"]}]}
@@ -41,12 +56,22 @@ def test_sectionは入れ子とitemLabelを整形する():
 
 
 def test_keyvalueが正しく整形される():
+    """
+    Given keyvalueを宣言するx-render
+    When renderする
+    Then ラベルと値の組が箇条書きとして整形される
+    """
     parts = [{"as": "keyvalue", "from": "refs", "labelFrom": "path", "valueFrom": "desc"}]
     data = {"refs": [{"path": "a.md", "desc": "説明A"}]}
     assert "- **a.md**: 説明A" in render_parts(parts, data, 3)
 
 
 def test_sectionはbadgeで条件付き強調を付与する():
+    """
+    Given badge条件を満たすitemを含むsection宣言
+    When renderする
+    Then 条件を満たすitemの見出しにのみ強調語が付与される
+    """
     parts = [{"as": "section", "from": "items", "titleFrom": "name",
               "badge": {"from": "isRoot", "text": "集約ルート"}, "each": [
                   {"as": "paragraph", "from": "role"}]}]
@@ -59,6 +84,11 @@ def test_sectionはbadgeで条件付き強調を付与する():
 
 
 def test_tableはmarkFieldで識別子を太字強調する():
+    """
+    Given markFieldが真の行を含むtable宣言
+    When renderする
+    Then 該当セルが太字＋markSuffixで強調される
+    """
     parts = [{"as": "table", "from": "attrs", "columns": [
         {"field": "name", "header": "属性", "markField": "isId", "markSuffix": "（識別子）"},
         {"field": "type", "header": "型"}]}]
@@ -70,6 +100,11 @@ def test_tableはmarkFieldで識別子を太字強調する():
 
 
 def test_statediagramが正しいMermaid構文になる():
+    """
+    Given 状態遷移の配列を宣言するx-render
+    When renderする
+    Then stateDiagram-v2として正しいMermaid構文が生成される
+    """
     parts = [{"as": "statediagram", "from": "transitions"}]
     data = {"transitions": [
         {"from": "A", "to": "B", "command": "cmd"},
@@ -84,6 +119,11 @@ def test_statediagramが正しいMermaid構文になる():
 
 
 def test_architectureが正しいMermaid構文になる():
+    """
+    Given zones/connectionsを宣言するx-render
+    When renderする
+    Then architecture-betaとして正しいMermaid構文が生成される
+    """
     parts = [{"as": "architecture", "from": "zones", "connectionsFrom": "connections"}]
     data = {
         "zones": [
@@ -101,6 +141,11 @@ def test_architectureが正しいMermaid構文になる():
 
 
 def test_flowchartが正しいMermaid構文になる():
+    """
+    Given stages/transitionsを宣言するx-render
+    When renderする
+    Then flowchart LRとして正しいMermaid構文が生成される
+    """
     parts = [{"as": "flowchart", "from": "stages", "transitionsFrom": "transitions"}]
     data = {
         "stages": [{"id": "staging", "label": "Staging"}, {"id": "production", "label": "Production"}],
@@ -114,6 +159,11 @@ def test_flowchartが正しいMermaid構文になる():
 
 
 def test_sequenceはactor_participantを区別する():
+    """
+    Given kind:actor/participantを含む参加者宣言
+    When renderする
+    Then actor/participantそれぞれの宣言がMermaid構文で区別される
+    """
     parts = [{"as": "sequence", "from": "items", "participantsFrom": "participants"}]
     data = {
         "participants": [
@@ -129,6 +179,11 @@ def test_sequenceはactor_participantを区別する():
 
 
 def test_sequenceはloop_altを入れ子で表現する():
+    """
+    Given loop/alt種別のstepを含むsteps配列
+    When renderする
+    Then loop/altブロックが正しく入れ子のMermaid構文になる
+    """
     parts = [{"as": "sequence", "from": "items"}]
     data = {"items": [
         {"kind": "loop", "message": "3件分", "steps": [
@@ -147,6 +202,11 @@ def test_sequenceはloop_altを入れ子で表現する():
 
 
 def test_sequenceはactivate_deactivateを表現する():
+    """
+    Given activate/deactivateフラグを持つstep
+    When renderする
+    Then Mermaidのアクティベーション記法(+/-)が正しく付与される
+    """
     parts = [{"as": "sequence", "from": "items"}]
     data = {"items": [
         {"from": "A", "to": "B", "message": "呼出", "kind": "command", "activate": True},
@@ -158,6 +218,11 @@ def test_sequenceはactivate_deactivateを表現する():
 
 
 def test_statediagramは疑似状態を表現する():
+    """
+    Given pseudoStatesFromで疑似状態を宣言するx-render
+    When renderする
+    Then choice/fork/joinの疑似状態宣言がMermaid構文の先頭に出力される
+    """
     parts = [{"as": "statediagram", "from": "transitions", "pseudoStatesFrom": "pseudoStates"}]
     data = {
         "pseudoStates": [{"id": "判定", "kind": "choice"}],
@@ -169,6 +234,11 @@ def test_statediagramは疑似状態を表現する():
 
 
 def test_kvtableは単一行として整形される():
+    """
+    Given kvtableを宣言するx-render
+    When renderする
+    Then block自身の値が1行のtableとして整形される
+    """
     parts = [{"as": "kvtable", "columns": [
         {"field": "category", "header": "分類"},
         {"field": "viewpoint", "header": "観点"}]}]
@@ -181,6 +251,11 @@ def test_kvtableは単一行として整形される():
 
 
 def test_tableはjoin指定で配列セルを結合整形する():
+    """
+    Given join/sepを指定したcolumns宣言と配列値を持つセル
+    When renderする
+    Then 配列の各要素がjoinテンプレートで整形されsepで連結される
+    """
     parts = [{"as": "table", "from": "items", "columns": [
         {"field": "name", "header": "エンティティ"},
         {"field": "attributes", "header": "属性", "join": "{name}: {type}"}]}]

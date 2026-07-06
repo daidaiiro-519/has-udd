@@ -58,7 +58,7 @@
 | application | unit（port はテストダブル） | `tests/unit/application/` |
 | adapters | integration | `tests/integration/` |
 | usecase | acceptance（ネイティブ・.feature は参照専用） | `tests/acceptance/` |
-| CLI / MCP の公開インターフェース | contract | `features/cli.feature, features/mcp.feature（現状はtool=behave。testTypesはtool=pytestと宣言しており未整合・別途解消が必要）` |
+| CLI / MCP の公開インターフェース | contract | `tests/contract/（ネイティブpytest。旧features/{cli,mcp}.feature(behave)から移行しtool不一致を解消）` |
 
 ---
 

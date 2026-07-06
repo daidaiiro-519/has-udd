@@ -126,7 +126,7 @@
         {
           "target": "CLI / MCP の公開インターフェース",
           "testKind": "contract",
-          "path": "features/cli.feature, features/mcp.feature（現状はtool=behave。testTypesはtool=pytestと宣言しており未整合・別途解消が必要）"
+          "path": "tests/contract/（ネイティブpytest。旧features/{cli,mcp}.feature(behave)から移行しtool不一致を解消）"
         }
       ]
     },

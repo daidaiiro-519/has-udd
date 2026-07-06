@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=8", "behave>=1.2.6"]
+dev = ["pytest>=8"]
 
 [project.scripts]
 waffle = "waffle.adapters.inbound.cli.main:app"

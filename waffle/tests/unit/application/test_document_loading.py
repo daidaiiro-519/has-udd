@@ -1,13 +1,14 @@
 """document_loading（application層の共通編成ヘルパー）の単体テスト。
 
-DocumentRepository/SchemaRepositoryはどちらも単純なProtocolなので、実アダプタ
-（fs.py/PackageSchemaRepository）を使わずフェイク実装に差し替えてテストする
-（tests/integration/では実アダプタ経由で4エンジン分が間接的に検証しているが、
-document_loading.py自体のエラーマッピングロジックはここで直接・一度だけ検証する）。
+document_loading.py自体はuc-*のような固有のspec文書を持たない、4usecase共有の
+実装ヘルパー。検証している業務保証（INVALID_PATH/INVALID_JSON/INVALID_SCHEMA_REF）
+自体はすでに各usecaseのguaranteeScenariosとしてSpecに宣言済みで、
+tests/integration/側で宣言名と一致するテスト（Given/When/Then付き）として実アダプタ
+経由に検証されている。ここはそれを補完し、共有ロジック自体をDocumentRepository/
+SchemaRepository（単純なProtocol）のフェイク実装に差し替えて直接・一度だけ検証する
+（シナリオ名との対応は無いため、他の補完テストと同様シナリオ名にはしない）。
 """
 import json
-
-import pytest
 
 from waffle.application.services.document_loading import load_document, load_schema
 from waffle.shared.result import Err, Ok

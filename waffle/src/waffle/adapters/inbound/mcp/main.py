@@ -100,9 +100,9 @@ def scaffold_document(
     return _dict(ScaffoldEngine(_docs(), _schemas()).run(operation, params))
 
 @mcp.tool
-def check_spec_integrity(path: str) -> dict:
+def check_spec_integrity(path: str, documentsRoot: str = ".waffle/documents") -> dict:
     """bc.jsonのmembers宣言とディスク上の実ファイルの参照整合性を検証（uc-check-spec-integrity）。"""
-    return _dict(CheckSpecIntegrityEngine(_docs()).run(path))
+    return _dict(CheckSpecIntegrityEngine(_docs()).run(path, documentsRoot))
 
 @mcp.tool
 def check_scenario_drift(specPath: str, testPath: str) -> dict:

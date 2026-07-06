@@ -95,11 +95,11 @@ def test_scaffold_createは骨格を返す():
     assert data["skeleton"]["documentType"] == "Skill"
 
 
-def test_check_spec_integrityは6フィールドの差分結果を返す():
+def test_check_spec_integrityは10フィールドの差分結果を返す():
     """
     Given waffle CLI
     When check-spec-integrity --path bc-waffle-engines.json を実行する
-    Then 終了コードは0で、出力JSONは6フィールド全て空配列（自己整合済み）
+    Then 終了コードは0で、出力JSONは10フィールド全て空配列（自己整合済み）
     """
     result = _runner.invoke(app, [
         "check-spec-integrity",
@@ -114,6 +114,10 @@ def test_check_spec_integrityは6フィールドの差分結果を返す():
         "usecases_in_subdomain_not_declared_in_bc": [],
         "usecase_files_missing_on_disk": [],
         "usecase_files_orphaned_on_disk": [],
+        "orphaned_value_objects": [],
+        "undeclared_document_fields": [],
+        "subdomain_ref_mismatches": [],
+        "missing_aggregate_refs": [],
     }
 
 

@@ -15,6 +15,6 @@ def test_存在しないbc_jsonはINVALID_PATH():
     When 存在しないbc.jsonのパスで参照整合性検査を実行する
     Then INVALID_PATHエラーが返る
     """
-    result = _engine().run("does/not/exist.json")
+    result = _engine().run("does/not/exist.json", ".waffle/documents")
     assert isinstance(result, Err), result
     assert result.details[0] == "INVALID_PATH"

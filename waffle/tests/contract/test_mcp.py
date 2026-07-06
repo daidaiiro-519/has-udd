@@ -69,11 +69,11 @@ def test_render_documentはmdフォーマットを返す():
     assert out["format"] == "md"
 
 
-def test_check_spec_integrityは6フィールドの差分結果を返す():
+def test_check_spec_integrityは10フィールドの差分結果を返す():
     """
     Given waffle MCPサーバ
     When check_spec_integrityツールをbc-waffle-engines.jsonで呼ぶ
-    Then MCP出力は6フィールド全て空配列（自己整合済み）
+    Then MCP出力は10フィールド全て空配列（自己整合済み）
     """
     out = asyncio.run(_call("check_spec_integrity", {
         "path": ".waffle/documents/specs/bc-waffle-engines/bc-waffle-engines.json",
@@ -85,6 +85,10 @@ def test_check_spec_integrityは6フィールドの差分結果を返す():
         "usecases_in_subdomain_not_declared_in_bc": [],
         "usecase_files_missing_on_disk": [],
         "usecase_files_orphaned_on_disk": [],
+        "orphaned_value_objects": [],
+        "undeclared_document_fields": [],
+        "subdomain_ref_mismatches": [],
+        "missing_aggregate_refs": [],
     }
 
 

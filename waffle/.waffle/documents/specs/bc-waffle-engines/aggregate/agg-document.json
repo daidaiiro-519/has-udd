@@ -52,6 +52,46 @@
               "type": "Status"
             },
             {
+              "name": "specKind",
+              "type": "DiscriminatorValue",
+              "optional": true
+            },
+            {
+              "name": "codingKind",
+              "type": "DiscriminatorValue",
+              "optional": true
+            },
+            {
+              "name": "skillKind",
+              "type": "DiscriminatorValue",
+              "optional": true
+            },
+            {
+              "name": "subdomainRef",
+              "type": "DocumentId",
+              "optional": true
+            },
+            {
+              "name": "aggregateRef",
+              "type": "DocumentId",
+              "optional": true
+            },
+            {
+              "name": "stack",
+              "type": "文字列配列",
+              "optional": true
+            },
+            {
+              "name": "createdAt",
+              "type": "日時文字列（ISO8601）",
+              "optional": true
+            },
+            {
+              "name": "updatedAt",
+              "type": "日時文字列（ISO8601）",
+              "optional": true
+            },
+            {
               "name": "content",
               "type": "構造化データ（schema 準拠）"
             },
@@ -76,6 +116,11 @@
           "name": "DocumentType",
           "represents": "Document が属するschema家族の種別（例: DomainSpec/PresentationSpec/Coding/Skill）",
           "behavior": "独立した業務情報ではなく、schemaRefが指すschema自身が宣言する固定値（schemaRefと1対1）。値が等しければ等価。"
+        },
+        {
+          "name": "DiscriminatorValue",
+          "represents": "documentTypeに応じて名前が変わる分岐値（specKind/codingKind/skillKindのいずれか1つのみ出現する）。schemaのKindProfileが定義するenumの1つ。",
+          "behavior": "documentType家族ごとに排他的（1つのDocumentにつき同時に複数出現しない）。値が等しければ等価。"
         },
         {
           "name": "SchemaRef",

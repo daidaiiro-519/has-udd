@@ -1,8 +1,8 @@
 """schemaRefが指すschemaの実在性・バージョンの新しさを検証し、第4のドリフト
 （schema進化による既存Documentの陳腐化）を検知する。
 
-check_scenario_drift.py（spec↔テストコード間）・check_spec_referential_integrity.py
-（spec内参照整合性）に続く第3のドリフト検知。
+check_scenario_drift.py（spec↔テストコード間）・uc-check-spec-integrity
+（spec内参照整合性・`waffle check-spec-integrity`）に続く第3のドリフト検知。
 
 x-schema-status(PUBLISHED/DEPRECATED)による検知は撤去した。ディスク上に存在する
 バージョンファイルとの数値比較（newer_version_available）だけで「このDocumentは

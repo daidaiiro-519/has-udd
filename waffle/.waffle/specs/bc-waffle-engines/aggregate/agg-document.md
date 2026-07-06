@@ -30,6 +30,14 @@
 | documentType | DocumentType |
 | schemaRef | SchemaRef |
 | status | Status |
+| specKind | DiscriminatorValue |
+| codingKind | DiscriminatorValue |
+| skillKind | DiscriminatorValue |
+| subdomainRef | DocumentId |
+| aggregateRef | DocumentId |
+| stack | 文字列配列 |
+| createdAt | 日時文字列（ISO8601） |
+| updatedAt | 日時文字列（ISO8601） |
 | content | 構造化データ（schema 準拠） |
 | tags | 文字列配列 |
 
@@ -41,6 +49,7 @@
 |---|---|---|
 | DocumentId | 一意な識別子 | 不変。kebab-case。value が等しければ等価。 |
 | DocumentType | Document が属するschema家族の種別（例: DomainSpec/PresentationSpec/Coding/Skill） | 独立した業務情報ではなく、schemaRefが指すschema自身が宣言する固定値（schemaRefと1対1）。値が等しければ等価。 |
+| DiscriminatorValue | documentTypeに応じて名前が変わる分岐値（specKind/codingKind/skillKindのいずれか1つのみ出現する）。schemaのKindProfileが定義するenumの1つ。 | documentType家族ごとに排他的（1つのDocumentにつき同時に複数出現しない）。値が等しければ等価。 |
 | SchemaRef | 適合する Schema への参照 | name と version の組。両方が等しければ等価。 |
 | Status | ライフサイクル状態 | Spec家族系（DomainSpecSchema/PresentationSpecSchema）: enum CREATED/VALIDATED/RENDERED/SUPERSEDED（lifecycle）。CodingSchema/SkillSchema 系: enum DRAFT/ACTIVE/DEPRECATED（maturityLifecycle）。documentType ごとにどちらか一方のみを持つ。値が等しければ等価。遷移は不変条件で守る。 |
 

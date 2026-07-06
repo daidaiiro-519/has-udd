@@ -4,7 +4,7 @@
 
 ## 概要
 
-bounded-context が宣言する members(subdomain/usecase) と、ディスク上に実在する subdomain/usecase ドキュメントの参照整合性を検証する。宣言と実態がずれている箇所（宙に浮いた参照・未宣言の実体）を機械的に検出する。
+bounded-context が宣言する members(subdomain/usecase) と、ディスク上に実在する subdomain/usecase ドキュメントの参照整合性を検証する。加えて、各集約内部の値オブジェクトの使用整合性・Document集約とその実インスタンスとの整合性・usecase間の相互参照(subdomainRef/aggregateRef)の整合性も検証する。宣言と実態がずれている箇所（宙に浮いた参照・未宣言の実体・不整合な相互参照）を機械的に検出する。
 
 ---
 
@@ -18,6 +18,7 @@ bounded-context が宣言する members(subdomain/usecase) と、ディスク上
 ## 事前条件
 
 - 対象 bounded-context の bc.json のパスが与えられている
+- Document集約の実インスタンス群を走査する対象ディレクトリ（documents_root。通常は.waffle/documents/）が与えられている
 
 ---
 
@@ -28,17 +29,21 @@ sequenceDiagram
     Orchestrator->>SpecTree: bc.json のパスを指定して参照整合性検査を依頼する
     SpecTree->>SpecTree: bc.json の members(kind=subdomain/usecase) が宣言する名前集合を取得する
     SpecTree->>SpecTree: ディスク上の実際の subdomain ディレクトリ・各 subdomain.json が宣言する usecase 名・実際の usecase ファイルを走査する
-    SpecTree->>SpecTree: 宣言集合と実態集合を6方向で突き合わせる（subdomain 2方向・usecase 4方向）
-    SpecTree-->>Orchestrator: 6つのフィールド（それぞれ文字列配列）を持つ差分結果を返す
+    SpecTree->>SpecTree: 宣言集合と実態集合を6方向で突き合わせ、加えて各集約内部の値オブジェクト使用整合性・Document集約と実インスタンスの整合性・usecase間の相互参照整合性を確認する
+    SpecTree-->>Orchestrator: 10のフィールド（それぞれ文字列/オブジェクトの配列）を持つ差分結果を返す
 ```
 
 ---
 
 ## 事後条件
 
-- 返り値は次の6フィールドを持つ: declared_subdomains_missing_on_disk（bc.jsonが宣言するが実在しないsubdomain）・subdomains_on_disk_not_declared_in_bc（実在するがbc.jsonに未宣言のsubdomain）・usecases_orphaned_no_subdomain（bc.jsonが宣言するがどのsubdomainのmembersにも属さないusecase）・usecases_in_subdomain_not_declared_in_bc（いずれかのsubdomainのmembersが宣言するがbc.jsonに未宣言のusecase）・usecase_files_missing_on_disk（subdomainが宣言するが実ファイルが無いusecase）・usecase_files_orphaned_on_disk（実ファイルはあるがどのsubdomainのmembersにも宣言されていないusecase）
+- 返り値は次の10フィールドを持つ: declared_subdomains_missing_on_disk（bc.jsonが宣言するが実在しないsubdomain）・subdomains_on_disk_not_declared_in_bc（実在するがbc.jsonに未宣言のsubdomain）・usecases_orphaned_no_subdomain（bc.jsonが宣言するがどのsubdomainのmembersにも属さないusecase）・usecases_in_subdomain_not_declared_in_bc（いずれかのsubdomainのmembersが宣言するがbc.jsonに未宣言のusecase）・usecase_files_missing_on_disk（subdomainが宣言するが実ファイルが無いusecase）・usecase_files_orphaned_on_disk（実ファイルはあるがどのsubdomainのmembersにも宣言されていないusecase）・orphaned_value_objects（集約が宣言するvalueObjectsのうち、どのentity属性の型としても参照されていないもの）・undeclared_document_fields（実在するdocument.jsonが持つトップレベルフィールドのうち、Document集約のentity属性に無いもの）・subdomain_ref_mismatches（usecase自身のsubdomainRefと、参照先subdomainのmembers宣言が食い違っているもの）・missing_aggregate_refs（usecaseのaggregateRefが指す集約が実在しないもの）
 - 宣言先ファイルがディスクに存在しないことはエラーではなく、それ自体がこのusecaseの検出結果（ドリフト）である
-- 全6フィールドが空配列であれば、参照整合性が保たれている（正常系）
+- 全10フィールドが空配列であれば、参照整合性が保たれている（正常系）
+- orphaned_value_objectsは、各集約documentのvalueObjects.itemsの各nameが、同じ集約のentities[].attributes[].typeのどこにも現れないかを確認する
+- undeclared_document_fieldsは、対象ディレクトリ配下の実在するdocument.json群のトップレベルキー全体の和集合を取り、Document集約（agg-document）のentities[].attributesに宣言された属性名の集合との差分を取る
+- subdomain_ref_mismatchesは、各usecase documentが持つsubdomainRefフィールドと、参照先subdomain documentのmembers宣言を突き合わせ、双方向（usecaseがsubdomainRefで指す先／subdomainのmembersが指すusecase）で一致しないものを検出する
+- missing_aggregate_refsは、各usecase documentが持つaggregateRefフィールドが指す集約documentIdが、実在する集約一覧に無いものを検出する
 - 実行/意味理解はしない（宣言された名前集合の機械的な突き合わせのみ。差分の妥当性評価はAIが担う）
 
 ---
@@ -53,6 +58,10 @@ sequenceDiagram
 - When 実ファイルはあるがどのsubdomainのmembersにも宣言されていないusecaseがあるとき、エンジンはusecase_files_orphaned_on_diskにその名前を含める shall。
 - While 6方向全てで宣言と実態が一致しているとき、エンジンは全フィールドを空配列で返す shall。
 - If bc.json自体が存在しないとき、エンジンはINVALID_PATHエラーを返す shall。
+- When 集約が宣言するvalueObjectのうち、どのentity属性の型としても参照されていないものがあるとき、エンジンはそのvalueObject名をorphaned_value_objectsに含める shall。
+- When 実在するdocument.jsonが持つトップレベルフィールドが、Document集約のentity属性に宣言されていないとき、エンジンはそのフィールド名をundeclared_document_fieldsに含める shall。
+- When usecaseのsubdomainRefと参照先subdomainのmembers宣言が食い違うとき、エンジンはその組をsubdomain_ref_mismatchesに含める shall。
+- When usecaseのaggregateRefが指す集約が実在しないとき、エンジンはその組をmissing_aggregate_refsに含める shall。
 
 ---
 
@@ -68,13 +77,13 @@ sequenceDiagram
 
 | 分類 | 観点 |
 |---|---|
-| 正常系 | 整合：6方向全て一致は正常系（空配列） |
+| 正常系 | 整合：10方向全て一致は正常系（空配列） |
 
 ```gherkin
 Scenario: 全ての宣言と実態が一致するとき差分なしと判定する
   Given bc.jsonの宣言とディスク上の実ファイルが完全に一致するspecツリー
   When 参照整合性検査を実行する
-  Then 6フィールド全てが空配列で返る
+  Then 10フィールド全てが空配列で返る
 ```
 
 ### 宣言されたsubdomainがディスクに無いことを検出する
@@ -153,6 +162,58 @@ Scenario: 未宣言のusecaseファイルがディスクにあることを検出
   Given ディスク上に実在するがどのsubdomainのmembersにも宣言されていないusecaseファイルを含むspecツリー
   When 参照整合性検査を実行する
   Then usecase_files_orphaned_on_diskにその名前が含まれる
+```
+
+### 使われていない値オブジェクトを検出する
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | ドリフト：集約が値オブジェクトを宣言するが、entity属性のどこからも参照されていない |
+
+```gherkin
+Scenario: 使われていない値オブジェクトを検出する
+  Given valueObjectsに宣言されているが、entities[].attributes[].typeのどこにも現れない値オブジェクトを含む集約document
+  When 参照整合性検査を実行する
+  Then orphaned_value_objectsにその値オブジェクト名が含まれる
+```
+
+### 実document.jsonにある未宣言のフィールドを検出する
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | ドリフト：実データにあるがSpecのentity属性に無いフィールド |
+
+```gherkin
+Scenario: 実document.jsonにある未宣言のフィールドを検出する
+  Given トップレベルにDocument集約のentity属性に宣言されていないフィールドを持つ実document.json
+  When 参照整合性検査を実行する
+  Then undeclared_document_fieldsにそのフィールド名が含まれる
+```
+
+### subdomainRefの食い違いを検出する
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | ドリフト：usecase自身のsubdomainRefと参照先subdomainのmembersが一致しない |
+
+```gherkin
+Scenario: subdomainRefの食い違いを検出する
+  Given subdomainRefが指すsubdomainのmembersに自分自身が含まれていないusecase document
+  When 参照整合性検査を実行する
+  Then subdomain_ref_mismatchesにその組が含まれる
+```
+
+### 存在しない集約を指すaggregateRefを検出する
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | ドリフト：usecaseのaggregateRefが実在しない集約を指している |
+
+```gherkin
+Scenario: 存在しない集約を指すaggregateRefを検出する
+  Given 実在しない集約documentIdをaggregateRefに持つusecase document
+  When 参照整合性検査を実行する
+  Then missing_aggregate_refsにその組が含まれる
 ```
 
 ---

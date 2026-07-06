@@ -109,9 +109,12 @@ def scaffold(
     _emit(ScaffoldEngine(_docs(), _schemas()).run(operation, params))
 
 @app.command("check-spec-integrity")
-def check_spec_integrity(path: str = typer.Option(..., "--path", help="bounded-context の bc.json のパス")) -> None:
+def check_spec_integrity(
+    path: str = typer.Option(..., "--path", help="bounded-context の bc.json のパス"),
+    documents_root: str = typer.Option(".waffle/documents", "--documentsRoot", "--documents-root", help="Document集約の実インスタンス群を走査する対象ディレクトリ"),
+) -> None:
     """bc.jsonのmembers宣言とディスク上の実ファイルの参照整合性を検証（uc-check-spec-integrity）。"""
-    _emit(CheckSpecIntegrityEngine(_docs()).run(path))
+    _emit(CheckSpecIntegrityEngine(_docs()).run(path, documents_root))
 
 @app.command("check-scenario-drift")
 def check_scenario_drift(

@@ -15,6 +15,7 @@ from pathlib import Path
 from waffle.application.ports.document_repository import DocumentRepository
 from waffle.application.ports.schema_repository import SchemaRepository
 from waffle.application.ports.validator import Validator
+from waffle.domain.services.schema_versioning import is_forward_migration
 from waffle.shared.result import Err, Ok, Result
 
 def _err(code: str, message: str) -> Err:
@@ -89,7 +90,7 @@ class MigrationEngine:
         documents_dir = params.get("documentsDir")
         if not from_ref or not to_ref or not documents_dir:
             return _err("MISSING_PARAM", "prepareMigration には fromSchemaRef, toSchemaRef, documentsDir が必要です")
-        if not _is_forward_migration(from_ref, to_ref):
+        if not is_forward_migration(from_ref, to_ref):
             return _err("INVALID_MIGRATION_DIRECTION", f"移行は版を上げる方向にのみ行えます: {from_ref} -> {to_ref}")
         try:
             to_schema = self._schemas.load(to_ref)
@@ -172,14 +173,3 @@ def _apply_mechanical(mig: dict, doc: dict):
         return None
     return None
 
-def _version_number(schema_ref: str) -> int | None:
-    _, _, version = schema_ref.partition("/")
-    if not version.startswith("v") or not version[1:].isdigit():
-        return None
-    return int(version[1:])
-
-def _is_forward_migration(from_ref: str, to_ref: str) -> bool:
-    from_n, to_n = _version_number(from_ref), _version_number(to_ref)
-    if from_n is None or to_n is None:
-        return True  # バージョン番号を解釈できない場合は判定しない（既存の挙動を維持）
-    return to_n > from_n

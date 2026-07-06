@@ -1,16 +1,20 @@
-"""agg-schema（Schema集約）のunitTestScenariosのうち、port を介さず（実schemaロード
-のみで）検証できるものに対応するネイティブテスト。
+"""agg-schema（Schema集約）のunitTestScenariosに対応するネイティブテスト。
+
+集約の不変条件はいずれもport（DocumentRepository/SchemaRepository）を必要としない
+純粋な検証（実schemaロード・実Validator呼び出し・バージョン番号比較）で完結するため、
+全件をdomain層に置く。「MigrationEngine経由でしか検証できない」という以前の判断は誤りで、
+不変条件そのものはengineの編成手順とは独立に検証できる（後方互換・移行方向の2件を訂正）。
 
 test-standardの命名規約(test_{documentId}.py)に従い、以前
 test_schema_invariants.py/test_migration_meta_schema.py/test_schema_status.py/
 test_part_renderer.py(x-render/lint分)に散らばっていたagg-schema由来のテストを
-ここに集約した。port をテストダブルにする2シナリオ（後方互換・移行方向）は
-tests/unit/application/test_agg_schema.py。
+ここに集約した。
 """
 import pytest
 
 from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
+from waffle.domain.services.schema_versioning import is_forward_migration
 
 _IN_SCOPE_SCHEMAS = ["SkillSchema/v1", "CodingSchema/v2", "DomainSpecSchema/v2", "PresentationSpecSchema/v1", "PlatformSpec/v1"]
 _VALID_STATUSES = {"PUBLISHED", "DEPRECATED"}
@@ -166,3 +170,34 @@ def test_全schemaがx_schema_statusを宣言している(schema_ref):
     schema = PackageSchemaRepository().load(schema_ref)
     assert "x-schema-status" in schema, f"{schema_ref} は x-schema-status を宣言していない"
     assert schema["x-schema-status"] in _VALID_STATUSES
+
+
+# --- 公開済みの版は後方互換を壊さない / 移行は版を上げる方向にのみ行う ---
+# (port不要・純粋なValidator呼び出し/バージョン番号比較で検証できる不変条件)
+
+def test_公開済みの版は後方互換を壊さない():
+    """
+    Given PUBLISHED の Schema 版
+    When 既存ブロックに必須フィールドを追加しようとする
+    Then 後方互換を壊す変更として拒否される
+
+    (実証: 旧バージョンの既存Documentに、新schemaが要求する必須フィールドが
+    欠けている場合、実際のJsonSchemaValidatorで不適合と判定されることを確認する)
+    """
+    old_document = {"name": "既存データ"}
+    new_schema_with_required_field = {
+        "required": ["name", "newRequiredField"],
+        "properties": {"name": {"type": "string"}, "newRequiredField": {"type": "string"}},
+    }
+    errors = JsonSchemaValidator().validate(old_document, new_schema_with_required_field)
+    assert errors, "後方互換を壊す変更（必須フィールド追加）が誤って適合と判定された"
+
+
+def test_移行は版を上げる方向にのみ行う():
+    """
+    Given v1 と v2 の Schema
+    When v2 から v1 へ移行しようとする
+    Then 拒否される
+    """
+    assert is_forward_migration("Foo/v1", "Foo/v2") is True
+    assert is_forward_migration("Foo/v2", "Foo/v1") is False

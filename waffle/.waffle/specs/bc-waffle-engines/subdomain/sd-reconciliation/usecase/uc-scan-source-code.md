@@ -70,7 +70,7 @@ sequenceDiagram
 
 ---
 
-## テストシナリオ
+## 受け入れシナリオ
 
 ### 公開要素の docstring を構造化抽出する
 

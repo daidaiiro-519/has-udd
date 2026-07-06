@@ -256,9 +256,9 @@
         }
       ]
     },
-    "unitTestScenarios": {
-      "blockType": "TestScenarios",
-      "title": "テストシナリオ",
+    "invariantScenarios": {
+      "blockType": "InvariantScenarios",
+      "title": "不変条件シナリオ",
       "background": "",
       "scenarios": [
         {

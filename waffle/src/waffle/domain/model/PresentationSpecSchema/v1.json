@@ -93,15 +93,15 @@
 
     "ScreenContent": {
       "type": "object",
-      "required": ["title", "summary", "fields", "actions", "componentTestScenarios"],
+      "required": ["title", "summary", "fields", "actions", "componentAcceptanceScenarios"],
       "additionalProperties": false,
       "properties": {
-        "title":                  { "$ref": "#/$defs/TitleBlock" },
-        "summary":                { "$ref": "#/$defs/SummaryBlock" },
-        "fields":                 { "$ref": "#/$defs/FieldsBlock" },
-        "actions":                { "$ref": "#/$defs/ActionsBlock" },
-        "componentTestScenarios": { "$ref": "#/$defs/TestScenariosBlock" },
-        "visualRef":              { "$ref": "#/$defs/VisualRefBlock" }
+        "title":                        { "$ref": "#/$defs/TitleBlock" },
+        "summary":                      { "$ref": "#/$defs/SummaryBlock" },
+        "fields":                       { "$ref": "#/$defs/FieldsBlock" },
+        "actions":                      { "$ref": "#/$defs/ActionsBlock" },
+        "componentAcceptanceScenarios": { "$ref": "#/$defs/AcceptanceScenariosBlock" },
+        "visualRef":                    { "$ref": "#/$defs/VisualRefBlock" }
       }
     },
 
@@ -282,7 +282,7 @@
       }
     },
 
-    "TestScenariosBlock": {
+    "AcceptanceScenariosBlock": {
       "type": "object",
       "required": ["blockType", "title", "scenarios"],
       "x-render-order": 4,
@@ -300,8 +300,8 @@
         ] }
       ],
       "properties": {
-        "blockType":  { "type": "string", "const": "TestScenarios" },
-        "title":      { "type": "string", "const": "コンポーネントテストシナリオ" },
+        "blockType":  { "type": "string", "const": "AcceptanceScenarios" },
+        "title":      { "type": "string", "const": "コンポーネント受け入れシナリオ" },
         "background": { "type": "string", "x-prompt-write": "複数シナリオ共通の前提。無ければ空文字。" },
         "scenarios": {
           "type": "array",

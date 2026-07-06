@@ -153,13 +153,13 @@
         "maturityLifecycle": { "$ref": "#/$defs/LifecycleBlock" },
         "commands":          { "$ref": "#/$defs/CommandsBlock" },
         "domainEvents":      { "$ref": "#/$defs/DomainEventsBlock" },
-        "unitTestScenarios": { "$ref": "#/$defs/TestScenariosBlock" }
+        "invariantScenarios": { "$ref": "#/$defs/InvariantScenariosBlock" }
       }
     },
 
     "UsecaseContent": {
       "type": "object",
-      "required": ["title", "summary", "actorIntent", "mainFlow", "postconditions", "acceptanceCriteria", "testScenarios"],
+      "required": ["title", "summary", "actorIntent", "mainFlow", "postconditions", "acceptanceCriteria", "acceptanceScenarios"],
       "additionalProperties": false,
       "properties": {
         "title":              { "$ref": "#/$defs/TitleBlock" },
@@ -171,7 +171,7 @@
         "postconditions":     { "$ref": "#/$defs/PostconditionsBlock" },
         "acceptanceCriteria": { "$ref": "#/$defs/AcceptanceCriteriaBlock" },
         "errors":             { "$ref": "#/$defs/ErrorsBlock" },
-        "testScenarios":      { "$ref": "#/$defs/TestScenariosBlock" },
+        "acceptanceScenarios": { "$ref": "#/$defs/AcceptanceScenariosBlock" },
         "operationGuarantees":  { "$ref": "#/$defs/OperationGuaranteesBlock" },
         "guaranteeScenarios":   { "$ref": "#/$defs/GuaranteeScenariosBlock" }
       }
@@ -830,13 +830,13 @@
       }
     },
 
-    "TestScenariosBlock": {
+    "InvariantScenariosBlock": {
       "type": "object",
       "required": ["blockType", "title", "scenarios"],
       "x-render-order": 10,
       "x-render-level": 2,
       "x-test-scenario": true,
-      "x-prompt-query": "振る舞い契約のテストシナリオ(分類・観点・Gherkin)を持ちます。仕様↔実装の整合点。MD（コードブロック表示）＋.feature に render され実行されます。",
+      "x-prompt-query": "集約の不変条件を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。仕様↔実装の整合点。MD（コードブロック表示）＋.feature に render され実行されます。",
       "x-render": [
         { "as": "paragraph", "heading": "背景", "from": "background" },
         { "as": "section", "from": "scenarios", "titleFrom": "name", "each": [
@@ -848,13 +848,13 @@
         ] }
       ],
       "properties": {
-        "blockType":  { "type": "string", "const": "TestScenarios" },
-        "title":      { "type": "string", "const": "テストシナリオ" },
+        "blockType":  { "type": "string", "const": "InvariantScenarios" },
+        "title":      { "type": "string", "const": "不変条件シナリオ" },
         "background": { "type": "string", "x-prompt-write": "複数シナリオ共通の前提（Gherkin Background 相当）。無ければ空文字。" },
         "scenarios": {
           "type": "array",
           "minItems": 1,
-          "x-prompt-write": "1シナリオ1要素で列挙。検証観点（正常系／異常系（事前条件違反・各エラー）／境界値／集約の各不変条件）を網羅し、1ルール1シナリオにする。各シナリオは分類・観点・Gherkin を持つ。",
+          "x-prompt-write": "1シナリオ1要素で列挙。集約の各不変条件を網羅し、1不変条件1シナリオにする。各シナリオは分類・観点・Gherkin を持つ。",
           "items": {
             "type": "object",
             "required": ["name", "category", "viewpoint", "gherkin"],
@@ -863,7 +863,47 @@
               "category":  { "type": "string", "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。" },
               "viewpoint": { "type": "string", "x-prompt-write": "観点: 側面（状態遷移/計算整合/事前条件 等）＋検証の狙い。" },
               "gherkin":   { "type": "string", "x-prompt-write": "このシナリオの Given/When/Then（Scenario: 1つ・実行可能・.feature 化）。ドメイン語彙で書き、実装詳細（クラス名/API/SQL/UI 操作）は書かない。" },
-              "covers":    { "type": "string", "x-prompt-write": "検証する不変条件/受け入れ基準への参照（任意・トレーサビリティ）。" }
+              "covers":    { "type": "string", "x-prompt-write": "検証する不変条件への参照（任意・トレーサビリティ）。" }
+            }
+          }
+        }
+      }
+    },
+
+    "AcceptanceScenariosBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "scenarios"],
+      "x-render-order": 10,
+      "x-render-level": 2,
+      "x-test-scenario": true,
+      "x-prompt-query": "usecaseの受け入れ基準(AcceptanceCriteria)を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。仕様↔実装の整合点。MD（コードブロック表示）＋.feature に render され実行されます。",
+      "x-render": [
+        { "as": "paragraph", "heading": "背景", "from": "background" },
+        { "as": "section", "from": "scenarios", "titleFrom": "name", "each": [
+          { "as": "kvtable", "columns": [
+            { "field": "category", "header": "分類" },
+            { "field": "viewpoint", "header": "観点" }
+          ] },
+          { "as": "code", "from": "gherkin", "lang": "gherkin" }
+        ] }
+      ],
+      "properties": {
+        "blockType":  { "type": "string", "const": "AcceptanceScenarios" },
+        "title":      { "type": "string", "const": "受け入れシナリオ" },
+        "background": { "type": "string", "x-prompt-write": "複数シナリオ共通の前提（Gherkin Background 相当）。無ければ空文字。" },
+        "scenarios": {
+          "type": "array",
+          "minItems": 1,
+          "x-prompt-write": "1シナリオ1要素で列挙。検証観点（正常系／異常系（事前条件違反・各エラー）／境界値）を網羅し、1ルール1シナリオにする。各シナリオは分類・観点・Gherkin を持つ。",
+          "items": {
+            "type": "object",
+            "required": ["name", "category", "viewpoint", "gherkin"],
+            "properties": {
+              "name":      { "type": "string", "x-prompt-write": "シナリオ名（概要）。" },
+              "category":  { "type": "string", "x-prompt-write": "分類: 正常系 / 異常系 / 境界値。" },
+              "viewpoint": { "type": "string", "x-prompt-write": "観点: 側面（状態遷移/計算整合/事前条件 等）＋検証の狙い。" },
+              "gherkin":   { "type": "string", "x-prompt-write": "このシナリオの Given/When/Then（Scenario: 1つ・実行可能・.feature 化）。ドメイン語彙で書き、実装詳細（クラス名/API/SQL/UI 操作）は書かない。" },
+              "covers":    { "type": "string", "x-prompt-write": "検証する受け入れ基準への参照（任意・トレーサビリティ）。" }
             }
           }
         }
@@ -884,7 +924,7 @@
         "title":     { "type": "string", "const": "操作保証" },
         "items": {
           "type": "array",
-          "x-prompt-write": "保証をEARSで列挙（When/While/If … shall …）。書いてよいのは『何を保証するか』だけ（べき等性・一貫性・提供チャネルの一貫性等）。『どう実現するか』（具体的なDB技法・ロック機構・実装技術）は書かない（CodingSchemaのcode-templateの領分）。判定基準（このusecaseに書くか、集約のinvariantsに書くか）: 同じ資源を操作する複数usecaseの間で、この保証内容が重複するか？ 重複するなら集約（agg-*.json）のinvariants/unitTestScenariosに書く。このusecase固有の業務理由でのみ必要な保証だけをここに書く。性能の生数値（応答時間・スループット等）は書かない（CodingSchemaのtestTypes: non-functional-performanceの領分）。",
+          "x-prompt-write": "保証をEARSで列挙（When/While/If … shall …）。書いてよいのは『何を保証するか』だけ（べき等性・一貫性・提供チャネルの一貫性等）。『どう実現するか』（具体的なDB技法・ロック機構・実装技術）は書かない（CodingSchemaのcode-templateの領分）。判定基準（このusecaseに書くか、集約のinvariantsに書くか）: 同じ資源を操作する複数usecaseの間で、この保証内容が重複するか？ 重複するなら集約（agg-*.json）のinvariants/invariantScenariosに書く。このusecase固有の業務理由でのみ必要な保証だけをここに書く。性能の生数値（応答時間・スループット等）は書かない（CodingSchemaのtestTypes: non-functional-performanceの領分）。",
           "items": { "type": "string" }
         }
       }

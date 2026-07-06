@@ -345,9 +345,38 @@
         }
       ]
     },
-    "unitTestScenarios": {
-      "blockType": "TestScenarios",
-      "title": "テストシナリオ",
+    "maturityLifecycle": {
+      "blockType": "Lifecycle",
+      "title": "ライフサイクル",
+      "states": [
+        "DRAFT",
+        "ACTIVE",
+        "DEPRECATED"
+      ],
+      "transitions": [
+        {
+          "from": "[*]",
+          "to": "DRAFT",
+          "command": "create",
+          "condition": ""
+        },
+        {
+          "from": "DRAFT",
+          "to": "ACTIVE",
+          "command": "activate",
+          "condition": "利用可能な状態になった"
+        },
+        {
+          "from": "ACTIVE",
+          "to": "DEPRECATED",
+          "command": "deprecate",
+          "condition": ""
+        }
+      ]
+    },
+    "invariantScenarios": {
+      "blockType": "InvariantScenarios",
+      "title": "不変条件シナリオ",
       "background": "",
       "scenarios": [
         {
@@ -412,35 +441,6 @@
           "viewpoint": "パス解決：schema 解決を要する operation・command は schemaRef 欠如を同じ扱いにする",
           "gherkin": "Scenario: schemaRefを持たないDocumentはMISSING_SCHEMA_REFとして拒否される\n  Given schemaRef を持たない Document\n  When schema 解決を要する operation・command を実行する\n  Then MISSING_SCHEMA_REF エラーが返る",
           "covers": "不変条件: schemaRefを持たないDocumentへの操作はMISSING_SCHEMA_REFとして拒否される"
-        }
-      ]
-    },
-    "maturityLifecycle": {
-      "blockType": "Lifecycle",
-      "title": "ライフサイクル",
-      "states": [
-        "DRAFT",
-        "ACTIVE",
-        "DEPRECATED"
-      ],
-      "transitions": [
-        {
-          "from": "[*]",
-          "to": "DRAFT",
-          "command": "create",
-          "condition": ""
-        },
-        {
-          "from": "DRAFT",
-          "to": "ACTIVE",
-          "command": "activate",
-          "condition": "利用可能な状態になった"
-        },
-        {
-          "from": "ACTIVE",
-          "to": "DEPRECATED",
-          "command": "deprecate",
-          "condition": ""
         }
       ]
     }

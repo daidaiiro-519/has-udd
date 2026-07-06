@@ -108,9 +108,31 @@
         }
       ]
     },
-    "testScenarios": {
-      "blockType": "TestScenarios",
-      "title": "テストシナリオ",
+    "operationGuarantees": {
+      "blockType": "OperationGuarantees",
+      "title": "操作保証",
+      "items": [
+        "When 同じ documentId で create を複数回実行したとき、engine の生成する構造（schema由来の骨格の形）は常にべき等である shall。",
+        "While document.json が既に存在するとき、create を再実行しても、fill で書き込まれた既存の values は保持され、破壊されない shall（values 自体の再現性はengineの管轄外・呼び出し側の責務）。"
+      ]
+    },
+    "guaranteeScenarios": {
+      "blockType": "GuaranteeScenarios",
+      "title": "操作保証シナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "既存documentへの再createはvaluesを破壊しない",
+          "category": "境界値",
+          "viewpoint": "べき等性：fill済みのvaluesはcreateの再実行で保持される",
+          "gherkin": "Scenario: 既存documentへの再createはvaluesを破壊しない\n  Given create済みかつfillで値を書き込み済みのdocumentId\n  When 同じdocumentIdでcreateを再実行する\n  Then fillで書き込んだvaluesは保持されたままである",
+          "covers": "操作保証: 既存values の保持"
+        }
+      ]
+    },
+    "acceptanceScenarios": {
+      "blockType": "AcceptanceScenarios",
+      "title": "受け入れシナリオ",
       "background": "",
       "scenarios": [
         {
@@ -175,28 +197,6 @@
           "viewpoint": "エラー：createが解決できないschemaRefを指定されたときの失敗",
           "gherkin": "Scenario: 未知のschemaRefはINVALID_SCHEMA_REF\n  Given 解決できないschemaRef\n  When createを実行する\n  Then INVALID_SCHEMA_REFエラーが返る",
           "covers": "エラー: 未知のschemaRef"
-        }
-      ]
-    },
-    "operationGuarantees": {
-      "blockType": "OperationGuarantees",
-      "title": "操作保証",
-      "items": [
-        "When 同じ documentId で create を複数回実行したとき、engine の生成する構造（schema由来の骨格の形）は常にべき等である shall。",
-        "While document.json が既に存在するとき、create を再実行しても、fill で書き込まれた既存の values は保持され、破壊されない shall（values 自体の再現性はengineの管轄外・呼び出し側の責務）。"
-      ]
-    },
-    "guaranteeScenarios": {
-      "blockType": "GuaranteeScenarios",
-      "title": "操作保証シナリオ",
-      "background": "",
-      "scenarios": [
-        {
-          "name": "既存documentへの再createはvaluesを破壊しない",
-          "category": "境界値",
-          "viewpoint": "べき等性：fill済みのvaluesはcreateの再実行で保持される",
-          "gherkin": "Scenario: 既存documentへの再createはvaluesを破壊しない\n  Given create済みかつfillで値を書き込み済みのdocumentId\n  When 同じdocumentIdでcreateを再実行する\n  Then fillで書き込んだvaluesは保持されたままである",
-          "covers": "操作保証: 既存values の保持"
         }
       ]
     }

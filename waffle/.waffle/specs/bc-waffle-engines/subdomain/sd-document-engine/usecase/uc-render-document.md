@@ -61,7 +61,7 @@ sequenceDiagram
 
 ---
 
-## テストシナリオ
+## 受け入れシナリオ
 
 ### 検証済み Document を成果物に描画する
 
@@ -153,14 +153,14 @@ Scenario: CodingSchemaはMarkdownとして描画できる
   Then Markdown形式で見出しを含む出力が生成される
 ```
 
-### usecase_Specは基本フローをシーケンス図にTestScenariosをMarkdownに出す
+### usecase_Specは基本フローをシーケンス図に受け入れシナリオをMarkdownに出す
 
 | 分類 | 観点 |
 |---|---|
 | 正常系 | schema種別横断：usecase Specは MainFlow をMermaidシーケンス図に、TestScenariosをMarkdown+.featureの両方に出す |
 
 ```gherkin
-Scenario: usecase_Specは基本フローをシーケンス図にTestScenariosをMarkdownに出す
+Scenario: usecase_Specは基本フローをシーケンス図に受け入れシナリオをMarkdownに出す
   Given usecase SpecのDocument
   When renderする
   Then 出力にmermaidのsequenceDiagramとテストシナリオ節が含まれ、feature出力にも同じシナリオが含まれる

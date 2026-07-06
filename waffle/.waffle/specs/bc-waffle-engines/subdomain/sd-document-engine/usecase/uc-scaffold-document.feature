@@ -1,5 +1,10 @@
 Feature: uc-scaffold-document
 
+  Scenario: 既存documentへの再createはvaluesを破壊しない
+    Given create済みかつfillで値を書き込み済みのdocumentId
+    When 同じdocumentIdでcreateを再実行する
+    Then fillで書き込んだvaluesは保持されたままである
+
   Scenario: 生成した骨格は自分の schema で valid
     Given engine 種別の Document（discriminator 指定済み）
     When create する
@@ -44,8 +49,3 @@ Feature: uc-scaffold-document
     Given 解決できないschemaRef
     When createを実行する
     Then INVALID_SCHEMA_REFエラーが返る
-
-  Scenario: 既存documentへの再createはvaluesを破壊しない
-    Given create済みかつfillで値を書き込み済みのdocumentId
-    When 同じdocumentIdでcreateを再実行する
-    Then fillで書き込んだvaluesは保持されたままである

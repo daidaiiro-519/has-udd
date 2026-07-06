@@ -91,83 +91,6 @@
       "title": "エラー",
       "items": []
     },
-    "testScenarios": {
-      "blockType": "TestScenarios",
-      "title": "テストシナリオ",
-      "background": "",
-      "scenarios": [
-        {
-          "name": "検証済み Document を成果物に描画する",
-          "category": "正常系",
-          "viewpoint": "描画：x-render に従い成果物と生成パスを返す",
-          "gherkin": "Scenario: 検証済み Document を成果物に描画する\n  Given 描画対象の Document\n  When render する\n  Then 成果物が生成され、生成パス一覧が返る",
-          "covers": "受け入れ基準: x-render に従い成果物を生成"
-        },
-        {
-          "name": "schemaRef を持たない Document は描画しない",
-          "category": "異常系",
-          "viewpoint": "エラー：schemaRef 欠如は MISSING_SCHEMA_REF",
-          "gherkin": "Scenario: schemaRef を持たない Document は描画しない\n  Given schemaRef の無い Document\n  When render する\n  Then MISSING_SCHEMA_REF エラーが返る",
-          "covers": "エラー: MISSING_SCHEMA_REF"
-        },
-        {
-          "name": "存在しないパスは描画しない",
-          "category": "異常系",
-          "viewpoint": "エラー：対象パスが存在しないときは INVALID_PATH",
-          "gherkin": "Scenario: 存在しないパスは描画しない\n  When 存在しないパスを対象に render する\n  Then INVALID_PATH エラーが返る",
-          "covers": "エラー: INVALID_PATH"
-        },
-        {
-          "name": "deploy すると canonical と deploy 先の両方に書く",
-          "category": "正常系",
-          "viewpoint": "受け入れ基準：deploy が有効なとき canonical と deploy 先の両方へ書き込む",
-          "gherkin": "Scenario: deploy すると canonical と deploy 先の両方に書く\n  Given deploy 先を持つ Document\n  When deploy を有効にして render する\n  Then canonical と deploy 先の両方に成果物が書かれる",
-          "covers": "受け入れ基準: deploy が有効なとき canonical と deploy 先の両方へ書き込む"
-        },
-        {
-          "name": "SkillSchemaをMarkdownにレンダリングする",
-          "category": "正常系",
-          "viewpoint": "schema種別横断：SkillSchemaのDocumentが見出し・パラメータ表・呼び出し例まで正しく描画される",
-          "gherkin": "Scenario: SkillSchemaをMarkdownにレンダリングする\n  Given SkillSchemaのDocument\n  When renderする\n  Then 見出し・目的・パラメータ表・オペレーション選択・呼び出し例が全て出力に含まれる",
-          "covers": "schema種別: SkillSchema"
-        },
-        {
-          "name": "frontmatterはx_frontmatterのドットパスを解決して生成する",
-          "category": "正常系",
-          "viewpoint": "frontmatter：schemaのx-frontmatter宣言(フィールド→ドットパス)を解決してYAML frontmatterを生成する",
-          "gherkin": "Scenario: frontmatterはx_frontmatterのドットパスを解決して生成する\n  Given x-frontmatterを宣言するSchemaのDocument\n  When renderする\n  Then 出力冒頭にname/description等を含むYAML frontmatterが生成される",
-          "covers": "frontmatter: x-frontmatterドットパス解決"
-        },
-        {
-          "name": "CodingSchemaはMarkdownとして描画できる",
-          "category": "正常系",
-          "viewpoint": "schema種別横断：CodingSchemaのDocumentも同一engineで描画できる(schema固有ロジックを持たない汎用性)",
-          "gherkin": "Scenario: CodingSchemaはMarkdownとして描画できる\n  Given CodingSchemaのDocument\n  When renderする\n  Then Markdown形式で見出しを含む出力が生成される",
-          "covers": "schema種別: CodingSchema"
-        },
-        {
-          "name": "usecase_Specは基本フローをシーケンス図にTestScenariosをMarkdownに出す",
-          "category": "正常系",
-          "viewpoint": "schema種別横断：usecase Specは MainFlow をMermaidシーケンス図に、TestScenariosをMarkdown+.featureの両方に出す",
-          "gherkin": "Scenario: usecase_Specは基本フローをシーケンス図にTestScenariosをMarkdownに出す\n  Given usecase SpecのDocument\n  When renderする\n  Then 出力にmermaidのsequenceDiagramとテストシナリオ節が含まれ、feature出力にも同じシナリオが含まれる",
-          "covers": "schema種別: DomainSpecSchema(usecase)"
-        },
-        {
-          "name": "aggregate_Specは集約の構造とライフサイクルをMarkdownに出す",
-          "category": "正常系",
-          "viewpoint": "schema種別横断：aggregate Specはコマンド・ドメインイベント・ライフサイクルをMermaidのstateDiagramと表で出す",
-          "gherkin": "Scenario: aggregate_Specは集約の構造とライフサイクルをMarkdownに出す\n  Given aggregate SpecのDocument\n  When renderする\n  Then 出力にコマンド節・ドメインイベント名・mermaidのstateDiagram-v2が含まれる",
-          "covers": "schema種別: DomainSpecSchema(aggregate)"
-        },
-        {
-          "name": "不正なJSONはINVALID_JSON",
-          "category": "異常系",
-          "viewpoint": "エラー：対象ファイルがJSONとして解釈できないときはINVALID_JSON",
-          "gherkin": "Scenario: 不正なJSONはINVALID_JSON\n  Given 不正なJSONの対象ファイル\n  When renderする\n  Then INVALID_JSONエラーが返る",
-          "covers": "エラー: JSON解釈不能"
-        }
-      ]
-    },
     "operationGuarantees": {
       "blockType": "OperationGuarantees",
       "title": "操作保証",
@@ -299,6 +222,83 @@
           "viewpoint": "配線：render engineがschemaのx-render宣言を読み取りpart_rendererへ正しく渡す(part_renderer自体の整形保証とは別に、engine自体の配線を検証する)",
           "gherkin": "Scenario: render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する\n  Given interfaceブロック(x-render宣言=table)を持つDocument\n  When render engine経由でrenderする\n  Then schemaのx-render宣言どおりに整形されたMarkdownテーブルが出力に含まれる",
           "covers": "操作保証: x-renderの各部品種別ごとの整形規則に従った決定的描画(render_engine自体の配線)"
+        }
+      ]
+    },
+    "acceptanceScenarios": {
+      "blockType": "AcceptanceScenarios",
+      "title": "受け入れシナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "検証済み Document を成果物に描画する",
+          "category": "正常系",
+          "viewpoint": "描画：x-render に従い成果物と生成パスを返す",
+          "gherkin": "Scenario: 検証済み Document を成果物に描画する\n  Given 描画対象の Document\n  When render する\n  Then 成果物が生成され、生成パス一覧が返る",
+          "covers": "受け入れ基準: x-render に従い成果物を生成"
+        },
+        {
+          "name": "schemaRef を持たない Document は描画しない",
+          "category": "異常系",
+          "viewpoint": "エラー：schemaRef 欠如は MISSING_SCHEMA_REF",
+          "gherkin": "Scenario: schemaRef を持たない Document は描画しない\n  Given schemaRef の無い Document\n  When render する\n  Then MISSING_SCHEMA_REF エラーが返る",
+          "covers": "エラー: MISSING_SCHEMA_REF"
+        },
+        {
+          "name": "存在しないパスは描画しない",
+          "category": "異常系",
+          "viewpoint": "エラー：対象パスが存在しないときは INVALID_PATH",
+          "gherkin": "Scenario: 存在しないパスは描画しない\n  When 存在しないパスを対象に render する\n  Then INVALID_PATH エラーが返る",
+          "covers": "エラー: INVALID_PATH"
+        },
+        {
+          "name": "deploy すると canonical と deploy 先の両方に書く",
+          "category": "正常系",
+          "viewpoint": "受け入れ基準：deploy が有効なとき canonical と deploy 先の両方へ書き込む",
+          "gherkin": "Scenario: deploy すると canonical と deploy 先の両方に書く\n  Given deploy 先を持つ Document\n  When deploy を有効にして render する\n  Then canonical と deploy 先の両方に成果物が書かれる",
+          "covers": "受け入れ基準: deploy が有効なとき canonical と deploy 先の両方へ書き込む"
+        },
+        {
+          "name": "SkillSchemaをMarkdownにレンダリングする",
+          "category": "正常系",
+          "viewpoint": "schema種別横断：SkillSchemaのDocumentが見出し・パラメータ表・呼び出し例まで正しく描画される",
+          "gherkin": "Scenario: SkillSchemaをMarkdownにレンダリングする\n  Given SkillSchemaのDocument\n  When renderする\n  Then 見出し・目的・パラメータ表・オペレーション選択・呼び出し例が全て出力に含まれる",
+          "covers": "schema種別: SkillSchema"
+        },
+        {
+          "name": "frontmatterはx_frontmatterのドットパスを解決して生成する",
+          "category": "正常系",
+          "viewpoint": "frontmatter：schemaのx-frontmatter宣言(フィールド→ドットパス)を解決してYAML frontmatterを生成する",
+          "gherkin": "Scenario: frontmatterはx_frontmatterのドットパスを解決して生成する\n  Given x-frontmatterを宣言するSchemaのDocument\n  When renderする\n  Then 出力冒頭にname/description等を含むYAML frontmatterが生成される",
+          "covers": "frontmatter: x-frontmatterドットパス解決"
+        },
+        {
+          "name": "CodingSchemaはMarkdownとして描画できる",
+          "category": "正常系",
+          "viewpoint": "schema種別横断：CodingSchemaのDocumentも同一engineで描画できる(schema固有ロジックを持たない汎用性)",
+          "gherkin": "Scenario: CodingSchemaはMarkdownとして描画できる\n  Given CodingSchemaのDocument\n  When renderする\n  Then Markdown形式で見出しを含む出力が生成される",
+          "covers": "schema種別: CodingSchema"
+        },
+        {
+          "name": "usecase_Specは基本フローをシーケンス図に受け入れシナリオをMarkdownに出す",
+          "category": "正常系",
+          "viewpoint": "schema種別横断：usecase Specは MainFlow をMermaidシーケンス図に、TestScenariosをMarkdown+.featureの両方に出す",
+          "gherkin": "Scenario: usecase_Specは基本フローをシーケンス図に受け入れシナリオをMarkdownに出す\n  Given usecase SpecのDocument\n  When renderする\n  Then 出力にmermaidのsequenceDiagramとテストシナリオ節が含まれ、feature出力にも同じシナリオが含まれる",
+          "covers": "schema種別: DomainSpecSchema(usecase)"
+        },
+        {
+          "name": "aggregate_Specは集約の構造とライフサイクルをMarkdownに出す",
+          "category": "正常系",
+          "viewpoint": "schema種別横断：aggregate Specはコマンド・ドメインイベント・ライフサイクルをMermaidのstateDiagramと表で出す",
+          "gherkin": "Scenario: aggregate_Specは集約の構造とライフサイクルをMarkdownに出す\n  Given aggregate SpecのDocument\n  When renderする\n  Then 出力にコマンド節・ドメインイベント名・mermaidのstateDiagram-v2が含まれる",
+          "covers": "schema種別: DomainSpecSchema(aggregate)"
+        },
+        {
+          "name": "不正なJSONはINVALID_JSON",
+          "category": "異常系",
+          "viewpoint": "エラー：対象ファイルがJSONとして解釈できないときはINVALID_JSON",
+          "gherkin": "Scenario: 不正なJSONはINVALID_JSON\n  Given 不正なJSONの対象ファイル\n  When renderする\n  Then INVALID_JSONエラーが返る",
+          "covers": "エラー: JSON解釈不能"
         }
       ]
     }

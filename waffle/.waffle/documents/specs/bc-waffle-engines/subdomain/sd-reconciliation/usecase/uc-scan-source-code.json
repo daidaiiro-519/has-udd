@@ -101,9 +101,9 @@
         }
       ]
     },
-    "testScenarios": {
-      "blockType": "TestScenarios",
-      "title": "テストシナリオ",
+    "acceptanceScenarios": {
+      "blockType": "AcceptanceScenarios",
+      "title": "受け入れシナリオ",
       "background": "",
       "scenarios": [
         {

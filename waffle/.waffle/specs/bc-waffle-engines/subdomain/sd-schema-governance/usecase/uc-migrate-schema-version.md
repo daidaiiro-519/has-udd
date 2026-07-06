@@ -71,7 +71,7 @@ sequenceDiagram
 
 ---
 
-## テストシナリオ
+## 受け入れシナリオ
 
 ### publishVersionは未公開のschemaをPUBLISHEDにする
 

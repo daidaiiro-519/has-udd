@@ -182,7 +182,7 @@
       }
     },
 
-    "PlatformTestScenariosBlock": {
+    "PlatformGuaranteeScenariosBlock": {
       "type": "object",
       "required": ["blockType", "title", "scenarios"],
       "x-render-order": 20,
@@ -200,8 +200,8 @@
         ] }
       ],
       "properties": {
-        "blockType":  { "type": "string", "const": "PlatformTestScenarios" },
-        "title":      { "type": "string", "const": "プラットフォームテストシナリオ" },
+        "blockType":  { "type": "string", "const": "PlatformGuaranteeScenarios" },
+        "title":      { "type": "string", "const": "プラットフォーム操作保証シナリオ" },
         "background": { "type": "string", "x-prompt-write": "複数シナリオ共通の前提。無ければ空文字。" },
         "scenarios": {
           "type": "array",
@@ -309,7 +309,7 @@
         "capacity": { "$ref": "#/$defs/CapacityRequirementsBlock" },
         "resilience": { "$ref": "#/$defs/ResilienceRequirementsBlock" },
         "security": { "$ref": "#/$defs/ComponentSecurityBlock" },
-        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
+        "guaranteeScenarios": { "$ref": "#/$defs/PlatformGuaranteeScenariosBlock" }
       }
     },
 
@@ -322,7 +322,7 @@
         "capacity": { "$ref": "#/$defs/CapacityRequirementsBlock" },
         "resilience": { "$ref": "#/$defs/ResilienceRequirementsBlock" },
         "security": { "$ref": "#/$defs/ComponentSecurityBlock" },
-        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
+        "guaranteeScenarios": { "$ref": "#/$defs/PlatformGuaranteeScenariosBlock" }
       }
     },
 
@@ -333,7 +333,7 @@
         "summary": { "$ref": "#/$defs/SummaryBlock" },
         "capacity": { "$ref": "#/$defs/CapacityRequirementsBlock" },
         "security": { "$ref": "#/$defs/ComponentSecurityBlock" },
-        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
+        "guaranteeScenarios": { "$ref": "#/$defs/PlatformGuaranteeScenariosBlock" }
       }
     },
 
@@ -345,7 +345,7 @@
         "compliance": { "$ref": "#/$defs/ComplianceRequirementsBlock" },
         "accessPolicy": { "$ref": "#/$defs/IdentityAndAccessPolicyBlock" },
         "dataBoundary": { "$ref": "#/$defs/DataClassificationBoundaryBlock" },
-        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
+        "guaranteeScenarios": { "$ref": "#/$defs/PlatformGuaranteeScenariosBlock" }
       }
     },
 
@@ -356,7 +356,7 @@
         "summary": { "$ref": "#/$defs/SummaryBlock" },
         "monitoring": { "$ref": "#/$defs/MonitoringTargetsBlock" },
         "retention": { "$ref": "#/$defs/RetentionPolicyBlock" },
-        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
+        "guaranteeScenarios": { "$ref": "#/$defs/PlatformGuaranteeScenariosBlock" }
       }
     },
 
@@ -368,7 +368,7 @@
         "deploymentTargets": { "$ref": "#/$defs/CapacityRequirementsBlock" },
         "releasePipeline": { "$ref": "#/$defs/ReleasePipelineBlock" },
         "releasePolicy": { "$ref": "#/$defs/ReleasePolicyBlock" },
-        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
+        "guaranteeScenarios": { "$ref": "#/$defs/PlatformGuaranteeScenariosBlock" }
       }
     },
 
@@ -379,7 +379,7 @@
         "summary": { "$ref": "#/$defs/SummaryBlock" },
         "servingTargets": { "$ref": "#/$defs/CapacityRequirementsBlock" },
         "trainingDataGovernance": { "$ref": "#/$defs/TrainingDataGovernanceBlock" },
-        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
+        "guaranteeScenarios": { "$ref": "#/$defs/PlatformGuaranteeScenariosBlock" }
       }
     },
 
@@ -390,7 +390,7 @@
         "summary": { "$ref": "#/$defs/SummaryBlock" },
         "queryPerformanceTargets": { "$ref": "#/$defs/CapacityRequirementsBlock" },
         "retention": { "$ref": "#/$defs/RetentionPolicyBlock" },
-        "testScenarios": { "$ref": "#/$defs/PlatformTestScenariosBlock" }
+        "guaranteeScenarios": { "$ref": "#/$defs/PlatformGuaranteeScenariosBlock" }
       }
     }
   }

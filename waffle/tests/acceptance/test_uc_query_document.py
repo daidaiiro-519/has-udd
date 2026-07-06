@@ -34,7 +34,7 @@ def test_条件に一致する配列要素だけを絞り込む():
     """
     result = _engine().run(
         "filter_items", _TARGET,
-        {"blockKey": "testScenarios", "arrayField": "scenarios", "key": "category", "value": "異常系"},
+        {"blockKey": "acceptanceScenarios", "arrayField": "scenarios", "key": "category", "value": "異常系"},
     )
     assert isinstance(result, Ok), result
     assert all(item["category"] == "異常系" for item in result.value["value"])
@@ -47,7 +47,7 @@ def test_一致が無くても正常系で空配列を返す():
     """
     result = _engine().run(
         "filter_items", _TARGET,
-        {"blockKey": "testScenarios", "arrayField": "scenarios", "key": "category", "value": "存在しないカテゴリ"},
+        {"blockKey": "acceptanceScenarios", "arrayField": "scenarios", "key": "category", "value": "存在しないカテゴリ"},
     )
     assert isinstance(result, Ok), result
     assert result.value["value"] == []
@@ -100,7 +100,7 @@ def test_不正な正規表現はエラーを返す():
     """
     result = _engine().run(
         "filter_pattern", _TARGET,
-        {"blockKey": "testScenarios", "arrayField": "scenarios", "field": "name", "pattern": "("},
+        {"blockKey": "acceptanceScenarios", "arrayField": "scenarios", "field": "name", "pattern": "("},
     )
     assert isinstance(result, Err), result
     assert result.details[0] == "INVALID_PATTERN"
@@ -173,7 +173,7 @@ def test_get_by_idは単一オブジェクトを返す():
     """
     result = _engine().run(
         "get_by_id", _TARGET,
-        {"blockKey": "testScenarios", "arrayField": "scenarios", "idField": "name", "idValue": "ブロックを丸ごと取得する"},
+        {"blockKey": "acceptanceScenarios", "arrayField": "scenarios", "idField": "name", "idValue": "ブロックを丸ごと取得する"},
     )
     assert isinstance(result, Ok), result
     assert result.value["value"]["name"] == "ブロックを丸ごと取得する"

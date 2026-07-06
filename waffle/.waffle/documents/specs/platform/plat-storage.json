@@ -1,26 +1,68 @@
 {
-  "documentId": "plat-storage", "documentType": "PlatformSpec", "schemaRef": "PlatformSpec/v1", "specKind": "storage",
+  "documentId": "plat-storage",
+  "documentType": "PlatformSpec",
+  "schemaRef": "PlatformSpec/v1",
+  "specKind": "storage",
   "content": {
-    "title": { "blockType": "Title", "title": "plat-storage" },
-    "summary": { "blockType": "Summary", "title": "概要", "text": "本プロダクトのストレージ資源に関する要件を定める。" },
-    "capacity": { "blockType": "CapacityRequirements", "title": "容量/性能要件", "items": [
-      { "metric": "データ増加率", "target": "年間30%増を許容", "rationale": "顧客数の年間成長予測から算出" },
-      { "metric": "コールドデータへの移行", "target": "90日超過分は低頻度アクセス層へ", "rationale": "コスト最適化" }
-    ] },
-    "resilience": { "blockType": "ResilienceRequirements", "title": "耐障害性要件", "items": [
-      { "metric": "冗長化レベル", "target": "3箇所以上への複製", "rationale": "単一障害点を無くすため" }
-    ] },
-    "security": { "blockType": "ComponentSecurity", "title": "このコンポーネント固有のセキュリティ境界", "items": [
-      { "boundary": "保存時暗号化", "requirement": "全ストレージで暗号化必須" }
-    ] },
-    "testScenarios": { "blockType": "PlatformTestScenarios", "title": "プラットフォームテストシナリオ", "background": "", "scenarios": [
-      {
-        "name": "保存時暗号化が全ストレージで有効",
-        "category": "正常系",
-        "viewpoint": "保存時暗号化の保証・IaC構成が実際に暗号化を強制しているかの検証",
-        "gherkin": "Given ストレージ資源が定義されている\nWhen そのIaC構成を検証する\nThen 暗号化が無効な状態では構成が拒否される",
-        "covers": "保存時暗号化: 全ストレージで暗号化必須"
-      }
-    ] }
+    "title": {
+      "blockType": "Title",
+      "title": "plat-storage"
+    },
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
+      "text": "本プロダクトのストレージ資源に関する要件を定める。"
+    },
+    "capacity": {
+      "blockType": "CapacityRequirements",
+      "title": "容量/性能要件",
+      "items": [
+        {
+          "metric": "データ増加率",
+          "target": "年間30%増を許容",
+          "rationale": "顧客数の年間成長予測から算出"
+        },
+        {
+          "metric": "コールドデータへの移行",
+          "target": "90日超過分は低頻度アクセス層へ",
+          "rationale": "コスト最適化"
+        }
+      ]
+    },
+    "resilience": {
+      "blockType": "ResilienceRequirements",
+      "title": "耐障害性要件",
+      "items": [
+        {
+          "metric": "冗長化レベル",
+          "target": "3箇所以上への複製",
+          "rationale": "単一障害点を無くすため"
+        }
+      ]
+    },
+    "security": {
+      "blockType": "ComponentSecurity",
+      "title": "このコンポーネント固有のセキュリティ境界",
+      "items": [
+        {
+          "boundary": "保存時暗号化",
+          "requirement": "全ストレージで暗号化必須"
+        }
+      ]
+    },
+    "guaranteeScenarios": {
+      "blockType": "PlatformGuaranteeScenarios",
+      "title": "プラットフォーム操作保証シナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "保存時暗号化が全ストレージで有効",
+          "category": "正常系",
+          "viewpoint": "保存時暗号化の保証・IaC構成が実際に暗号化を強制しているかの検証",
+          "gherkin": "Given ストレージ資源が定義されている\nWhen そのIaC構成を検証する\nThen 暗号化が無効な状態では構成が拒否される",
+          "covers": "保存時暗号化: 全ストレージで暗号化必須"
+        }
+      ]
+    }
   }
 }

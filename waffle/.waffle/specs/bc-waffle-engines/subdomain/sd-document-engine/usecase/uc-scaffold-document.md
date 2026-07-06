@@ -69,7 +69,7 @@ sequenceDiagram
 
 ---
 
-## テストシナリオ
+## 受け入れシナリオ
 
 ### 生成した骨格は自分の schema で valid
 

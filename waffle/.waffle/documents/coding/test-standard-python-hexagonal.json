@@ -160,7 +160,15 @@
         },
         {
           "level": "必須",
-          "rule": "specのGuaranteeScenarios/TestScenarios/unitTestScenarios/domainServiceScenariosに対応するテスト関数は、対応するgherkinのGiven/When/Thenをdocstringに転記する（関数名の一致だけでは、シナリオ文言の事後編集に対する追従を検知できないため）"
+          "rule": "specのGuaranteeScenarios/AcceptanceScenarios/InvariantScenarios/DomainServiceScenariosに対応するテスト関数は、対応するgherkinのGiven/When/Thenをdocstringに転記する（関数名の一致だけでは、シナリオ文言の事後編集に対する追従を検知できないため）"
+        },
+        {
+          "level": "必須",
+          "rule": "DomainSpecSchemaのシナリオブロック種別とテスト配置層は機械的に対応する: invariantScenarios(aggregate)→domain/unit、domainServiceScenarios(subdomain)→domain/unit、guaranteeScenarios(usecase・operationGuaranteesと対)→integration、acceptanceScenarios(usecase)→acceptance。コードの性質(純粋かport必須か)をケースバイケースで判定してはならない（ドリフト検知を非決定的にするため）"
+        },
+        {
+          "level": "禁止",
+          "rule": "spec側(DomainSpecSchema等)のブロック名・シナリオの記述に、アーキテクチャ/テスト層の用語（unit/integration/adapter/render_engine等の内部コンポーネント名）を持ち込む。specは常にDDD/業務語彙のみで書く。「どう検証するか」はtest-standard(コーディング側)にのみ書く"
         }
       ]
     }

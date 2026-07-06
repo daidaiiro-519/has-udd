@@ -135,7 +135,7 @@ def test_CodingSchemaはMarkdownとして描画できる():
     assert "# " in result.value["content"]
 
 
-def test_usecase_Specは基本フローをシーケンス図にTestScenariosをMarkdownに出す():
+def test_usecase_Specは基本フローをシーケンス図に受け入れシナリオをMarkdownに出す():
     """
     Given usecase SpecのDocument
     When renderする
@@ -151,7 +151,7 @@ def test_usecase_Specは基本フローをシーケンス図にTestScenariosをM
     assert "# uc-query-document" in content
     assert "sequenceDiagram" in content
     assert "mermaid" in content
-    assert "## テストシナリオ" in content
+    assert "## 受け入れシナリオ" in content
     assert "Scenario: 未知の operation はエラーを返す" in content
     assert "Feature: uc-query-document" in result.value["feature"]
     assert "Scenario: 未知の operation はエラーを返す" in result.value["feature"]

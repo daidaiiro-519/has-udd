@@ -59,7 +59,7 @@ sequenceDiagram
 
 ---
 
-## テストシナリオ
+## 受け入れシナリオ
 
 ### 適合する Document は VALIDATED 判定になる
 

@@ -55,7 +55,7 @@
 | 対象 | テスト種別 | 配置 |
 |---|---|---|
 | domain | unit | `tests/unit/domain/` |
-| application | unit（port はテストダブル） | `tests/unit/application/` |
+| application | unit（port はテストダブル） | `tests/unit/application/（port経由の編成ロジックが独自の分岐/判定を持つ場合のみ。integration層で既に実アダプタ経由に検証済みの保証を、fakeで再検証するためだけに追加しない）` |
 | adapters | integration | `tests/integration/` |
 | usecase | acceptance（ネイティブ・.feature は参照専用） | `tests/acceptance/` |
 | CLI / MCP の公開インターフェース | contract | `tests/contract/（ネイティブpytest。旧features/{cli,mcp}.feature(behave)から移行しtool不一致を解消）` |
@@ -75,3 +75,4 @@
 | 必須 | specのGuaranteeScenarios/AcceptanceScenarios/InvariantScenarios/DomainServiceScenariosに対応するテスト関数は、対応するgherkinのGiven/When/Thenをdocstringに転記する（関数名の一致だけでは、シナリオ文言の事後編集に対する追従を検知できないため） |
 | 必須 | DomainSpecSchemaのシナリオブロック種別とテスト配置層は機械的に対応する: invariantScenarios(aggregate)→domain/unit、domainServiceScenarios(subdomain)→domain/unit、guaranteeScenarios(usecase・operationGuaranteesと対)→integration、acceptanceScenarios(usecase)→acceptance。コードの性質(純粋かport必須か)をケースバイケースで判定してはならない（ドリフト検知を非決定的にするため） |
 | 禁止 | spec側(DomainSpecSchema等)のブロック名・シナリオの記述に、アーキテクチャ/テスト層の用語（unit/integration/adapter/render_engine等の内部コンポーネント名）を持ち込む。specは常にDDD/業務語彙のみで書く。「どう検証するか」はtest-standard(コーディング側)にのみ書く |
+| 推奨 | application層のport経由コードは、integration層(実アダプタ)で既に検証済みの保証を、fakeに差し替えて再検証するためだけの単体テストを追加しない。追加するのは、そのコード自身が独自の分岐/判定ロジックを持ち、かつどの既存シナリオにも対応しない場合のみ。対応しないテストを追加する前に、まず対応するSpecシナリオが要るかを検討する（テストカバレッジは目標ではなく診断ツール。空のフォルダを埋めるためだけにテストを書かない） |

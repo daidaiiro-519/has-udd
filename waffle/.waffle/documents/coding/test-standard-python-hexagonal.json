@@ -111,7 +111,7 @@
         {
           "target": "application",
           "testKind": "unit（port はテストダブル）",
-          "path": "tests/unit/application/"
+          "path": "tests/unit/application/（port経由の編成ロジックが独自の分岐/判定を持つ場合のみ。integration層で既に実アダプタ経由に検証済みの保証を、fakeで再検証するためだけに追加しない）"
         },
         {
           "target": "adapters",
@@ -169,6 +169,10 @@
         {
           "level": "禁止",
           "rule": "spec側(DomainSpecSchema等)のブロック名・シナリオの記述に、アーキテクチャ/テスト層の用語（unit/integration/adapter/render_engine等の内部コンポーネント名）を持ち込む。specは常にDDD/業務語彙のみで書く。「どう検証するか」はtest-standard(コーディング側)にのみ書く"
+        },
+        {
+          "rule": "application層のport経由コードは、integration層(実アダプタ)で既に検証済みの保証を、fakeに差し替えて再検証するためだけの単体テストを追加しない。追加するのは、そのコード自身が独自の分岐/判定ロジックを持ち、かつどの既存シナリオにも対応しない場合のみ。対応しないテストを追加する前に、まず対応するSpecシナリオが要るかを検討する（テストカバレッジは目標ではなく診断ツール。空のフォルダを埋めるためだけにテストを書かない）",
+          "level": "推奨"
         }
       ]
     }

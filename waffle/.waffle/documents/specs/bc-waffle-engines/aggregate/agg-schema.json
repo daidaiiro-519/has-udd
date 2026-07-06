@@ -129,6 +129,16 @@
           "rule": "Schema集約が対象とするのは Document の schemaRef が指しうる型のみ（派生構造を検証する schema は対象外）",
           "enforcement": "schema",
           "rationale": "一貫性境界を「schemaRef の解決先」に閉じ、無関係な検証用 schema を集約に含めない"
+        },
+        {
+          "rule": "新schemaのx-migration宣言は常にMigrationMetaSchemaの閉じた語彙(rename/default/value-map/discriminator-remap/ai-infer)にのみ従う",
+          "enforcement": "schema",
+          "rationale": "移行がengineによって機械的に解釈可能であることを保つ"
+        },
+        {
+          "rule": "Documentのschemaが指しうる型は常にx-schema-statusを宣言する",
+          "enforcement": "schema",
+          "rationale": "第4のドリフト検知(check_schema_version_drift.py)がバージョンの状態を判定できることを保証する"
         }
       ]
     },
@@ -273,6 +283,62 @@
           "viewpoint": "不変条件: 各ブロックの x-render は常に RenderMetaSchema の閉じた語彙にのみ従う",
           "gherkin": "Scenario: x-render は閉じた語彙にのみ従う\n  Given 未知の部品種別、または必須属性が欠けた x-render 宣言を持つ Schema\n  When x-render の適合を検証する\n  Then 不適合として拒否される",
           "covers": "不変条件: 各ブロックの x-render は常に RenderMetaSchema の閉じた語彙にのみ従う"
+        },
+        {
+          "name": "rename宣言は_from_を要求する",
+          "category": "異常系",
+          "viewpoint": "不変条件: x-migrationはMigrationMetaSchemaの閉じた語彙にのみ従う(rename)",
+          "gherkin": "Scenario: rename宣言は_from_を要求する\n  Given as=renameでfromを欠くx-migration宣言\n  When MigrationMetaSchemaで適合を検証する\n  Then 不適合として拒否される",
+          "covers": "不変条件: x-migration は MigrationMetaSchema の閉じた語彙にのみ従う"
+        },
+        {
+          "name": "default宣言は_value_を要求する",
+          "category": "異常系",
+          "viewpoint": "不変条件: x-migrationはMigrationMetaSchemaの閉じた語彙にのみ従う(default)",
+          "gherkin": "Scenario: default宣言は_value_を要求する\n  Given as=defaultでvalueを欠くx-migration宣言\n  When MigrationMetaSchemaで適合を検証する\n  Then 不適合として拒否される",
+          "covers": "不変条件: x-migration は MigrationMetaSchema の閉じた語彙にのみ従う"
+        },
+        {
+          "name": "value_map宣言は_from_と_mapping_を要求する",
+          "category": "異常系",
+          "viewpoint": "不変条件: x-migrationはMigrationMetaSchemaの閉じた語彙にのみ従う(value-map)",
+          "gherkin": "Scenario: value_map宣言は_from_と_mapping_を要求する\n  Given as=value-mapでmappingを欠くx-migration宣言\n  When MigrationMetaSchemaで適合を検証する\n  Then 不適合として拒否される",
+          "covers": "不変条件: x-migration は MigrationMetaSchema の閉じた語彙にのみ従う"
+        },
+        {
+          "name": "discriminator_remap宣言は_rules_を要求する",
+          "category": "異常系",
+          "viewpoint": "不変条件: x-migrationはMigrationMetaSchemaの閉じた語彙にのみ従う(discriminator-remap)",
+          "gherkin": "Scenario: discriminator_remap宣言は_rules_を要求する\n  Given as=discriminator-remapでrulesを欠くx-migration宣言\n  When MigrationMetaSchemaで適合を検証する\n  Then 不適合として拒否される",
+          "covers": "不変条件: x-migration は MigrationMetaSchema の閉じた語彙にのみ従う"
+        },
+        {
+          "name": "ai_infer宣言は_prompt_を要求する",
+          "category": "異常系",
+          "viewpoint": "不変条件: x-migrationはMigrationMetaSchemaの閉じた語彙にのみ従う(ai-infer)",
+          "gherkin": "Scenario: ai_infer宣言は_prompt_を要求する\n  Given as=ai-inferでpromptを欠くx-migration宣言\n  When MigrationMetaSchemaで適合を検証する\n  Then 不適合として拒否される",
+          "covers": "不変条件: x-migration は MigrationMetaSchema の閉じた語彙にのみ従う"
+        },
+        {
+          "name": "未知の種別は拒否される",
+          "category": "異常系",
+          "viewpoint": "不変条件: x-migrationの閉じた語彙にない種別は拒否される",
+          "gherkin": "Scenario: 未知の種別は拒否される\n  Given asが未知の種別であるx-migration宣言\n  When MigrationMetaSchemaで適合を検証する\n  Then 不適合として拒否される",
+          "covers": "不変条件: x-migration は MigrationMetaSchema の閉じた語彙にのみ従う"
+        },
+        {
+          "name": "schema自体がロードできる",
+          "category": "正常系",
+          "viewpoint": "MigrationMetaSchema自体が正しくロードできることの確認",
+          "gherkin": "Scenario: schema自体がロードできる\n  Given MigrationMetaSchema/v1\n  When PackageSchemaRepositoryでロードする\n  Then $defs.MigrationDeclarationが取得できる",
+          "covers": "不変条件: x-migration は MigrationMetaSchema の閉じた語彙にのみ従う"
+        },
+        {
+          "name": "全schemaがx_schema_statusを宣言している",
+          "category": "異常系",
+          "viewpoint": "不変条件: Documentのschemaが指しうる型は常にx-schema-statusを宣言する",
+          "gherkin": "Scenario: 全schemaがx_schema_statusを宣言している\n  Given Documentのschemaが指しうる型(DomainSpecSchema/PresentationSpecSchema/CodingSchema/SkillSchema)\n  When 各schemaファイルのx-schema-statusを確認する\n  Then 全てPUBLISHED/DEPRECATEDのいずれかを宣言している",
+          "covers": "不変条件: Documentのschemaが指しうる型は常にx-schema-statusを宣言する"
         }
       ]
     }

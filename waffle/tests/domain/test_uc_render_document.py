@@ -1,18 +1,8 @@
-"""部品レンダラ（uc-render-parts）＋ RenderMetaSchema 検証の単体テスト。
+"""uc-render-document の GuaranteeScenarios（part_renderer の各部品整形保証）に対応するネイティブテスト。
 
-将来 UsecaseSpec の TestScenarios になる（移行レディ）。
+x-render/lint(RenderMetaSchema検証)分のテストはagg-schema由来のため test_agg_schema.py に集約した。
 """
-import pytest
-
-from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
-from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
 from waffle.domain.services.part_renderer import render_parts
-
-
-def _lint(parts):
-    meta = PackageSchemaRepository().load("RenderMetaSchema/v1")
-    schema = {"$defs": meta["$defs"], "type": "array", "items": {"$ref": "#/$defs/RenderPart"}}
-    return JsonSchemaValidator().validate(parts, schema)
 
 
 # --- 描画 ---
@@ -199,28 +189,3 @@ def test_tableはjoin指定で配列セルを結合整形する():
         {"name": "total", "type": "Money"}]}]}
     md = render_parts(parts, data, 3)
     assert "status: OrderStatus / total: Money" in md
-
-
-# --- 検証（RenderMetaSchema・誤設定を弾く） ---
-
-def test_lint_accepts_valid():
-    assert _lint([{"as": "paragraph", "from": "text"},
-                  {"as": "table", "from": "rows", "columns": [{"field": "name"}]}]) == []
-
-
-def test_lint_rejects_unknown_part():
-    assert _lint([{"as": "foobar", "from": "x"}])  # enum 違反で非空
-
-
-def test_lint_rejects_missing_required_attr():
-    assert _lint([{"as": "table", "from": "rows"}])  # columns 漏れで非空
-
-
-@pytest.mark.parametrize("schema_ref", ["SkillSchema/v1", "CodingSchema/v2", "DomainSpecSchema/v2", "PresentationSpecSchema/v1", "PlatformSpec/v1"])
-def test_x_render_は閉じた語彙にのみ従う(schema_ref):
-    """agg-schema(Schema集約)の不変条件「各ブロックのx-renderは常にRenderMetaSchemaの閉じた語彙にのみ従う」の実証。
-    全 schema の全 block の x-render が RenderMetaSchema に適合する（誤設定・旧 {md,html} 形式の混入を防ぐ）。"""
-    schema = PackageSchemaRepository().load(schema_ref)
-    for name, bdef in schema["$defs"].items():
-        if "x-render" in bdef:
-            assert _lint(bdef["x-render"]) == [], f"{schema_ref}:{name} の x-render が不適合"

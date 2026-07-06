@@ -1,6 +1,6 @@
-"""lifecycle_guard（Re-2: schema の x-lifecycle を読む薄い guard）の単体テスト。
+"""agg-document（Document集約）の unitTestScenarios に対応するネイティブテスト。
 
-agg-document(Document集約)の unitTestScenarios に対応するネイティブテスト。
+lifecycle_guard（schema の x-lifecycle を読む薄い guard）経由で実証する。
 """
 from waffle.domain.services.lifecycle_guard import next_status
 

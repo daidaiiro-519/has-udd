@@ -1,6 +1,7 @@
-"""path_template（順方向resolve・逆方向reverse_parse）の単体テスト。
+"""sd-document-engine（subdomain）のドメインサービス「パステンプレート解決」の
+domainServiceScenariosに対応するネイティブテスト。
 
-sd-document-engine(subdomain)のドメインサービス「パステンプレート解決」に対応するネイティブテスト。
+path_template（順方向resolve・逆方向reverse_parse）経由で実証する。
 """
 from waffle.domain.services import path_template
 

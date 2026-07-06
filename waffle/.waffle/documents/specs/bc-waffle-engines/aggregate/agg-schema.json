@@ -15,7 +15,7 @@
     "summary": {
       "blockType": "Summary",
       "title": "概要",
-      "text": "Document の型定義（Schema）の不変条件とバージョン進化を表す集約。Document が機械生成・検証・描画できることを保証し、版の移行を司る。対象は「Document の schemaRef が指しうる型」に限定する: DomainSpecSchema・PresentationSpecSchema・CodingSchema・SkillSchema。RenderMetaSchema・DocstringSchema は Document 型定義ではなく派生構造（x-render 部品／code_scan 出力）を検証する別概念であり、この集約の対象外。"
+      "text": "Document の型定義（Schema）の不変条件とバージョンのライフサイクル（PUBLISHED/DEPRECATED）を表す集約。Document が機械生成・検証・描画できることを保証する。バージョンが変わった際の既存Documentの追従は、ドリフト検知（check_schema_version_drift.py）が検知した上でAIが個別に判断して直す（機械的な自動移行の機構はこの集約の対象外・過剰実装と判断し撤去済み）。対象は「Document の schemaRef が指しうる型」に限定する: DomainSpecSchema・PresentationSpecSchema・CodingSchema・SkillSchema。RenderMetaSchema は Document 型定義ではなく派生構造（x-render 部品）を検証する別概念であり、この集約の対象外。"
     },
     "aggregateRoot": {
       "blockType": "AggregateRoot",
@@ -131,125 +131,21 @@
           "rationale": "一貫性境界を「schemaRef の解決先」に閉じ、無関係な検証用 schema を集約に含めない"
         },
         {
-          "rule": "新schemaのx-migration宣言は常にMigrationMetaSchemaの閉じた語彙(rename/default/value-map/discriminator-remap/ai-infer)にのみ従う",
-          "enforcement": "schema",
-          "rationale": "移行がengineによって機械的に解釈可能であることを保つ"
-        },
-        {
           "rule": "Documentのschemaが指しうる型は常にx-schema-statusを宣言する",
           "enforcement": "schema",
           "rationale": "第4のドリフト検知(check_schema_version_drift.py)がバージョンの状態を判定できることを保証する"
-        }
-      ]
-    },
-    "lifecycle": {
-      "blockType": "Lifecycle",
-      "title": "ライフサイクル",
-      "states": [
-        "PUBLISHED",
-        "DEPRECATED"
-      ],
-      "transitions": [
-        {
-          "from": "[*]",
-          "to": "PUBLISHED",
-          "command": "publishVersion",
-          "condition": "scaffoldability 不変条件を満たす"
         },
         {
-          "from": "PUBLISHED",
-          "to": "DEPRECATED",
-          "command": "deprecateVersion",
-          "condition": ""
+          "rule": "x-schema-statusはPUBLISHED→DEPRECATEDの順にのみ進み、逆行・飛ばしをしない。専用のコマンド/engineは持たず、schemaファイルを作成/更新する際にAIが直接記述する（実際にx-migrationを必要とした実schemaが1つも無く、機械的な移行機構は過剰と判断し撤去済み）",
+          "enforcement": "guard",
+          "rationale": "第4のドリフト検知(check_schema_version_drift.py)がバージョンの状態を判定できることを保証しつつ、実運用規模（各schemaにつき実document最大十数件程度）では機械的な移行機構を持つ必要が無いため"
         }
       ]
     },
     "commands": {
       "blockType": "Commands",
       "title": "コマンド",
-      "items": [
-        {
-          "name": "publishVersion",
-          "description": "新しいバージョンインスタンス(name, version)を生成し公開する。以後その版で Document を作れるようにする（scaffoldability 不変条件を守る）。集約の同一性は(name, version)のペアであり、旧版は削除せず並存させたまま新版を独立したインスタンスとして生成する。",
-          "requiresState": null,
-          "postState": "PUBLISHED",
-          "params": [
-            {
-              "name": "version",
-              "meaning": "公開する版"
-            }
-          ],
-          "emits": [
-            "SchemaVersionPublished"
-          ]
-        },
-        {
-          "name": "deprecateVersion",
-          "description": "古い版を非推奨にし、新規 Document の作成を止める（既存は移行まで有効）。",
-          "requiresState": "PUBLISHED",
-          "postState": "DEPRECATED",
-          "params": [
-            {
-              "name": "version",
-              "meaning": "非推奨にする版"
-            }
-          ],
-          "emits": []
-        },
-        {
-          "name": "migrateDocuments",
-          "description": "既存 Document を旧版から新版へ移行する（版を上げる方向にのみ・後方互換の不変条件を守る）。",
-          "requiresState": "PUBLISHED",
-          "postState": "PUBLISHED",
-          "params": [
-            {
-              "name": "fromVersion",
-              "meaning": "移行元の版"
-            },
-            {
-              "name": "toVersion",
-              "meaning": "移行先の版"
-            }
-          ],
-          "emits": [
-            "DocumentsMigrated"
-          ]
-        }
-      ]
-    },
-    "domainEvents": {
-      "blockType": "DomainEvents",
-      "title": "ドメインイベント",
-      "items": [
-        {
-          "name": "SchemaVersionPublished",
-          "raisedBy": "publishVersion 成功時",
-          "payload": [
-            {
-              "name": "schemaRef",
-              "meaning": "公開された name + version"
-            }
-          ]
-        },
-        {
-          "name": "DocumentsMigrated",
-          "raisedBy": "migrateDocuments 成功時",
-          "payload": [
-            {
-              "name": "fromVersion",
-              "meaning": "移行元の版"
-            },
-            {
-              "name": "toVersion",
-              "meaning": "移行先の版"
-            },
-            {
-              "name": "count",
-              "meaning": "移行された Document 数"
-            }
-          ]
-        }
-      ]
+      "items": []
     },
     "invariantScenarios": {
       "blockType": "InvariantScenarios",
@@ -271,67 +167,11 @@
           "covers": "不変条件: 公開済みの版は後方互換を壊さない"
         },
         {
-          "name": "移行は版を上げる方向にのみ行う",
-          "category": "異常系",
-          "viewpoint": "状態: migrateDocuments は版を上げる方向にのみ",
-          "gherkin": "Scenario: 移行は版を上げる方向にのみ行う\n  Given v1 と v2 の Schema\n  When v2 から v1 へ移行しようとする\n  Then 拒否される",
-          "covers": "コマンド: migrateDocuments"
-        },
-        {
           "name": "x-render は閉じた語彙にのみ従う",
           "category": "異常系",
           "viewpoint": "不変条件: 各ブロックの x-render は常に RenderMetaSchema の閉じた語彙にのみ従う",
           "gherkin": "Scenario: x-render は閉じた語彙にのみ従う\n  Given 未知の部品種別、または必須属性が欠けた x-render 宣言を持つ Schema\n  When x-render の適合を検証する\n  Then 不適合として拒否される",
           "covers": "不変条件: 各ブロックの x-render は常に RenderMetaSchema の閉じた語彙にのみ従う"
-        },
-        {
-          "name": "rename宣言は_from_を要求する",
-          "category": "異常系",
-          "viewpoint": "不変条件: x-migrationはMigrationMetaSchemaの閉じた語彙にのみ従う(rename)",
-          "gherkin": "Scenario: rename宣言は_from_を要求する\n  Given as=renameでfromを欠くx-migration宣言\n  When MigrationMetaSchemaで適合を検証する\n  Then 不適合として拒否される",
-          "covers": "不変条件: x-migration は MigrationMetaSchema の閉じた語彙にのみ従う"
-        },
-        {
-          "name": "default宣言は_value_を要求する",
-          "category": "異常系",
-          "viewpoint": "不変条件: x-migrationはMigrationMetaSchemaの閉じた語彙にのみ従う(default)",
-          "gherkin": "Scenario: default宣言は_value_を要求する\n  Given as=defaultでvalueを欠くx-migration宣言\n  When MigrationMetaSchemaで適合を検証する\n  Then 不適合として拒否される",
-          "covers": "不変条件: x-migration は MigrationMetaSchema の閉じた語彙にのみ従う"
-        },
-        {
-          "name": "value_map宣言は_from_と_mapping_を要求する",
-          "category": "異常系",
-          "viewpoint": "不変条件: x-migrationはMigrationMetaSchemaの閉じた語彙にのみ従う(value-map)",
-          "gherkin": "Scenario: value_map宣言は_from_と_mapping_を要求する\n  Given as=value-mapでmappingを欠くx-migration宣言\n  When MigrationMetaSchemaで適合を検証する\n  Then 不適合として拒否される",
-          "covers": "不変条件: x-migration は MigrationMetaSchema の閉じた語彙にのみ従う"
-        },
-        {
-          "name": "discriminator_remap宣言は_rules_を要求する",
-          "category": "異常系",
-          "viewpoint": "不変条件: x-migrationはMigrationMetaSchemaの閉じた語彙にのみ従う(discriminator-remap)",
-          "gherkin": "Scenario: discriminator_remap宣言は_rules_を要求する\n  Given as=discriminator-remapでrulesを欠くx-migration宣言\n  When MigrationMetaSchemaで適合を検証する\n  Then 不適合として拒否される",
-          "covers": "不変条件: x-migration は MigrationMetaSchema の閉じた語彙にのみ従う"
-        },
-        {
-          "name": "ai_infer宣言は_prompt_を要求する",
-          "category": "異常系",
-          "viewpoint": "不変条件: x-migrationはMigrationMetaSchemaの閉じた語彙にのみ従う(ai-infer)",
-          "gherkin": "Scenario: ai_infer宣言は_prompt_を要求する\n  Given as=ai-inferでpromptを欠くx-migration宣言\n  When MigrationMetaSchemaで適合を検証する\n  Then 不適合として拒否される",
-          "covers": "不変条件: x-migration は MigrationMetaSchema の閉じた語彙にのみ従う"
-        },
-        {
-          "name": "未知の種別は拒否される",
-          "category": "異常系",
-          "viewpoint": "不変条件: x-migrationの閉じた語彙にない種別は拒否される",
-          "gherkin": "Scenario: 未知の種別は拒否される\n  Given asが未知の種別であるx-migration宣言\n  When MigrationMetaSchemaで適合を検証する\n  Then 不適合として拒否される",
-          "covers": "不変条件: x-migration は MigrationMetaSchema の閉じた語彙にのみ従う"
-        },
-        {
-          "name": "schema自体がロードできる",
-          "category": "正常系",
-          "viewpoint": "MigrationMetaSchema自体が正しくロードできることの確認",
-          "gherkin": "Scenario: schema自体がロードできる\n  Given MigrationMetaSchema/v1\n  When PackageSchemaRepositoryでロードする\n  Then $defs.MigrationDeclarationが取得できる",
-          "covers": "不変条件: x-migration は MigrationMetaSchema の閉じた語彙にのみ従う"
         },
         {
           "name": "全schemaがx_schema_statusを宣言している",

@@ -11,7 +11,7 @@ JSON Schemaでdocument.jsonを検証・query・render・scaffoldする。
   そのもの）に残し、engine部分には独立の名称「Waffle」を与えた。
   経緯は `docs/brainstorm/brainstorm-has-udd-oss-separation.md`（論点1〜5）を参照。
 - **バンドルされているschema（SkillSchema/DomainSpecSchema/PresentationSpecSchema/
-  CodingSchema/RenderMetaSchema/MigrationMetaSchema/DocstringSchema）はWaffle自身の資産**
+  CodingSchema/RenderMetaSchema/DocstringSchema）はWaffle自身の資産**
   （has-uddから借りた外部依存ではない）。schemaを外部化する設計は採用しない（ユーザー判断）。
   - `SpecSchema`は`DomainSpecSchema`に改名済み（spec は DDD より広い上位概念であり、
     UI層を扱う非DDDの`PresentationSpecSchema`と対で「Spec家族」を構成するため）。
@@ -23,12 +23,17 @@ JSON Schemaでdocument.jsonを検証・query・render・scaffoldする。
     （DomainSpecSchema/PresentationSpecSchema/CodingSchema/SkillSchema）。独自の識別
     （documentType）とライフサイクル（x-schema-status）を持つ。`src/waffle/domain/model/`
     に置く。
-  - **RenderMetaSchema/MigrationMetaSchema/DocstringSchemaは集約ではない**（identity・
-    x-schema-status・ライフサイクルを持たない）。RenderMetaSchema/MigrationMetaSchemaは
-    他schemaのブロックに埋め込まれる値オブジェクト（x-render宣言／x-migration宣言）の
-    型定義で`src/waffle/domain/value_objects/`に置く。DocstringSchemaはusecase
-    (uc-scan-source-code)の出力データの形状定義であり、業務ロジック(domain)ではなく
-    usecaseの入出力契約(application)の関心事なので`src/waffle/application/dto/`に置く。
+  - **RenderMetaSchema/DocstringSchemaは集約ではない**（identity・x-schema-status・
+    ライフサイクルを持たない）。RenderMetaSchemaは他schemaのブロックに埋め込まれる
+    値オブジェクト（x-render宣言）の型定義で`src/waffle/domain/value_objects/`に置く。
+    DocstringSchemaはusecase(uc-scan-source-code)の出力データの形状定義であり、業務
+    ロジック(domain)ではなくusecaseの入出力契約(application)の関心事なので
+    `src/waffle/application/dto/`に置く。
+  - **schemaのバージョン移行機構（x-migration語彙・MigrationEngine）は撤去済み**
+    （実際にx-migrationを必要とした実schemaが無く、各schemaの実document数も少数のため、
+    機械的な一括移行は過剰と判断。ドリフト検知(`check_schema_version_drift.py`)のみ維持し、
+    schema進化への追従はAIが個別に判断して直す）。
+    経緯は`docs/brainstorm/brainstorm-schema-versioning-migration.md`の後日談を参照。
 - この`waffle/`ディレクトリは`loomdb/`と同じく**自己完結**しており、
   `git subtree split --prefix=waffle`でそのまま独立リポジトリに切り出せる想定。
 - `document.json`のパス規約（`x-source-target`/`x-render-target`）は`.has-udd/`ではなく

@@ -29,8 +29,3 @@ Feature: waffle CLI (inbound adapter)
     When CLI "scaffold --operation create --schemaRef SkillSchema/v1 --documentId scaffold-demo --discriminator skillKind=engine" を実行する
     Then 終了コードは 0
     And 出力JSONの "skeleton.documentType" は "Skill"
-
-  Scenario: migrate のエラーは {error, message} と非ゼロ終了で返す
-    When CLI "migrate --operation publishVersion" を実行する
-    Then 終了コードは 1
-    And 出力JSONの "error" は "MISSING_PARAM"

@@ -3,6 +3,8 @@
 **目的:** agg-schema.jsonのCommands(publishVersion/deprecateVersion/migrateDocuments)の未整理な仕様（曖昧な状態遷移・後方互換の判定基準・移行ロジック・旧版の保管モデル）を固め、「schemaが進化した際に既存Documentが気づかれず陳腐化する」という第4のドリフトを検知できる土台を作る。
 **モード:** 問題解決
 
+> **★後日談・一部撤回（同セッション後半）**: このブレストで合意した`migrateDocuments`コマンド・`x-migration`語彙(`MigrationMetaSchema`)・`MigrationEngine`・`sd-schema-governance`subdomainは、実装完了後の見直しで**撤去された**。理由: (1)実際にx-migrationを必要とした実schemaが1つも存在しなかった（DomainSpecSchema自身のv1→v2進化も、この機構を使わずgitでの手動リネームで行われた実績がある）、(2)各schemaを使う実document数が最大でも十数件程度と少なく、機械的な一括変換の必要性が薄い、(3)Waffleのdocumentは大量の同質データではなく少数の練り上げられた設計仕様であり、schema進化のたびにAIが個別に判断して直す方が適切、という3点から「本当に必要になる前の投機的な先行実装（YAGNI違反）」と判断した。**「第4のドリフト検知」という本来の目的は`check_schema_version_drift.py`（本ブレスト論点5の成果）だけで引き続き果たされており、これは撤去せず維持している**。`publishVersion`/`deprecateVersion`もコマンド/engineとしては撤去し、`x-schema-status`はschema作成/更新時にAIが直接記述する単純なフィールド＋不変条件（PUBLISHED→DEPRECATEDの順にのみ進む）として表現し直した。詳細はメモリ`project-waffle-schema-versioning-migration`参照。
+
 ---
 
 ## 問題の再定義

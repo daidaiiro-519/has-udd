@@ -13,7 +13,6 @@ import typer
 from waffle.adapters.outbound.fs import FsDocumentRepository
 from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
-from waffle.application.usecases.migration_engine import MigrationEngine
 from waffle.application.usecases.query_engine import QueryEngine
 from waffle.application.usecases.render_engine import RenderEngine
 from waffle.application.usecases.scaffold_engine import ScaffoldEngine
@@ -102,31 +101,6 @@ def scaffold(
     else:
         params = {}
     _emit(ScaffoldEngine(_docs(), _schemas()).run(operation, params))
-
-@app.command()
-def migrate(
-    operation: str = typer.Option(..., "--operation"),
-    schema_path: str = typer.Option(None, "--schemaPath", "--schema-path"),
-    from_schema_ref: str = typer.Option(None, "--fromSchemaRef", "--from-schema-ref"),
-    to_schema_ref: str = typer.Option(None, "--toSchemaRef", "--to-schema-ref"),
-    documents_dir: str = typer.Option(None, "--documentsDir", "--documents-dir"),
-    partial_documents: str = typer.Option(None, "--partialDocuments", "--partial-documents", help="prepareMigrationの出力(JSON)をそのまま渡す"),
-    answers: str = typer.Option(None, "--answers", help="ai-infer分の回答(JSONオブジェクト)"),
-) -> None:
-    """Schema集約のバージョニング/移行（publishVersion/deprecateVersion/prepareMigration/applyMigration）。"""
-    if operation in ("publishVersion", "deprecateVersion"):
-        params: dict = {"schemaPath": schema_path}
-    elif operation == "prepareMigration":
-        params = {"fromSchemaRef": from_schema_ref, "toSchemaRef": to_schema_ref, "documentsDir": documents_dir}
-    elif operation == "applyMigration":
-        params = {
-            "toSchemaRef": to_schema_ref,
-            "partialDocuments": json.loads(partial_documents) if partial_documents else {},
-            "answers": json.loads(answers) if answers else {},
-        }
-    else:
-        params = {}
-    _emit(MigrationEngine(_docs(), _schemas(), JsonSchemaValidator()).run(operation, params))
 
 @app.command()
 def serve() -> None:

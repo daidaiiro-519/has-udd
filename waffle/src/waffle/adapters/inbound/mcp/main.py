@@ -11,7 +11,6 @@ from fastmcp import FastMCP
 from waffle.adapters.outbound.fs import FsDocumentRepository
 from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
-from waffle.application.usecases.migration_engine import MigrationEngine
 from waffle.application.usecases.query_engine import QueryEngine
 from waffle.application.usecases.render_engine import RenderEngine
 from waffle.application.usecases.scaffold_engine import ScaffoldEngine
@@ -93,24 +92,3 @@ def scaffold_document(
     else:
         params = {}
     return _dict(ScaffoldEngine(_docs(), _schemas()).run(operation, params))
-
-@mcp.tool
-def migrate_schema(
-    operation: str,
-    schemaPath: str | None = None,
-    fromSchemaRef: str | None = None,
-    toSchemaRef: str | None = None,
-    documentsDir: str | None = None,
-    partialDocuments: dict | None = None,
-    answers: dict | None = None,
-) -> dict:
-    """Schema集約のバージョニング/移行（publishVersion/deprecateVersion/prepareMigration/applyMigration）。"""
-    if operation in ("publishVersion", "deprecateVersion"):
-        params: dict = {"schemaPath": schemaPath}
-    elif operation == "prepareMigration":
-        params = {"fromSchemaRef": fromSchemaRef, "toSchemaRef": toSchemaRef, "documentsDir": documentsDir}
-    elif operation == "applyMigration":
-        params = {"toSchemaRef": toSchemaRef, "partialDocuments": partialDocuments or {}, "answers": answers or {}}
-    else:
-        params = {}
-    return _dict(MigrationEngine(_docs(), _schemas(), JsonSchemaValidator()).run(operation, params))

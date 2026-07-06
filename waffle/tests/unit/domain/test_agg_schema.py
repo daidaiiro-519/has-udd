@@ -1,20 +1,20 @@
-"""agg-schema（Schema集約）のunitTestScenariosに対応するネイティブテスト。
+"""agg-schema（Schema集約）のinvariantScenariosに対応するネイティブテスト。
 
 集約の不変条件はいずれもport（DocumentRepository/SchemaRepository）を必要としない
-純粋な検証（実schemaロード・実Validator呼び出し・バージョン番号比較）で完結するため、
-全件をdomain層に置く。「MigrationEngine経由でしか検証できない」という以前の判断は誤りで、
-不変条件そのものはengineの編成手順とは独立に検証できる（後方互換・移行方向の2件を訂正）。
+純粋な検証（実schemaロード・実Validator呼び出し）で完結するため、全件をdomain層に置く。
 
 test-standardの命名規約(test_{documentId}.py)に従い、以前
-test_schema_invariants.py/test_migration_meta_schema.py/test_schema_status.py/
-test_part_renderer.py(x-render/lint分)に散らばっていたagg-schema由来のテストを
-ここに集約した。
+test_schema_invariants.py/test_schema_status.py/test_part_renderer.py(x-render/lint分)
+に散らばっていたagg-schema由来のテストをここに集約した。
+
+x-migration語彙(MigrationMetaSchema)・移行方向の不変条件は、実際の運用規模では
+過剰なため撤去した(詳細はdocs/brainstorm/brainstorm-schema-versioning-migration.md
+に撤回の経緯として追記済み)。
 """
 import pytest
 
 from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
-from waffle.domain.services.schema_versioning import is_forward_migration
 
 _IN_SCOPE_SCHEMAS = ["SkillSchema/v1", "CodingSchema/v2", "DomainSpecSchema/v2", "PresentationSpecSchema/v1", "PlatformSpec/v1"]
 _VALID_STATUSES = {"PUBLISHED", "DEPRECATED"}
@@ -79,85 +79,6 @@ def test_x_render_は閉じた語彙にのみ従う(schema_ref):
             assert _lint_render(bdef["x-render"]) == [], f"{schema_ref}:{name} の x-render が不適合"
 
 
-# --- x-migration は MigrationMetaSchema の閉じた語彙にのみ従う ---
-
-def _lint_migration(declaration: dict):
-    meta = PackageSchemaRepository().load("MigrationMetaSchema/v1")
-    schema = {"$defs": meta["$defs"], "$ref": "#/$defs/MigrationDeclaration"}
-    return JsonSchemaValidator().validate(declaration, schema)
-
-
-def test_rename宣言は_from_を要求する():
-    """
-    Given as=renameでfromを欠くx-migration宣言
-    When MigrationMetaSchemaで適合を検証する
-    Then 不適合として拒否される
-    """
-    assert _lint_migration({"as": "rename", "from": "bio"}) == []
-    assert _lint_migration({"as": "rename"}) != []
-
-
-def test_default宣言は_value_を要求する():
-    """
-    Given as=defaultでvalueを欠くx-migration宣言
-    When MigrationMetaSchemaで適合を検証する
-    Then 不適合として拒否される
-    """
-    assert _lint_migration({"as": "default", "value": "unknown"}) == []
-    assert _lint_migration({"as": "default"}) != []
-
-
-def test_value_map宣言は_from_と_mapping_を要求する():
-    """
-    Given as=value-mapでmappingを欠くx-migration宣言
-    When MigrationMetaSchemaで適合を検証する
-    Then 不適合として拒否される
-    """
-    assert _lint_migration({"as": "value-map", "from": "documentType", "mapping": {"Spec": "DomainSpec"}}) == []
-    assert _lint_migration({"as": "value-map", "from": "documentType"}) != []
-
-
-def test_discriminator_remap宣言は_rules_を要求する():
-    """
-    Given as=discriminator-remapでrulesを欠くx-migration宣言
-    When MigrationMetaSchemaで適合を検証する
-    Then 不適合として拒否される
-    """
-    assert _lint_migration({"as": "discriminator-remap", "rules": [{"ifHasField": "aggregateRoot", "then": "aggregate"}]}) == []
-    assert _lint_migration({"as": "discriminator-remap"}) != []
-
-
-def test_ai_infer宣言は_prompt_を要求する():
-    """
-    Given as=ai-inferでpromptを欠くx-migration宣言
-    When MigrationMetaSchemaで適合を検証する
-    Then 不適合として拒否される
-    """
-    assert _lint_migration({"as": "ai-infer", "prompt": "経験レベルを判定する"}) == []
-    assert _lint_migration({"as": "ai-infer"}) != []
-
-
-def test_未知の種別は拒否される():
-    """
-    Given asが未知の種別であるx-migration宣言
-    When MigrationMetaSchemaで適合を検証する
-    Then 不適合として拒否される
-    """
-    assert _lint_migration({"as": "foobar"}) != []
-
-
-@pytest.mark.parametrize("schema_ref", ["MigrationMetaSchema/v1"])
-def test_schema自体がロードできる(schema_ref):
-    """
-    Given MigrationMetaSchema/v1
-    When PackageSchemaRepositoryでロードする
-    Then $defs.MigrationDeclarationが取得できる
-    """
-    schema = PackageSchemaRepository().load(schema_ref)
-    assert "$defs" in schema
-    assert "MigrationDeclaration" in schema["$defs"]
-
-
 # --- Documentのschemaが指しうる型は常にx-schema-statusを宣言する ---
 
 @pytest.mark.parametrize("schema_ref", _IN_SCOPE_SCHEMAS)
@@ -172,8 +93,8 @@ def test_全schemaがx_schema_statusを宣言している(schema_ref):
     assert schema["x-schema-status"] in _VALID_STATUSES
 
 
-# --- 公開済みの版は後方互換を壊さない / 移行は版を上げる方向にのみ行う ---
-# (port不要・純粋なValidator呼び出し/バージョン番号比較で検証できる不変条件)
+# --- 公開済みの版は後方互換を壊さない ---
+# (port不要・純粋なValidator呼び出しで検証できる不変条件)
 
 def test_公開済みの版は後方互換を壊さない():
     """
@@ -191,13 +112,3 @@ def test_公開済みの版は後方互換を壊さない():
     }
     errors = JsonSchemaValidator().validate(old_document, new_schema_with_required_field)
     assert errors, "後方互換を壊す変更（必須フィールド追加）が誤って適合と判定された"
-
-
-def test_移行は版を上げる方向にのみ行う():
-    """
-    Given v1 と v2 の Schema
-    When v2 から v1 へ移行しようとする
-    Then 拒否される
-    """
-    assert is_forward_migration("Foo/v1", "Foo/v2") is True
-    assert is_forward_migration("Foo/v2", "Foo/v1") is False

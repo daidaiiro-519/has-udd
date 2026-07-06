@@ -35,6 +35,7 @@ AI に構造を推論させず、engine が決定的に Document を生成(scaff
 |---|---|
 | パステンプレート解決 | x-source-target/x-render-target のパステンプレートを document の値で解決(resolve)し、逆に実パスからテンプレート変数を復元(reverse-parse)する。scaffold/render/query の複数usecaseが共通して依存する（特定の集約に属さない）。 |
 | 整形描画 | x-render宣言(Schema集約の値オブジェクト)とDocument集約のcontent dataの両方を参照してMarkdownへ整形する。RenderMetaSchemaが定義する部品種別(paragraph/list/table/keyvalue/section/kvtable/sequence/statediagram/architecture/flowchart)ごとに決定的な整形規則を持つ。特定の集約に属さない（Schema集約とDocument集約にまたがる計算）。 |
+| discriminatorキー抽出 | schemaのallOf if/then構造から、どのフィールド（specKind/codingKind/skillKind等）がkindのdiscriminatorとして機能しているかを機械的に取り出す。scaffold/renderの複数usecaseが共通して依存する（特定の集約に属さない・Schema集約の構造そのものを読むがSchema集約の外から呼ばれる編成ロジック）。 |
 
 ---
 
@@ -272,4 +273,43 @@ Scenario: tableはjoin指定で配列セルを結合整形する
   Given join/sepを指定したcolumns宣言と配列値を持つセル
   When renderする
   Then 配列の各要素がjoinテンプレートで整形されsepで連結される
+```
+
+### schemaのif直下からdiscriminatorキーを取り出す
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | discriminatorキー抽出：トップレベルのif.propertiesの最初のキーを返す |
+
+```gherkin
+Scenario: schemaのif直下からdiscriminatorキーを取り出す
+  Given トップレベルにif.properties.specKindを持つschema
+  When discriminatorキーを抽出する
+  Then specKindが返る
+```
+
+### schemaのallOf内のifからdiscriminatorキーを取り出す
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | discriminatorキー抽出：allOfの各要素のif.propertiesを走査し最初に見つかったキーを返す |
+
+```gherkin
+Scenario: schemaのallOf内のifからdiscriminatorキーを取り出す
+  Given トップレベルにはifを持たないが、allOf内の要素にif.properties.codingKindを持つschema
+  When discriminatorキーを抽出する
+  Then codingKindが返る
+```
+
+### discriminatorが無いschemaはNoneを返す
+
+| 分類 | 観点 |
+|---|---|
+| 境界値 | discriminatorキー抽出：ifもallOf内のifも持たないschemaは分岐を持たない |
+
+```gherkin
+Scenario: discriminatorが無いschemaはNoneを返す
+  Given ifもallOfも持たないschema
+  When discriminatorキーを抽出する
+  Then Noneが返る
 ```

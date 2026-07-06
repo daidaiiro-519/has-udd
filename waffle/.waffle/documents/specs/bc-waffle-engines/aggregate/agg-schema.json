@@ -44,10 +44,6 @@
               "type": "Version"
             },
             {
-              "name": "status",
-              "type": "SchemaStatus"
-            },
-            {
               "name": "kindProfiles",
               "type": "KindProfile[]"
             }
@@ -73,11 +69,6 @@
           "name": "SchemaRef",
           "represents": "スキーマ名＋版の組（Document が指す参照）",
           "behavior": "不変。name と version が共に等しければ等価。"
-        },
-        {
-          "name": "SchemaStatus",
-          "represents": "版のライフサイクル状態",
-          "behavior": "enum: PUBLISHED/DEPRECATED。値が等しければ等価。遷移は不変条件で守る。"
         },
         {
           "name": "KindProfile",
@@ -153,7 +144,7 @@
           "name": "公開済みの版は後方互換を壊さない",
           "category": "異常系",
           "viewpoint": "不変条件: 公開済みの版は遡って構造を変えない",
-          "gherkin": "Scenario: 公開済みの版は後方互換を壊さない\n  Given PUBLISHED の Schema 版\n  When 既存ブロックに必須フィールドを追加しようとする\n  Then 後方互換を壊す変更として拒否される",
+          "gherkin": "Scenario: 公開済みの版は後方互換を壊さない\n  Given 既にDocumentが参照している既存のSchema版\n  When 既存ブロックに必須フィールドを追加しようとする\n  Then 後方互換を壊す変更として拒否される",
           "covers": "不変条件: 公開済みの版は後方互換を壊さない"
         },
         {

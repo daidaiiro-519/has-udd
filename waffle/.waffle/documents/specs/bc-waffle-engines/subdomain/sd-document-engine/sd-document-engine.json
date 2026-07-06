@@ -48,6 +48,10 @@
         {
           "name": "整形描画",
           "responsibility": "x-render宣言(Schema集約の値オブジェクト)とDocument集約のcontent dataの両方を参照してMarkdownへ整形する。RenderMetaSchemaが定義する部品種別(paragraph/list/table/keyvalue/section/kvtable/sequence/statediagram/architecture/flowchart)ごとに決定的な整形規則を持つ。特定の集約に属さない（Schema集約とDocument集約にまたがる計算）。"
+        },
+        {
+          "name": "discriminatorキー抽出",
+          "responsibility": "schemaのallOf if/then構造から、どのフィールド（specKind/codingKind/skillKind等）がkindのdiscriminatorとして機能しているかを機械的に取り出す。scaffold/renderの複数usecaseが共通して依存する（特定の集約に属さない・Schema集約の構造そのものを読むがSchema集約の外から呼ばれる編成ロジック）。"
         }
       ]
     },
@@ -181,6 +185,27 @@
           "viewpoint": "tableのjoin（配列セル結合）保証",
           "gherkin": "Scenario: tableはjoin指定で配列セルを結合整形する\n  Given join/sepを指定したcolumns宣言と配列値を持つセル\n  When renderする\n  Then 配列の各要素がjoinテンプレートで整形されsepで連結される",
           "covers": "業務サービス: 各部品種別ごとの整形規則"
+        },
+        {
+          "name": "schemaのif直下からdiscriminatorキーを取り出す",
+          "category": "正常系",
+          "viewpoint": "discriminatorキー抽出：トップレベルのif.propertiesの最初のキーを返す",
+          "gherkin": "Scenario: schemaのif直下からdiscriminatorキーを取り出す\n  Given トップレベルにif.properties.specKindを持つschema\n  When discriminatorキーを抽出する\n  Then specKindが返る",
+          "covers": "ドメインサービス: discriminatorキー抽出"
+        },
+        {
+          "name": "schemaのallOf内のifからdiscriminatorキーを取り出す",
+          "category": "正常系",
+          "viewpoint": "discriminatorキー抽出：allOfの各要素のif.propertiesを走査し最初に見つかったキーを返す",
+          "gherkin": "Scenario: schemaのallOf内のifからdiscriminatorキーを取り出す\n  Given トップレベルにはifを持たないが、allOf内の要素にif.properties.codingKindを持つschema\n  When discriminatorキーを抽出する\n  Then codingKindが返る",
+          "covers": "ドメインサービス: discriminatorキー抽出"
+        },
+        {
+          "name": "discriminatorが無いschemaはNoneを返す",
+          "category": "境界値",
+          "viewpoint": "discriminatorキー抽出：ifもallOf内のifも持たないschemaは分岐を持たない",
+          "gherkin": "Scenario: discriminatorが無いschemaはNoneを返す\n  Given ifもallOfも持たないschema\n  When discriminatorキーを抽出する\n  Then Noneが返る",
+          "covers": "ドメインサービス: discriminatorキー抽出"
         }
       ]
     }

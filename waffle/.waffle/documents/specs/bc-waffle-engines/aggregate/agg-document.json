@@ -40,6 +40,10 @@
               "isId": true
             },
             {
+              "name": "documentType",
+              "type": "DocumentType"
+            },
+            {
               "name": "schemaRef",
               "type": "SchemaRef"
             },
@@ -67,6 +71,11 @@
           "name": "DocumentId",
           "represents": "一意な識別子",
           "behavior": "不変。kebab-case。value が等しければ等価。"
+        },
+        {
+          "name": "DocumentType",
+          "represents": "Document が属するschema家族の種別（例: DomainSpec/PresentationSpec/Coding/Skill）",
+          "behavior": "独立した業務情報ではなく、schemaRefが指すschema自身が宣言する固定値（schemaRefと1対1）。値が等しければ等価。"
         },
         {
           "name": "SchemaRef",

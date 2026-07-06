@@ -4,9 +4,11 @@
 「整形描画」はpart_renderer経由で実証する。後者はSchema集約の値オブジェクト(x-render宣言)と
 Document集約のcontentの両方にまたがる計算のため、業務サービスとしてここに属する
 （旧: uc-render-documentのguaranteeScenarios→再分類済み）。
+「discriminatorキー抽出」はschema_discriminator経由で実証する。
 """
 from waffle.domain.services import path_template
 from waffle.domain.services.part_renderer import render_parts
+from waffle.domain.services.schema_discriminator import discriminator_key
 
 
 def test_パステンプレートは変数を解決する():
@@ -324,3 +326,32 @@ def test_tableはjoin指定で配列セルを結合整形する():
         {"name": "total", "type": "Money"}]}]}
     md = render_parts(parts, data, 3)
     assert "status: OrderStatus / total: Money" in md
+
+
+def test_schemaのif直下からdiscriminatorキーを取り出す():
+    """
+    Given トップレベルにif.properties.specKindを持つschema
+    When discriminatorキーを抽出する
+    Then specKindが返る
+    """
+    schema = {"if": {"properties": {"specKind": {"const": "usecase"}}}}
+    assert discriminator_key(schema) == "specKind"
+
+
+def test_schemaのallOf内のifからdiscriminatorキーを取り出す():
+    """
+    Given トップレベルにはifを持たないが、allOf内の要素にif.properties.codingKindを持つschema
+    When discriminatorキーを抽出する
+    Then codingKindが返る
+    """
+    schema = {"allOf": [{"if": {"properties": {"codingKind": {"const": "tech-stack"}}}}]}
+    assert discriminator_key(schema) == "codingKind"
+
+
+def test_discriminatorが無いschemaはNoneを返す():
+    """
+    Given ifもallOfも持たないschema
+    When discriminatorキーを抽出する
+    Then Noneが返る
+    """
+    assert discriminator_key({}) is None

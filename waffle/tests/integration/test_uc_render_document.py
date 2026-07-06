@@ -43,14 +43,14 @@ def test_解決できないschemaRefはINVALID_SCHEMA_REF():
     assert result.details[0] == "INVALID_SCHEMA_REF"
 
 
-def test_render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する():
+def test_x_render宣言どおりに決定的に描画する():
     """
     Given interfaceブロック(x-render宣言=table)を持つDocument
-    When render engine経由でrenderする(part_rendererを直接呼ばず)
+    When renderする
     Then schemaのx-render宣言どおりに整形されたMarkdownテーブルが出力に含まれる
 
-    (domainテストはpart_renderer.render_partsを直接呼ぶため、render_engineが実際に
-    schemaからx-render宣言を読み取りpart_rendererへ渡す配線そのものはここでしか検証されない)
+    (domainテストはpart_renderer.render_partsを直接呼ぶため、render engineが実際に
+    schemaからx-render宣言を読み取り整形部品へ渡す配線そのものはここでしか検証されない)
     """
     result = _engine().run(".waffle/documents/skills/harness-query-engine.json", deploy=False)
     assert isinstance(result, Ok), result

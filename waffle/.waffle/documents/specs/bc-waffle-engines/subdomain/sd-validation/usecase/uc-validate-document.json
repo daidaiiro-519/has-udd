@@ -133,9 +133,9 @@
         {
           "name": "SUPERSEDEDは終端でありvalidateを受け付けない",
           "category": "異常系",
-          "viewpoint": "usecase配線：SUPERSEDED状態のDocumentに対しvalidate engineがINVALID_TRANSITIONを返す(agg-documentの不変条件はdomain層で純粋検証済み・ここではusecaseの編成を検証する)",
+          "viewpoint": "終端状態：SUPERSEDED状態のDocumentへのvalidateはINVALID_TRANSITIONとして拒否される",
           "gherkin": "Scenario: SUPERSEDEDは終端でありvalidateを受け付けない\n  Given SUPERSEDED状態のDocument\n  When validateする\n  Then INVALID_TRANSITIONエラーが返る",
-          "covers": "usecase配線: lifecycle_guardの結果をINVALID_TRANSITIONへマッピング"
+          "covers": "agg-documentの不変条件: SUPERSEDEDは終端であり以後どのコマンドも受け付けない"
         },
         {
           "name": "不正なJSONはINVALID_JSON",

@@ -124,7 +124,7 @@ Scenario Outline: 既存documentはschemaに適合する
 
 | 分類 | 観点 |
 |---|---|
-| 異常系 | usecase配線：SUPERSEDED状態のDocumentに対しvalidate engineがINVALID_TRANSITIONを返す(agg-documentの不変条件はdomain層で純粋検証済み・ここではusecaseの編成を検証する) |
+| 異常系 | 終端状態：SUPERSEDED状態のDocumentへのvalidateはINVALID_TRANSITIONとして拒否される |
 
 ```gherkin
 Scenario: SUPERSEDEDは終端でありvalidateを受け付けない

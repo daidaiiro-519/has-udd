@@ -114,11 +114,11 @@
           "covers": "操作保証: renderの決定性"
         },
         {
-          "name": "render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する",
+          "name": "x_render宣言どおりに決定的に描画する",
           "category": "正常系",
-          "viewpoint": "配線：render engineがschemaのx-render宣言を読み取りpart_rendererへ正しく渡す(part_renderer自体の整形保証とは別に、engine自体の配線を検証する)",
-          "gherkin": "Scenario: render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する\n  Given interfaceブロック(x-render宣言=table)を持つDocument\n  When render engine経由でrenderする\n  Then schemaのx-render宣言どおりに整形されたMarkdownテーブルが出力に含まれる",
-          "covers": "操作保証: x-renderの各部品種別ごとの整形規則に従った決定的描画(render_engine自体の配線)"
+          "viewpoint": "描画：x-renderがtable部品を宣言したとき、その宣言どおりの構造でMarkdownテーブルとして整形される",
+          "gherkin": "Scenario: x-render宣言どおりに決定的に描画する\n  Given interfaceブロック(x-render宣言=table)を持つDocument\n  When renderする\n  Then schemaのx-render宣言どおりに整形されたMarkdownテーブルが出力に含まれる",
+          "covers": "操作保証: x-renderの各部品種別ごとの整形規則に従った決定的描画"
         },
         {
           "name": "存在しないパスはINVALID_PATH",

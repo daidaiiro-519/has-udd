@@ -5,9 +5,9 @@ Feature: uc-render-document
     When 同じDocumentを2回renderする
     Then 1回目と2回目の成果物は同一である
 
-  Scenario: render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する
+  Scenario: x-render宣言どおりに決定的に描画する
     Given interfaceブロック(x-render宣言=table)を持つDocument
-    When render engine経由でrenderする
+    When renderする
     Then schemaのx-render宣言どおりに整形されたMarkdownテーブルが出力に含まれる
 
   Scenario: 存在しないパスはINVALID_PATH

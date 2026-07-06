@@ -199,16 +199,16 @@ Scenario: 同じDocumentを2回renderしても同一の成果物になる
   Then 1回目と2回目の成果物は同一である
 ```
 
-### render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する
+### x_render宣言どおりに決定的に描画する
 
 | 分類 | 観点 |
 |---|---|
-| 正常系 | 配線：render engineがschemaのx-render宣言を読み取りpart_rendererへ正しく渡す(part_renderer自体の整形保証とは別に、engine自体の配線を検証する) |
+| 正常系 | 描画：x-renderがtable部品を宣言したとき、その宣言どおりの構造でMarkdownテーブルとして整形される |
 
 ```gherkin
-Scenario: render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する
+Scenario: x-render宣言どおりに決定的に描画する
   Given interfaceブロック(x-render宣言=table)を持つDocument
-  When render engine経由でrenderする
+  When renderする
   Then schemaのx-render宣言どおりに整形されたMarkdownテーブルが出力に含まれる
 ```
 

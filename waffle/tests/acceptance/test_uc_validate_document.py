@@ -114,16 +114,6 @@ def test_SUPERSEDEDは終端でありvalidateを受け付けない():
     assert result.details[0] == "INVALID_TRANSITION"
 
 
-def test_存在しないパスはINVALID_PATH():
-    """
-    Given 存在しない対象パス
-    When validateする
-    Then INVALID_PATHエラーが返る
-    """
-    result = _engine().run("does/not/exist.json")
-    assert isinstance(result, Err), result
-    assert result.details[0] == "INVALID_PATH"
-
 
 def test_不正なJSONはINVALID_JSON():
     """

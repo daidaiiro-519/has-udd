@@ -57,6 +57,8 @@ sequenceDiagram
 
 - When 同じ documentId で create を複数回実行したとき、engine の生成する構造（schema由来の骨格の形）は常にべき等である shall。
 - While document.json が既に存在するとき、create を再実行しても、fill で書き込まれた既存の values は保持され、破壊されない shall（values 自体の再現性はengineの管轄外・呼び出し側の責務）。
+- When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（リポジトリによる解決プロセス自体の契約・DocumentRepositoryを介して判定する）。
+- When 対象のschemaRefを解決できないとき、engine は INVALID_SCHEMA_REF エラーを返す shall（リポジトリによる解決プロセス自体の契約・SchemaRepositoryを介して判定する）。
 
 ---
 
@@ -175,19 +177,6 @@ Scenario: customはengineと構成が異なる
   Then engineとは異なりcontent配下にprocessingTargetを持つ骨格が生成される
 ```
 
-### 未知のschemaRefはINVALID_SCHEMA_REF
-
-| 分類 | 観点 |
-|---|---|
-| 異常系 | エラー：createが解決できないschemaRefを指定されたときの失敗 |
-
-```gherkin
-Scenario: 未知のschemaRefはINVALID_SCHEMA_REF
-  Given 解決できないschemaRef
-  When createを実行する
-  Then INVALID_SCHEMA_REFエラーが返る
-```
-
 ---
 
 ## 操作保証シナリオ
@@ -203,4 +192,30 @@ Scenario: 既存documentへの再createはvaluesを破壊しない
   Given create済みかつfillで値を書き込み済みのdocumentId
   When 同じdocumentIdでcreateを再実行する
   Then fillで書き込んだvaluesは保持されたままである
+```
+
+### 存在しないパスはINVALID_PATH
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | リポジトリ解決契約：対象パスが実在しないとき、DocumentRepositoryを介した解決に失敗しINVALID_PATHになる |
+
+```gherkin
+Scenario: 存在しないパスはINVALID_PATH
+  Given 実在しない対象パス
+  When 本usecaseを実行する
+  Then INVALID_PATHエラーが返る
+```
+
+### 解決できないschemaRefはINVALID_SCHEMA_REF
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | リポジトリ解決契約：schemaRefを解決できないとき、SchemaRepositoryを介した解決に失敗しINVALID_SCHEMA_REFになる |
+
+```gherkin
+Scenario: 解決できないschemaRefはINVALID_SCHEMA_REF
+  Given 解決できないschemaRef
+  When 本usecaseを実行する
+  Then INVALID_SCHEMA_REFエラーが返る
 ```

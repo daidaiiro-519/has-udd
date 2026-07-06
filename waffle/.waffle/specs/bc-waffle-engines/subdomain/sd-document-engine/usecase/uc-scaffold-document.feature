@@ -5,6 +5,16 @@ Feature: uc-scaffold-document
     When 同じdocumentIdでcreateを再実行する
     Then fillで書き込んだvaluesは保持されたままである
 
+  Scenario: 存在しないパスはINVALID_PATH
+    Given 実在しない対象パス
+    When 本usecaseを実行する
+    Then INVALID_PATHエラーが返る
+
+  Scenario: 解決できないschemaRefはINVALID_SCHEMA_REF
+    Given 解決できないschemaRef
+    When 本usecaseを実行する
+    Then INVALID_SCHEMA_REFエラーが返る
+
   Scenario: 生成した骨格は自分の schema で valid
     Given engine 種別の Document（discriminator 指定済み）
     When create する
@@ -44,8 +54,3 @@ Feature: uc-scaffold-document
     Given discriminator(skillKind=custom)
     When createを実行する
     Then engineとは異なりcontent配下にprocessingTargetを持つ骨格が生成される
-
-  Scenario: 未知のschemaRefはINVALID_SCHEMA_REF
-    Given 解決できないschemaRef
-    When createを実行する
-    Then INVALID_SCHEMA_REFエラーが返る

@@ -52,6 +52,13 @@ sequenceDiagram
 
 ---
 
+## 操作保証
+
+- When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（リポジトリによる解決プロセス自体の契約・DocumentRepositoryを介して判定する）。
+- When 対象のschemaRefを解決できないとき、engine は INVALID_SCHEMA_REF エラーを返す shall（リポジトリによる解決プロセス自体の契約・SchemaRepositoryを介して判定する）。
+
+---
+
 ## エラー
 
 | コード | 条件 |
@@ -113,18 +120,6 @@ Scenario: 一致が無くても正常系で空配列を返す
 Scenario: 未知の operation はエラーを返す
   When 未知の operation を実行する
   Then INVALID_OPERATION エラーが返る
-```
-
-### 存在しないパスはエラーを返す
-
-| 分類 | 観点 |
-|---|---|
-| 異常系 | エラー：対象パスが存在しないときは INVALID_PATH |
-
-```gherkin
-Scenario: 存在しないパスはエラーを返す
-  When 存在しないパスを対象に query する
-  Then INVALID_PATH エラーが返る
 ```
 
 ### 必須パラメータの欠落はエラーを返す
@@ -265,4 +260,34 @@ Scenario: schemaRefを持たないファイルはrawで返す
   Given schemaRefを持たない対象ファイル
   When 任意のoperationを実行する
   Then valueはtype=rawとして生テキストを返す
+```
+
+---
+
+## 操作保証シナリオ
+
+### 存在しないパスはINVALID_PATH
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | リポジトリ解決契約：対象パスが実在しないとき、DocumentRepositoryを介した解決に失敗しINVALID_PATHになる |
+
+```gherkin
+Scenario: 存在しないパスはINVALID_PATH
+  Given 実在しない対象パス
+  When 本usecaseを実行する
+  Then INVALID_PATHエラーが返る
+```
+
+### 解決できないschemaRefはINVALID_SCHEMA_REF
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | リポジトリ解決契約：schemaRefを解決できないとき、SchemaRepositoryを介した解決に失敗しINVALID_SCHEMA_REFになる |
+
+```gherkin
+Scenario: 解決できないschemaRefはINVALID_SCHEMA_REF
+  Given 解決できないschemaRef
+  When 本usecaseを実行する
+  Then INVALID_SCHEMA_REFエラーが返る
 ```

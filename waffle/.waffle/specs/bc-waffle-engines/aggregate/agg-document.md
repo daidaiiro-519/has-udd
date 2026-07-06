@@ -55,7 +55,6 @@
 | SUPERSEDED は終端であり、以後どのコマンドも受け付けない | guard | 置換後の変更を防ぐ |
 | DEPRECATED は終端であり、以後どのコマンドも受け付けない | guard | 廃止後の変更を防ぐ |
 | Document のパス解決は、いかなる operation・command からも常にプロジェクトルート内に閉じ込められる（パストラバーサルを許さない） | guard | ファイルアクセスというデータアクセス層の技術的関心事だが、Document 集約が扱う全ての操作に横断的に適用される不変条件であり、特定 usecase の業務シナリオではなく集約の不変条件として一箇所で保証する |
-| 存在しないパスを対象にした操作は、いかなる operation・command からも常に INVALID_PATH として拒否される | guard | query/render/lint/scan 等、複数 usecase が同じ「対象パスが存在しない」状況に個別に対応していた（重複）。Document 集約が扱う全ての操作に横断的に適用される不変条件として一箇所で保証する |
 | schemaRef を持たない Document を対象にした、schema 解決を要する操作は、いかなる operation・command からも常に MISSING_SCHEMA_REF として拒否される | guard | 「schemaRef は常に存在する」は理想状態の不変条件だが、scaffold 直後の未検証 Document 等、実際には欠けている状態が生じうる。render/validate が個別に対応していた（重複）この防御的振る舞いを集約の不変条件として一箇所で保証する |
 
 ---
@@ -338,19 +337,6 @@ Scenario: パストラバーサルを含むパスは拒否される
 Scenario: ディレクトリ横断はプロジェクトルート外を拒否する
   Given プロジェクトルート外を指すディレクトリパス
   When index_scan_dir を実行する
-  Then INVALID_PATH エラーが返る
-```
-
-### 存在しないパスはINVALID_PATHとして拒否される
-
-| 分類 | 観点 |
-|---|---|
-| 異常系 | パス解決：対象パスが実在しない場合はどの operation・command でも同じ扱いになる |
-
-```gherkin
-Scenario: 存在しないパスはINVALID_PATHとして拒否される
-  Given 実在しない対象パス
-  When 任意の operation・command を実行する
   Then INVALID_PATH エラーが返る
 ```
 

@@ -18,10 +18,6 @@ Feature: uc-query-document
     When 未知の operation を実行する
     Then INVALID_OPERATION エラーが返る
 
-  Scenario: 存在しないパスはエラーを返す
-    When 存在しないパスを対象に query する
-    Then INVALID_PATH エラーが返る
-
   Scenario: 必須パラメータの欠落はエラーを返す
     When blockKey を指定せずに get_block を実行する
     Then MISSING_PARAM エラーが返る
@@ -73,3 +69,13 @@ Feature: uc-query-document
     Given schemaRefを持たない対象ファイル
     When 任意のoperationを実行する
     Then valueはtype=rawとして生テキストを返す
+
+  Scenario: 存在しないパスはINVALID_PATH
+    Given 実在しない対象パス
+    When 本usecaseを実行する
+    Then INVALID_PATHエラーが返る
+
+  Scenario: 解決できないschemaRefはINVALID_SCHEMA_REF
+    Given 解決できないschemaRef
+    When 本usecaseを実行する
+    Then INVALID_SCHEMA_REFエラーが返る

@@ -42,15 +42,6 @@ def test_schemaRef_を持たない_Document_は描画しない():
     assert result.details[0] == "MISSING_SCHEMA_REF"
 
 
-def test_存在しないパスは描画しない():
-    """
-    When 存在しないパスを対象に render する
-    Then INVALID_PATH エラーが返る
-    """
-    result = _engine().run("does/not/exist.json", deploy=False)
-    assert isinstance(result, Err), result
-    assert result.details[0] == "INVALID_PATH"
-
 
 def test_deploy_すると_canonical_と_deploy_先の両方に書く():
     """

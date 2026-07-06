@@ -35,11 +35,6 @@ Feature: agg-document
     When index_scan_dir を実行する
     Then INVALID_PATH エラーが返る
 
-  Scenario: 存在しないパスはINVALID_PATHとして拒否される
-    Given 実在しない対象パス
-    When 任意の operation・command を実行する
-    Then INVALID_PATH エラーが返る
-
   Scenario: schemaRefを持たないDocumentはMISSING_SCHEMA_REFとして拒否される
     Given schemaRef を持たない Document
     When schema 解決を要する operation・command を実行する

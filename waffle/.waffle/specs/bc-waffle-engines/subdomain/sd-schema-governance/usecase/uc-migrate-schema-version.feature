@@ -39,3 +39,13 @@ Feature: uc-migrate-schema-version
     Given value-map/discriminator-remap宣言を持つ新schemaと、旧documentType/specKindを持つDocument
     When prepareMigrationを実行する
     Then 値の対応表と旧content構造の照合により、AIの推論を介さず機械的に新しい値へ変換される
+
+  Scenario: 存在しないパスはINVALID_PATH
+    Given 実在しない対象パス
+    When 本usecaseを実行する
+    Then INVALID_PATHエラーが返る
+
+  Scenario: 解決できないschemaRefはINVALID_SCHEMA_REF
+    Given 解決できないschemaRef
+    When 本usecaseを実行する
+    Then INVALID_SCHEMA_REFエラーが返る

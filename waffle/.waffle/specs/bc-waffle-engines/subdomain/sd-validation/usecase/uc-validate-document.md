@@ -51,6 +51,13 @@ sequenceDiagram
 
 ---
 
+## 操作保証
+
+- When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（リポジトリによる解決プロセス自体の契約・DocumentRepositoryを介して判定する）。
+- When 対象のschemaRefを解決できないとき、engine は INVALID_SCHEMA_REF エラーを返す shall（リポジトリによる解決プロセス自体の契約・SchemaRepositoryを介して判定する）。
+
+---
+
 ## エラー
 
 | コード | 条件 |
@@ -126,19 +133,6 @@ Scenario: SUPERSEDEDは終端でありvalidateを受け付けない
   Then INVALID_TRANSITIONエラーが返る
 ```
 
-### 存在しないパスはINVALID_PATH
-
-| 分類 | 観点 |
-|---|---|
-| 異常系 | エラー：対象パスが存在しないときの失敗 |
-
-```gherkin
-Scenario: 存在しないパスはINVALID_PATH
-  Given 存在しない対象パス
-  When validateする
-  Then INVALID_PATHエラーが返る
-```
-
 ### 不正なJSONはINVALID_JSON
 
 | 分類 | 観点 |
@@ -150,4 +144,34 @@ Scenario: 不正なJSONはINVALID_JSON
   Given 不正なJSONの対象ファイル
   When validateする
   Then INVALID_JSONエラーが返る
+```
+
+---
+
+## 操作保証シナリオ
+
+### 存在しないパスはINVALID_PATH
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | リポジトリ解決契約：対象パスが実在しないとき、DocumentRepositoryを介した解決に失敗しINVALID_PATHになる |
+
+```gherkin
+Scenario: 存在しないパスはINVALID_PATH
+  Given 実在しない対象パス
+  When 本usecaseを実行する
+  Then INVALID_PATHエラーが返る
+```
+
+### 解決できないschemaRefはINVALID_SCHEMA_REF
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | リポジトリ解決契約：schemaRefを解決できないとき、SchemaRepositoryを介した解決に失敗しINVALID_SCHEMA_REFになる |
+
+```gherkin
+Scenario: 解決できないschemaRefはINVALID_SCHEMA_REF
+  Given 解決できないschemaRef
+  When 本usecaseを実行する
+  Then INVALID_SCHEMA_REFエラーが返る
 ```

@@ -59,8 +59,3 @@ Feature: agg-schema
     Given Documentのschemaが指しうる型(DomainSpecSchema/PresentationSpecSchema/CodingSchema/SkillSchema)
     When 各schemaファイルのx-schema-statusを確認する
     Then 全てPUBLISHED/DEPRECATEDのいずれかを宣言している
-
-  Scenario: 解決できないschemaRefはINVALID_SCHEMA_REFとして拒否される
-    Given 解決できないschemaRef
-    When 任意のoperation・commandを実行する
-    Then INVALID_SCHEMA_REFエラーが返る

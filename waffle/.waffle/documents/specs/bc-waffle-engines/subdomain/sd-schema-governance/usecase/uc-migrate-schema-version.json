@@ -197,6 +197,35 @@
           "covers": "受け入れ基準: prepareMigrationはvalue-map/discriminator-remapを機械的に処理する"
         }
       ]
+    },
+    "operationGuarantees": {
+      "blockType": "OperationGuarantees",
+      "title": "操作保証",
+      "items": [
+        "When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（リポジトリによる解決プロセス自体の契約・DocumentRepositoryを介して判定する）。",
+        "When 対象のschemaRefを解決できないとき、engine は INVALID_SCHEMA_REF エラーを返す shall（リポジトリによる解決プロセス自体の契約・SchemaRepositoryを介して判定する）。"
+      ]
+    },
+    "guaranteeScenarios": {
+      "blockType": "GuaranteeScenarios",
+      "title": "操作保証シナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "存在しないパスはINVALID_PATH",
+          "category": "異常系",
+          "viewpoint": "リポジトリ解決契約：対象パスが実在しないとき、DocumentRepositoryを介した解決に失敗しINVALID_PATHになる",
+          "gherkin": "Scenario: 存在しないパスはINVALID_PATH\n  Given 実在しない対象パス\n  When 本usecaseを実行する\n  Then INVALID_PATHエラーが返る",
+          "covers": "操作保証: 対象パスが存在しないときはINVALID_PATHを返す"
+        },
+        {
+          "name": "解決できないschemaRefはINVALID_SCHEMA_REF",
+          "category": "異常系",
+          "viewpoint": "リポジトリ解決契約：schemaRefを解決できないとき、SchemaRepositoryを介した解決に失敗しINVALID_SCHEMA_REFになる",
+          "gherkin": "Scenario: 解決できないschemaRefはINVALID_SCHEMA_REF\n  Given 解決できないschemaRef\n  When 本usecaseを実行する\n  Then INVALID_SCHEMA_REFエラーが返る",
+          "covers": "操作保証: schemaRefを解決できないときはINVALID_SCHEMA_REFを返す"
+        }
+      ]
     }
   }
 }

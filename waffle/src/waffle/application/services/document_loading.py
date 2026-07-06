@@ -14,7 +14,10 @@ import json
 from waffle.application.ports.document_repository import DocumentRepository
 from waffle.application.ports.schema_repository import SchemaRepository
 from waffle.domain.services.path_confinement import is_confined
+from waffle.domain.services.schema_ref_guard import require_schema_ref
 from waffle.shared.result import Err, Ok, Result
+
+__all__ = ["load_document", "require_schema_ref", "load_schema"]
 
 
 def _err(code: str, message: str) -> Err:
@@ -31,14 +34,6 @@ def load_document(documents: DocumentRepository, path: str) -> Result[dict]:
         return _err("INVALID_PATH", f"ファイルが見つかりません: {path}")
     except json.JSONDecodeError:
         return _err("INVALID_JSON", f"JSON として解釈できません: {path}")
-
-
-def require_schema_ref(document: dict) -> Result[str]:
-    """document が schemaRef を持つことを確認する(MISSING_SCHEMA_REF)。"""
-    schema_ref = document.get("schemaRef")
-    if not schema_ref:
-        return _err("MISSING_SCHEMA_REF", "document に schemaRef がありません")
-    return Ok(schema_ref)
 
 
 def load_schema(schemas: SchemaRepository, schema_ref: str) -> Result[dict]:

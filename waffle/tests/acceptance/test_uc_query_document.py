@@ -63,15 +63,6 @@ def test_未知の_operation_はエラーを返す():
     assert result.details[0] == "INVALID_OPERATION"
 
 
-def test_存在しないパスはエラーを返す():
-    """
-    When 存在しないパスを対象に query する
-    Then INVALID_PATH エラーが返る
-    """
-    result = _engine().run("get_block", "does/not/exist.json", {"blockKey": "title"})
-    assert isinstance(result, Err), result
-    assert result.details[0] == "INVALID_PATH"
-
 
 def test_必須パラメータの欠落はエラーを返す():
     """

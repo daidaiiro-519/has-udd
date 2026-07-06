@@ -25,12 +25,17 @@ Feature: uc-validate-document
     When validateする
     Then INVALID_TRANSITIONエラーが返る
 
-  Scenario: 存在しないパスはINVALID_PATH
-    Given 存在しない対象パス
-    When validateする
-    Then INVALID_PATHエラーが返る
-
   Scenario: 不正なJSONはINVALID_JSON
     Given 不正なJSONの対象ファイル
     When validateする
     Then INVALID_JSONエラーが返る
+
+  Scenario: 存在しないパスはINVALID_PATH
+    Given 実在しない対象パス
+    When 本usecaseを実行する
+    Then INVALID_PATHエラーが返る
+
+  Scenario: 解決できないschemaRefはINVALID_SCHEMA_REF
+    Given 解決できないschemaRef
+    When 本usecaseを実行する
+    Then INVALID_SCHEMA_REFエラーが返る

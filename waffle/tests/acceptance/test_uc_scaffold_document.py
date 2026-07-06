@@ -197,15 +197,3 @@ def test_customはengineと構成が異なる():
     assert "processingTarget" in result.value["skeleton"]["content"]
 
 
-def test_未知のschemaRefはINVALID_SCHEMA_REF():
-    """
-    Given 解決できないschemaRef
-    When createを実行する
-    Then INVALID_SCHEMA_REFエラーが返る
-    """
-    result = _engine().run(
-        "create",
-        {"schemaRef": "NoSuchSchema/v1", "documentId": _TEST_DOC_ID, "discriminator": {"skillKind": "engine"}},
-    )
-    assert isinstance(result, Err), result
-    assert result.details[0] == "INVALID_SCHEMA_REF"

@@ -1,6 +1,6 @@
 """path_template（順方向resolve・逆方向reverse_parse）の単体テスト。
 
-sd-harness-core(subdomain)のドメインサービス「パステンプレート解決」に対応するネイティブテスト。
+sd-document-engine(subdomain)のドメインサービス「パステンプレート解決」に対応するネイティブテスト。
 """
 from waffle.domain.services import path_template
 
@@ -43,9 +43,9 @@ def test_テンプレートと一致しないパスは復元できない():
 def test_reverse_parse_duplicate_variable_name_self_contained():
     """subdomain の自己格納パターン（フォルダ名=ファイル名=documentId）は同名変数が2回登場する。"""
     template = ".waffle/documents/specs/{contextRef}/subdomain/{documentId}/{documentId}.json"
-    path = ".waffle/documents/specs/bc-waffle-engines/subdomain/sd-harness-core/sd-harness-core.json"
+    path = ".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/sd-document-engine.json"
     assert path_template.reverse_parse(template, path) == {
-        "contextRef": "bc-waffle-engines", "documentId": "sd-harness-core",
+        "contextRef": "bc-waffle-engines", "documentId": "sd-document-engine",
     }
 
 

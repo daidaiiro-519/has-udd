@@ -1,0 +1,27 @@
+# sd-reconciliation
+
+---
+
+## 概要
+
+ソースコードベースを、AI に生ファイルを読ませず engine が機械的に構造抽出・検証する業務領域。docstring の構造化抽出（uc-scan-source-code）と規約適合検証（uc-lint-docstring）を通じて、コードと仕様の対応関係を保つ（reconcile）。
+
+---
+
+## カテゴリー
+
+- **カテゴリー**: core
+- **根拠**: sd-document-engine が Document(document.json) に対して適用する『AI に構造を推論させず engine が決定的に処理する』という Harness 原則を、対象をソースコードに広げて適用したもの。既製の静的解析ツールでは代替できない、waffle 独自の差別化。
+
+---
+
+## 所属ユースケース
+
+- uc-scan-source-code
+- uc-lint-docstring
+
+---
+
+## 実装ガイド
+
+中核ゆえドメインモデルで厚く実装する。docstring の構造化抽出・規約適合判定は自前の決定的コードで書き、AIに生ソースを読ませない。

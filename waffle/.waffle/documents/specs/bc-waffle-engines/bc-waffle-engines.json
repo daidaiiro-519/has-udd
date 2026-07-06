@@ -23,14 +23,15 @@
         { "term": "prompt(読み方指針)", "definition": "取得した value をどう解釈するかの指針。schema の x-prompt-query 由来。" },
         { "term": "骨格(scaffold)", "definition": "schema を機械走査して生成した、値が空の schema 準拠 Document の雛形。" },
         { "term": "UDD ループ", "definition": "Spec を正本とし、検証・描画・受け入れテストを通じて仕様と実装の整合を保つ開発サイクル。" },
-        { "term": "不変条件", "definition": "集約が常に満たす業務ルール。static は schema、dynamic は guard が守る。" }
+        { "term": "不変条件", "definition": "集約が常に満たす業務ルール。static は schema、dynamic は guard が守る。" },
+        { "term": "reconcile", "definition": "ソースコードとSpecの対応関係を保つこと。AIに生ソースを読ませず engine が構造化抽出・規約適合検証を担う。" }
       ]
     },
     "members": {
       "blockType": "Members",
       "title": "構成要素",
       "items": [
-        { "kind": "subdomain", "members": "sd-harness-core / sd-validation / sd-rendering" },
+        { "kind": "subdomain", "members": "sd-document-engine / sd-validation / sd-reconciliation" },
         { "kind": "aggregate", "members": "agg-document / agg-schema" },
         { "kind": "usecase", "members": "uc-scaffold-document / uc-query-document / uc-validate-document / uc-render-document / uc-scan-source-code / uc-lint-docstring" }
       ]

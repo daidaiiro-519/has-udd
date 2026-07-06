@@ -25,17 +25,17 @@ Feature: document を schema 適合検証する (uc-validate-document)
       | .waffle/documents/coding/coding-standard-python-hexagonal.json | ACTIVE    |
       | .waffle/documents/coding/test-standard-python-hexagonal.json   | ACTIVE    |
       | .waffle/documents/specs/bc-waffle-engines/bc-waffle-engines.json                                       | VALIDATED |
-      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-harness-core/sd-harness-core.json               | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/sd-document-engine.json         | VALIDATED |
       | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-validation/sd-validation.json                   | VALIDATED |
-      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-rendering/sd-rendering.json                     | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-reconciliation/sd-reconciliation.json            | VALIDATED |
       | .waffle/documents/specs/bc-waffle-engines/aggregate/agg-document.json                                  | VALIDATED |
       | .waffle/documents/specs/bc-waffle-engines/aggregate/agg-schema.json                                    | VALIDATED |
-      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-harness-core/usecase/uc-query-document.json     | VALIDATED |
-      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-rendering/usecase/uc-render-document.json       | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase/uc-query-document.json  | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase/uc-render-document.json | VALIDATED |
       | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-validation/usecase/uc-validate-document.json    | VALIDATED |
-      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-harness-core/usecase/uc-scaffold-document.json  | VALIDATED |
-      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-harness-core/usecase/uc-scan-source-code.json   | VALIDATED |
-      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-validation/usecase/uc-lint-docstring.json       | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase/uc-scaffold-document.json | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-reconciliation/usecase/uc-scan-source-code.json | VALIDATED |
+      | .waffle/documents/specs/bc-waffle-engines/subdomain/sd-reconciliation/usecase/uc-lint-docstring.json   | VALIDATED |
 
   Scenario: SUPERSEDED は終端であり validate を受け付けない (Re-2 guard)
     Given SUPERSEDED 状態の一時ファイルを対象にする

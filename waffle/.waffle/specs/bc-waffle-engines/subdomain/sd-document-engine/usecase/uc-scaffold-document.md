@@ -123,6 +123,71 @@ Scenario: discriminator が無いと候補を案内する
   Then MISSING_DISCRIMINATOR エラーが候補つきで返る
 ```
 
+### createはengine_skillの骨格を生成する
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | 骨格生成：discriminator(skillKind=engine)からschema分岐に沿った骨格が組まれる |
+
+```gherkin
+Scenario: createはengine_skillの骨格を生成する
+  Given schemaRef, documentId, discriminator(skillKind=engine)
+  When createを実行する
+  Then documentType/schemaRef/skillKind/statusが正しく設定され、content配下にinterface/invocationSpecがある骨格が生成される
+```
+
+### createはx_source_targetに骨格を書き出す
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | 永続化：createはschema宣言のx-source-targetへ骨格ファイルを書き出す |
+
+```gherkin
+Scenario: createはx_source_targetに骨格を書き出す
+  Given schemaRef, documentId, discriminator
+  When createを実行する
+  Then schemaのx-source-target宣言どおりのパスにファイルが書き出される
+```
+
+### fillTemplateは値フィールドのpathとprompt_x_prompt_writeを持つ
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | fillTemplate：createが返すfillTemplateは値フィールドのpath×x-prompt-writeの一覧である |
+
+```gherkin
+Scenario: fillTemplateは値フィールドのpathとprompt_x_prompt_writeを持つ
+  Given schemaRef, documentId, discriminator
+  When createを実行する
+  Then fillTemplateには値フィールドのpathとx-prompt-write由来のpromptを持つエントリが含まれる
+```
+
+### customはengineと構成が異なる
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | discriminator分岐：skillKind=customはengineと異なるcontent構造(processingTarget)を持つ |
+
+```gherkin
+Scenario: customはengineと構成が異なる
+  Given discriminator(skillKind=custom)
+  When createを実行する
+  Then engineとは異なりcontent配下にprocessingTargetを持つ骨格が生成される
+```
+
+### 未知のschemaRefはINVALID_SCHEMA_REF
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | エラー：createが解決できないschemaRefを指定されたときの失敗 |
+
+```gherkin
+Scenario: 未知のschemaRefはINVALID_SCHEMA_REF
+  Given 解決できないschemaRef
+  When createを実行する
+  Then INVALID_SCHEMA_REFエラーが返る
+```
+
 ---
 
 ## 操作保証シナリオ

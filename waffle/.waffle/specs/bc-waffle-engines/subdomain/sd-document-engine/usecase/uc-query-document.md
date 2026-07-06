@@ -162,3 +162,107 @@ Scenario: 不正な正規表現はエラーを返す
   When 不正な正規表現で filter_pattern を実行する
   Then INVALID_PATTERN エラーが返る
 ```
+
+### scanは生テキストを返す
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | ファイル単位：scanはファイルをそのまま読む(prompt=null) |
+
+```gherkin
+Scenario: scanは生テキストを返す
+  Given query engine と対象 Document
+  When operation scan を実行する
+  Then value は生テキストであり、prompt は null である
+```
+
+### get_metaはメタ情報を返す
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | ファイル単位：get_metaはdocumentId等のメタフィールドのみを返す |
+
+```gherkin
+Scenario: get_metaはメタ情報を返す
+  Given query engine と対象 Document
+  When operation get_meta を実行する
+  Then value にはdocumentId等のメタフィールドのみが含まれる
+```
+
+### index_scanはblockTypeとpromptをschemaから動的算出する
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | ファイル単位：index_scanは_indexを保存せず読み取り時に動的算出する |
+
+```gherkin
+Scenario: index_scanはblockTypeとpromptをschemaから動的算出する
+  Given query engine と対象 Document
+  When operation index_scan を実行する
+  Then 各blockのblockTypeとx-prompt-query由来のpromptが返る
+```
+
+### index_scan_dirはディレクトリ横断でindexを集約する
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | ファイル単位：index_scan_dirは複数Documentのindexを1回で集約する |
+
+```gherkin
+Scenario: index_scan_dirはディレクトリ横断でindexを集約する
+  Given query engine と対象ディレクトリ
+  When operation index_scan_dir を実行する
+  Then ディレクトリ配下の各Documentのindexがまとめて返る
+```
+
+### get_fieldはblockの1フィールドを返す
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | ブロック単位：get_fieldは指定フィールドのみを取り出す |
+
+```gherkin
+Scenario: get_fieldはblockの1フィールドを返す
+  Given query engine と対象 Document
+  When operation get_field を blockKey, field で実行する
+  Then value は指定フィールドの値である
+```
+
+### get_by_idは単一オブジェクトを返す
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | 配列操作：get_by_idはidが一意である前提でリストでなく単一要素を返す(filter_itemsとの役割分離) |
+
+```gherkin
+Scenario: get_by_idは単一オブジェクトを返す
+  Given query engine と対象 Document
+  When operation get_by_id を idField, idValue で実行する
+  Then 一致した単一の要素がvalueとして返る（配列ではない）
+```
+
+### find_allは全階層を再帰収集する
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | 再帰：find_allはネスト構造の全階層からfieldNameの値を集める |
+
+```gherkin
+Scenario: find_allは全階層を再帰収集する
+  Given query engine と対象 Document
+  When operation find_all を fieldName で実行する
+  Then 全階層に出現するfieldNameの値がvalueとして返る
+```
+
+### schemaRefを持たないファイルはrawで返す
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | フォールバック：schemaRefを持たない通常ファイルはtype=rawとして生テキストを返す |
+
+```gherkin
+Scenario: schemaRefを持たないファイルはrawで返す
+  Given schemaRefを持たない対象ファイル
+  When 任意のoperationを実行する
+  Then valueはtype=rawとして生テキストを返す
+```

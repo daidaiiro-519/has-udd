@@ -33,3 +33,43 @@ Feature: uc-query-document
   Scenario: 不正な正規表現はエラーを返す
     When 不正な正規表現で filter_pattern を実行する
     Then INVALID_PATTERN エラーが返る
+
+  Scenario: scanは生テキストを返す
+    Given query engine と対象 Document
+    When operation scan を実行する
+    Then value は生テキストであり、prompt は null である
+
+  Scenario: get_metaはメタ情報を返す
+    Given query engine と対象 Document
+    When operation get_meta を実行する
+    Then value にはdocumentId等のメタフィールドのみが含まれる
+
+  Scenario: index_scanはblockTypeとpromptをschemaから動的算出する
+    Given query engine と対象 Document
+    When operation index_scan を実行する
+    Then 各blockのblockTypeとx-prompt-query由来のpromptが返る
+
+  Scenario: index_scan_dirはディレクトリ横断でindexを集約する
+    Given query engine と対象ディレクトリ
+    When operation index_scan_dir を実行する
+    Then ディレクトリ配下の各Documentのindexがまとめて返る
+
+  Scenario: get_fieldはblockの1フィールドを返す
+    Given query engine と対象 Document
+    When operation get_field を blockKey, field で実行する
+    Then value は指定フィールドの値である
+
+  Scenario: get_by_idは単一オブジェクトを返す
+    Given query engine と対象 Document
+    When operation get_by_id を idField, idValue で実行する
+    Then 一致した単一の要素がvalueとして返る（配列ではない）
+
+  Scenario: find_allは全階層を再帰収集する
+    Given query engine と対象 Document
+    When operation find_all を fieldName で実行する
+    Then 全階層に出現するfieldNameの値がvalueとして返る
+
+  Scenario: schemaRefを持たないファイルはrawで返す
+    Given schemaRefを持たない対象ファイル
+    When 任意のoperationを実行する
+    Then valueはtype=rawとして生テキストを返す

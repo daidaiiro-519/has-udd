@@ -14,6 +14,8 @@ from waffle.shared.result import Err, Ok
 _SKILL_SCHEMA = "SkillSchema/v1"
 _TEST_DOC_ID = "test-acceptance-poc-migration"
 _TEST_DOC_PATH = f".waffle/documents/skills/{_TEST_DOC_ID}.json"
+_CUSTOM_DOC_ID = "test-acceptance-scaffold-custom"
+_CUSTOM_DOC_PATH = f".waffle/documents/skills/{_CUSTOM_DOC_ID}.json"
 
 
 def _engine() -> ScaffoldEngine:
@@ -22,10 +24,12 @@ def _engine() -> ScaffoldEngine:
 
 def setup_function():
     Path(_TEST_DOC_PATH).unlink(missing_ok=True)
+    Path(_CUSTOM_DOC_PATH).unlink(missing_ok=True)
 
 
 def teardown_function():
     Path(_TEST_DOC_PATH).unlink(missing_ok=True)
+    Path(_CUSTOM_DOC_PATH).unlink(missing_ok=True)
 
 
 def test_生成した骨格は自分の_schema_で_valid():
@@ -127,3 +131,81 @@ def test_既存documentへの再createはvaluesを破壊しない():
 
     doc = FsDocumentRepository().load(create_result.value["path"])
     assert doc["content"]["purpose"]["text"] == "ドメインを分析する"
+
+
+def test_createはengine_skillの骨格を生成する():
+    """
+    Given schemaRef, documentId, discriminator(skillKind=engine)
+    When createを実行する
+    Then documentType/schemaRef/skillKind/statusが正しく設定され、content配下にinterface/invocationSpecがある骨格が生成される
+    """
+    result = _engine().run(
+        "create",
+        {"schemaRef": _SKILL_SCHEMA, "documentId": _TEST_DOC_ID, "discriminator": {"skillKind": "engine"}},
+    )
+    assert isinstance(result, Ok), result
+    skeleton = result.value["skeleton"]
+    assert skeleton["documentType"] == "Skill"
+    assert skeleton["schemaRef"] == _SKILL_SCHEMA
+    assert skeleton["skillKind"] == "engine"
+    assert skeleton["status"] == "DRAFT"
+    assert "interface" in skeleton["content"]
+    assert "invocationSpec" in skeleton["content"]
+
+
+def test_createはx_source_targetに骨格を書き出す():
+    """
+    Given schemaRef, documentId, discriminator
+    When createを実行する
+    Then schemaのx-source-target宣言どおりのパスにファイルが書き出される
+    """
+    result = _engine().run(
+        "create",
+        {"schemaRef": _SKILL_SCHEMA, "documentId": _TEST_DOC_ID, "discriminator": {"skillKind": "engine"}},
+    )
+    assert isinstance(result, Ok), result
+    assert Path(_TEST_DOC_PATH).exists()
+
+
+def test_fillTemplateは値フィールドのpathとprompt_x_prompt_writeを持つ():
+    """
+    Given schemaRef, documentId, discriminator
+    When createを実行する
+    Then fillTemplateには値フィールドのpathとx-prompt-write由来のpromptを持つエントリが含まれる
+    """
+    result = _engine().run(
+        "create",
+        {"schemaRef": _SKILL_SCHEMA, "documentId": _TEST_DOC_ID, "discriminator": {"skillKind": "engine"}},
+    )
+    assert isinstance(result, Ok), result
+    entries = {e["path"]: e for e in result.value["fillTemplate"]}
+    assert "content.purpose.text" in entries
+    assert entries["content.purpose.text"]["prompt"]
+
+
+def test_customはengineと構成が異なる():
+    """
+    Given discriminator(skillKind=custom)
+    When createを実行する
+    Then engineとは異なりcontent配下にprocessingTargetを持つ骨格が生成される
+    """
+    result = _engine().run(
+        "create",
+        {"schemaRef": _SKILL_SCHEMA, "documentId": _CUSTOM_DOC_ID, "discriminator": {"skillKind": "custom"}},
+    )
+    assert isinstance(result, Ok), result
+    assert "processingTarget" in result.value["skeleton"]["content"]
+
+
+def test_未知のschemaRefはINVALID_SCHEMA_REF():
+    """
+    Given 解決できないschemaRef
+    When createを実行する
+    Then INVALID_SCHEMA_REFエラーが返る
+    """
+    result = _engine().run(
+        "create",
+        {"schemaRef": "NoSuchSchema/v1", "documentId": _TEST_DOC_ID, "discriminator": {"skillKind": "engine"}},
+    )
+    assert isinstance(result, Err), result
+    assert result.details[0] == "INVALID_SCHEMA_REF"

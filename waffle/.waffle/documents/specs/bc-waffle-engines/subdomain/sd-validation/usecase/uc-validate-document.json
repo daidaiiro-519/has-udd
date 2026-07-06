@@ -122,6 +122,34 @@
           "viewpoint": "エラー：schemaRef 欠如は MISSING_SCHEMA_REF",
           "gherkin": "Scenario: schemaRef を持たない Document は検証できない\n  Given schemaRef の無い Document\n  When validate する\n  Then MISSING_SCHEMA_REF エラーが返る",
           "covers": "エラー: MISSING_SCHEMA_REF"
+        },
+        {
+          "name": "既存documentはschemaに適合する",
+          "category": "正常系",
+          "viewpoint": "dogfood：waffle自身が持つ全document(skill/coding/spec)がそれぞれのschemaに適合し、正しいstatusになる(dogfood横断regression)",
+          "gherkin": "Scenario Outline: 既存documentはschemaに適合する\n  Given waffle自身のdocument\n  When validateする\n  Then 成功し、schemaのlifecycleに応じた正しいstatusになる",
+          "covers": "dogfood: 全document横断の自己整合性"
+        },
+        {
+          "name": "SUPERSEDEDは終端でありvalidateを受け付けない",
+          "category": "異常系",
+          "viewpoint": "usecase配線：SUPERSEDED状態のDocumentに対しvalidate engineがINVALID_TRANSITIONを返す(agg-documentの不変条件はdomain層で純粋検証済み・ここではusecaseの編成を検証する)",
+          "gherkin": "Scenario: SUPERSEDEDは終端でありvalidateを受け付けない\n  Given SUPERSEDED状態のDocument\n  When validateする\n  Then INVALID_TRANSITIONエラーが返る",
+          "covers": "usecase配線: lifecycle_guardの結果をINVALID_TRANSITIONへマッピング"
+        },
+        {
+          "name": "存在しないパスはINVALID_PATH",
+          "category": "異常系",
+          "viewpoint": "エラー：対象パスが存在しないときの失敗",
+          "gherkin": "Scenario: 存在しないパスはINVALID_PATH\n  Given 存在しない対象パス\n  When validateする\n  Then INVALID_PATHエラーが返る",
+          "covers": "エラー: 存在しないパス"
+        },
+        {
+          "name": "不正なJSONはINVALID_JSON",
+          "category": "異常系",
+          "viewpoint": "エラー：対象ファイルがJSONとして解釈できないときの失敗",
+          "gherkin": "Scenario: 不正なJSONはINVALID_JSON\n  Given 不正なJSONの対象ファイル\n  When validateする\n  Then INVALID_JSONエラーが返る",
+          "covers": "エラー: JSON解釈不能"
         }
       ]
     }

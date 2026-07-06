@@ -90,3 +90,99 @@ def test_同じDocumentを2回renderしても同一の成果物になる():
     assert isinstance(first, Ok), first
     assert isinstance(second, Ok), second
     assert first.value["content"] == second.value["content"]
+
+
+def test_SkillSchemaをMarkdownにレンダリングする():
+    """
+    Given SkillSchemaのDocument
+    When renderする
+    Then 見出し・目的・パラメータ表・オペレーション選択・呼び出し例が全て出力に含まれる
+    """
+    result = _engine().run(".waffle/documents/skills/harness-query-engine.json", deploy=False)
+    assert isinstance(result, Ok), result
+    content = result.value["content"]
+    assert "# harness-query-engine" in content
+    assert "## 目的" in content
+    assert "| name | type | 必須 | 説明 | 例 |" in content
+    assert "### Step 2: オペレーションを選ぶ" in content
+    assert "| operation | 用途 | 必須引数 | 例 |" in content
+    assert "waffle query --operation get_block" in content
+
+
+def test_frontmatterはx_frontmatterのドットパスを解決して生成する():
+    """
+    Given x-frontmatterを宣言するSchemaのDocument
+    When renderする
+    Then 出力冒頭にname/description等を含むYAML frontmatterが生成される
+    """
+    result = _engine().run(".waffle/documents/skills/harness-query-engine.json", deploy=False)
+    assert isinstance(result, Ok), result
+    content = result.value["content"]
+    assert "name:" in content
+    assert "description:" in content
+    assert "harness-query-engine" in content
+
+
+def test_CodingSchemaはMarkdownとして描画できる():
+    """
+    Given CodingSchemaのDocument
+    When renderする
+    Then Markdown形式で見出しを含む出力が生成される
+    """
+    result = _engine().run(".waffle/documents/coding/tech-stack-python-hexagonal.json", deploy=False)
+    assert isinstance(result, Ok), result
+    assert result.value["format"] == "md"
+    assert "# " in result.value["content"]
+
+
+def test_usecase_Specは基本フローをシーケンス図にTestScenariosをMarkdownに出す():
+    """
+    Given usecase SpecのDocument
+    When renderする
+    Then 出力にmermaidのsequenceDiagramとテストシナリオ節が含まれ、feature出力にも同じシナリオが含まれる
+    """
+    result = _engine().run(
+        ".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase/uc-query-document.json",
+        deploy=False,
+    )
+    assert isinstance(result, Ok), result
+    content = result.value["content"]
+    assert result.value["format"] == "md"
+    assert "# uc-query-document" in content
+    assert "sequenceDiagram" in content
+    assert "mermaid" in content
+    assert "## テストシナリオ" in content
+    assert "Scenario: 未知の operation はエラーを返す" in content
+    assert "Feature: uc-query-document" in result.value["feature"]
+    assert "Scenario: 未知の operation はエラーを返す" in result.value["feature"]
+
+
+def test_aggregate_Specは集約の構造とライフサイクルをMarkdownに出す():
+    """
+    Given aggregate SpecのDocument
+    When renderする
+    Then 出力にコマンド節・ドメインイベント名・mermaidのstateDiagram-v2が含まれる
+    """
+    result = _engine().run(
+        ".waffle/documents/specs/bc-waffle-engines/aggregate/agg-document.json", deploy=False,
+    )
+    assert isinstance(result, Ok), result
+    content = result.value["content"]
+    assert "## コマンド" in content
+    assert "DocumentRendered" in content
+    assert "stateDiagram-v2" in content
+
+
+def test_不正なJSONはINVALID_JSON():
+    """
+    Given 不正なJSONの対象ファイル
+    When renderする
+    Then INVALID_JSONエラーが返る
+    """
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
+        f.write("{not valid json")
+        path = f.name
+
+    result = _engine().run(path, deploy=False)
+    assert isinstance(result, Err), result
+    assert result.details[0] == "INVALID_JSON"

@@ -20,6 +20,31 @@ Feature: uc-scaffold-document
     When discriminator を指定せずに create する
     Then MISSING_DISCRIMINATOR エラーが候補つきで返る
 
+  Scenario: createはengine_skillの骨格を生成する
+    Given schemaRef, documentId, discriminator(skillKind=engine)
+    When createを実行する
+    Then documentType/schemaRef/skillKind/statusが正しく設定され、content配下にinterface/invocationSpecがある骨格が生成される
+
+  Scenario: createはx_source_targetに骨格を書き出す
+    Given schemaRef, documentId, discriminator
+    When createを実行する
+    Then schemaのx-source-target宣言どおりのパスにファイルが書き出される
+
+  Scenario: fillTemplateは値フィールドのpathとprompt_x_prompt_writeを持つ
+    Given schemaRef, documentId, discriminator
+    When createを実行する
+    Then fillTemplateには値フィールドのpathとx-prompt-write由来のpromptを持つエントリが含まれる
+
+  Scenario: customはengineと構成が異なる
+    Given discriminator(skillKind=custom)
+    When createを実行する
+    Then engineとは異なりcontent配下にprocessingTargetを持つ骨格が生成される
+
+  Scenario: 未知のschemaRefはINVALID_SCHEMA_REF
+    Given 解決できないschemaRef
+    When createを実行する
+    Then INVALID_SCHEMA_REFエラーが返る
+
   Scenario: 既存documentへの再createはvaluesを破壊しない
     Given create済みかつfillで値を書き込み済みのdocumentId
     When 同じdocumentIdでcreateを再実行する

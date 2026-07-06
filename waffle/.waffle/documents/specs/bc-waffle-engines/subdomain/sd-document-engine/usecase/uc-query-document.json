@@ -165,6 +165,62 @@
           "viewpoint": "エラー：filter_pattern の正規表現が不正なときは INVALID_PATTERN",
           "gherkin": "Scenario: 不正な正規表現はエラーを返す\n  When 不正な正規表現で filter_pattern を実行する\n  Then INVALID_PATTERN エラーが返る",
           "covers": "エラー: INVALID_PATTERN"
+        },
+        {
+          "name": "scanは生テキストを返す",
+          "category": "正常系",
+          "viewpoint": "ファイル単位：scanはファイルをそのまま読む(prompt=null)",
+          "gherkin": "Scenario: scanは生テキストを返す\n  Given query engine と対象 Document\n  When operation scan を実行する\n  Then value は生テキストであり、prompt は null である",
+          "covers": "operation: scan"
+        },
+        {
+          "name": "get_metaはメタ情報を返す",
+          "category": "正常系",
+          "viewpoint": "ファイル単位：get_metaはdocumentId等のメタフィールドのみを返す",
+          "gherkin": "Scenario: get_metaはメタ情報を返す\n  Given query engine と対象 Document\n  When operation get_meta を実行する\n  Then value にはdocumentId等のメタフィールドのみが含まれる",
+          "covers": "operation: get_meta"
+        },
+        {
+          "name": "index_scanはblockTypeとpromptをschemaから動的算出する",
+          "category": "正常系",
+          "viewpoint": "ファイル単位：index_scanは_indexを保存せず読み取り時に動的算出する",
+          "gherkin": "Scenario: index_scanはblockTypeとpromptをschemaから動的算出する\n  Given query engine と対象 Document\n  When operation index_scan を実行する\n  Then 各blockのblockTypeとx-prompt-query由来のpromptが返る",
+          "covers": "operation: index_scan"
+        },
+        {
+          "name": "index_scan_dirはディレクトリ横断でindexを集約する",
+          "category": "正常系",
+          "viewpoint": "ファイル単位：index_scan_dirは複数Documentのindexを1回で集約する",
+          "gherkin": "Scenario: index_scan_dirはディレクトリ横断でindexを集約する\n  Given query engine と対象ディレクトリ\n  When operation index_scan_dir を実行する\n  Then ディレクトリ配下の各Documentのindexがまとめて返る",
+          "covers": "operation: index_scan_dir"
+        },
+        {
+          "name": "get_fieldはblockの1フィールドを返す",
+          "category": "正常系",
+          "viewpoint": "ブロック単位：get_fieldは指定フィールドのみを取り出す",
+          "gherkin": "Scenario: get_fieldはblockの1フィールドを返す\n  Given query engine と対象 Document\n  When operation get_field を blockKey, field で実行する\n  Then value は指定フィールドの値である",
+          "covers": "operation: get_field"
+        },
+        {
+          "name": "get_by_idは単一オブジェクトを返す",
+          "category": "正常系",
+          "viewpoint": "配列操作：get_by_idはidが一意である前提でリストでなく単一要素を返す(filter_itemsとの役割分離)",
+          "gherkin": "Scenario: get_by_idは単一オブジェクトを返す\n  Given query engine と対象 Document\n  When operation get_by_id を idField, idValue で実行する\n  Then 一致した単一の要素がvalueとして返る（配列ではない）",
+          "covers": "operation: get_by_id"
+        },
+        {
+          "name": "find_allは全階層を再帰収集する",
+          "category": "正常系",
+          "viewpoint": "再帰：find_allはネスト構造の全階層からfieldNameの値を集める",
+          "gherkin": "Scenario: find_allは全階層を再帰収集する\n  Given query engine と対象 Document\n  When operation find_all を fieldName で実行する\n  Then 全階層に出現するfieldNameの値がvalueとして返る",
+          "covers": "operation: find_all"
+        },
+        {
+          "name": "schemaRefを持たないファイルはrawで返す",
+          "category": "正常系",
+          "viewpoint": "フォールバック：schemaRefを持たない通常ファイルはtype=rawとして生テキストを返す",
+          "gherkin": "Scenario: schemaRefを持たないファイルはrawで返す\n  Given schemaRefを持たない対象ファイル\n  When 任意のoperationを実行する\n  Then valueはtype=rawとして生テキストを返す",
+          "covers": "operation: 全operation共通(raw フォールバック)"
         }
       ]
     }

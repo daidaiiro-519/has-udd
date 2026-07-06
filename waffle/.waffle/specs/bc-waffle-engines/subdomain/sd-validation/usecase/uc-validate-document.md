@@ -99,3 +99,55 @@ Scenario: schemaRef を持たない Document は検証できない
   When validate する
   Then MISSING_SCHEMA_REF エラーが返る
 ```
+
+### 既存documentはschemaに適合する
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | dogfood：waffle自身が持つ全document(skill/coding/spec)がそれぞれのschemaに適合し、正しいstatusになる(dogfood横断regression) |
+
+```gherkin
+Scenario Outline: 既存documentはschemaに適合する
+  Given waffle自身のdocument
+  When validateする
+  Then 成功し、schemaのlifecycleに応じた正しいstatusになる
+```
+
+### SUPERSEDEDは終端でありvalidateを受け付けない
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | usecase配線：SUPERSEDED状態のDocumentに対しvalidate engineがINVALID_TRANSITIONを返す(agg-documentの不変条件はdomain層で純粋検証済み・ここではusecaseの編成を検証する) |
+
+```gherkin
+Scenario: SUPERSEDEDは終端でありvalidateを受け付けない
+  Given SUPERSEDED状態のDocument
+  When validateする
+  Then INVALID_TRANSITIONエラーが返る
+```
+
+### 存在しないパスはINVALID_PATH
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | エラー：対象パスが存在しないときの失敗 |
+
+```gherkin
+Scenario: 存在しないパスはINVALID_PATH
+  Given 存在しない対象パス
+  When validateする
+  Then INVALID_PATHエラーが返る
+```
+
+### 不正なJSONはINVALID_JSON
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | エラー：対象ファイルがJSONとして解釈できないときの失敗 |
+
+```gherkin
+Scenario: 不正なJSONはINVALID_JSON
+  Given 不正なJSONの対象ファイル
+  When validateする
+  Then INVALID_JSONエラーが返る
+```

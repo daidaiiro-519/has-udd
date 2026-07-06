@@ -104,3 +104,105 @@ def test_不正な正規表現はエラーを返す():
     )
     assert isinstance(result, Err), result
     assert result.details[0] == "INVALID_PATTERN"
+
+
+def test_scanは生テキストを返す():
+    """
+    Given query engine と対象 Document
+    When operation scan を実行する
+    Then value は生テキストであり、prompt は null である
+    """
+    result = _engine().run("scan", _TARGET)
+    assert isinstance(result, Ok), result
+    assert result.value["prompt"] is None
+    assert "documentId" in result.value["value"]
+
+
+def test_get_metaはメタ情報を返す():
+    """
+    Given query engine と対象 Document
+    When operation get_meta を実行する
+    Then value にはdocumentId等のメタフィールドのみが含まれる
+    """
+    result = _engine().run("get_meta", _TARGET)
+    assert isinstance(result, Ok), result
+    assert result.value["value"]["documentId"] == "uc-query-document"
+
+
+def test_index_scanはblockTypeとpromptをschemaから動的算出する():
+    """
+    Given query engine と対象 Document
+    When operation index_scan を実行する
+    Then 各blockのblockTypeとx-prompt-query由来のpromptが返る
+    """
+    result = _engine().run("index_scan", _TARGET)
+    assert isinstance(result, Ok), result
+    assert result.value["value"]["mainFlow"]["blockType"] == "MainFlow"
+    assert result.value["value"]["mainFlow"]["prompt"]
+
+
+def test_index_scan_dirはディレクトリ横断でindexを集約する():
+    """
+    Given query engine と対象ディレクトリ
+    When operation index_scan_dir を実行する
+    Then ディレクトリ配下の各Documentのindexがまとめて返る
+    """
+    result = _engine().run(
+        "index_scan_dir", ".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase",
+    )
+    assert isinstance(result, Ok), result
+    assert any("uc-query-document.json" in k for k in result.value["value"])
+
+
+def test_get_fieldはblockの1フィールドを返す():
+    """
+    Given query engine と対象 Document
+    When operation get_field を blockKey, field で実行する
+    Then value は指定フィールドの値である
+    """
+    result = _engine().run("get_field", _TARGET, {"blockKey": "title", "field": "title"})
+    assert isinstance(result, Ok), result
+    assert result.value["value"] == "uc-query-document"
+
+
+def test_get_by_idは単一オブジェクトを返す():
+    """
+    Given query engine と対象 Document
+    When operation get_by_id を idField, idValue で実行する
+    Then 一致した単一の要素がvalueとして返る（配列ではない）
+    """
+    result = _engine().run(
+        "get_by_id", _TARGET,
+        {"blockKey": "testScenarios", "arrayField": "scenarios", "idField": "name", "idValue": "ブロックを丸ごと取得する"},
+    )
+    assert isinstance(result, Ok), result
+    assert result.value["value"]["name"] == "ブロックを丸ごと取得する"
+
+
+def test_find_allは全階層を再帰収集する():
+    """
+    Given query engine と対象 Document
+    When operation find_all を fieldName で実行する
+    Then 全階層に出現するfieldNameの値がvalueとして返る
+    """
+    result = _engine().run("find_all", _TARGET, {"fieldName": "category"})
+    assert isinstance(result, Ok), result
+    assert "異常系" in result.value["value"]
+
+
+def test_schemaRefを持たないファイルはrawで返す():
+    """
+    Given schemaRefを持たない対象ファイル
+    When 任意のoperationを実行する
+    Then valueはtype=rawとして生テキストを返す
+    """
+    import json
+    import tempfile
+
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
+        json.dump({"hello": "world"}, f)
+        path = f.name
+
+    result = _engine().run("get_meta", path)
+    assert isinstance(result, Ok), result
+    assert result.value["type"] == "raw"

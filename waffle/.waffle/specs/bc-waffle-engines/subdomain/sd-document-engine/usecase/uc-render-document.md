@@ -114,6 +114,97 @@ Scenario: deploy すると canonical と deploy 先の両方に書く
   Then canonical と deploy 先の両方に成果物が書かれる
 ```
 
+### render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | 配線：render engineがschemaのx-render宣言を読み取りpart_rendererへ正しく渡す(part_renderer自体の整形保証とは別に、engine自体の配線を検証する) |
+
+```gherkin
+Scenario: render_engineはschemaのx_render宣言をpart_rendererへ正しく配線する
+  Given interfaceブロック(x-render宣言=table)を持つDocument
+  When render engine経由でrenderする
+  Then schemaのx-render宣言どおりに整形されたMarkdownテーブルが出力に含まれる
+```
+
+### SkillSchemaをMarkdownにレンダリングする
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | schema種別横断：SkillSchemaのDocumentが見出し・パラメータ表・呼び出し例まで正しく描画される |
+
+```gherkin
+Scenario: SkillSchemaをMarkdownにレンダリングする
+  Given SkillSchemaのDocument
+  When renderする
+  Then 見出し・目的・パラメータ表・オペレーション選択・呼び出し例が全て出力に含まれる
+```
+
+### frontmatterはx_frontmatterのドットパスを解決して生成する
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | frontmatter：schemaのx-frontmatter宣言(フィールド→ドットパス)を解決してYAML frontmatterを生成する |
+
+```gherkin
+Scenario: frontmatterはx_frontmatterのドットパスを解決して生成する
+  Given x-frontmatterを宣言するSchemaのDocument
+  When renderする
+  Then 出力冒頭にname/description等を含むYAML frontmatterが生成される
+```
+
+### CodingSchemaはMarkdownとして描画できる
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | schema種別横断：CodingSchemaのDocumentも同一engineで描画できる(schema固有ロジックを持たない汎用性) |
+
+```gherkin
+Scenario: CodingSchemaはMarkdownとして描画できる
+  Given CodingSchemaのDocument
+  When renderする
+  Then Markdown形式で見出しを含む出力が生成される
+```
+
+### usecase_Specは基本フローをシーケンス図にTestScenariosをMarkdownに出す
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | schema種別横断：usecase Specは MainFlow をMermaidシーケンス図に、TestScenariosをMarkdown+.featureの両方に出す |
+
+```gherkin
+Scenario: usecase_Specは基本フローをシーケンス図にTestScenariosをMarkdownに出す
+  Given usecase SpecのDocument
+  When renderする
+  Then 出力にmermaidのsequenceDiagramとテストシナリオ節が含まれ、feature出力にも同じシナリオが含まれる
+```
+
+### aggregate_Specは集約の構造とライフサイクルをMarkdownに出す
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | schema種別横断：aggregate Specはコマンド・ドメインイベント・ライフサイクルをMermaidのstateDiagramと表で出す |
+
+```gherkin
+Scenario: aggregate_Specは集約の構造とライフサイクルをMarkdownに出す
+  Given aggregate SpecのDocument
+  When renderする
+  Then 出力にコマンド節・ドメインイベント名・mermaidのstateDiagram-v2が含まれる
+```
+
+### 不正なJSONはINVALID_JSON
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | エラー：対象ファイルがJSONとして解釈できないときはINVALID_JSON |
+
+```gherkin
+Scenario: 不正なJSONはINVALID_JSON
+  Given 不正なJSONの対象ファイル
+  When renderする
+  Then INVALID_JSONエラーが返る
+```
+
 ---
 
 ## 操作保証シナリオ

@@ -140,6 +140,41 @@
           "viewpoint": "エラー：分岐のある schema で discriminator 未指定は MISSING_DISCRIMINATOR",
           "gherkin": "Scenario: discriminator が無いと候補を案内する\n  Given 分岐のある schema\n  When discriminator を指定せずに create する\n  Then MISSING_DISCRIMINATOR エラーが候補つきで返る",
           "covers": "エラー: MISSING_DISCRIMINATOR"
+        },
+        {
+          "name": "createはengine_skillの骨格を生成する",
+          "category": "正常系",
+          "viewpoint": "骨格生成：discriminator(skillKind=engine)からschema分岐に沿った骨格が組まれる",
+          "gherkin": "Scenario: createはengine_skillの骨格を生成する\n  Given schemaRef, documentId, discriminator(skillKind=engine)\n  When createを実行する\n  Then documentType/schemaRef/skillKind/statusが正しく設定され、content配下にinterface/invocationSpecがある骨格が生成される",
+          "covers": "コマンド: create"
+        },
+        {
+          "name": "createはx_source_targetに骨格を書き出す",
+          "category": "正常系",
+          "viewpoint": "永続化：createはschema宣言のx-source-targetへ骨格ファイルを書き出す",
+          "gherkin": "Scenario: createはx_source_targetに骨格を書き出す\n  Given schemaRef, documentId, discriminator\n  When createを実行する\n  Then schemaのx-source-target宣言どおりのパスにファイルが書き出される",
+          "covers": "コマンド: create（永続化）"
+        },
+        {
+          "name": "fillTemplateは値フィールドのpathとprompt_x_prompt_writeを持つ",
+          "category": "正常系",
+          "viewpoint": "fillTemplate：createが返すfillTemplateは値フィールドのpath×x-prompt-writeの一覧である",
+          "gherkin": "Scenario: fillTemplateは値フィールドのpathとprompt_x_prompt_writeを持つ\n  Given schemaRef, documentId, discriminator\n  When createを実行する\n  Then fillTemplateには値フィールドのpathとx-prompt-write由来のpromptを持つエントリが含まれる",
+          "covers": "コマンド: create（fillTemplate）"
+        },
+        {
+          "name": "customはengineと構成が異なる",
+          "category": "正常系",
+          "viewpoint": "discriminator分岐：skillKind=customはengineと異なるcontent構造(processingTarget)を持つ",
+          "gherkin": "Scenario: customはengineと構成が異なる\n  Given discriminator(skillKind=custom)\n  When createを実行する\n  Then engineとは異なりcontent配下にprocessingTargetを持つ骨格が生成される",
+          "covers": "discriminator: skillKind=custom"
+        },
+        {
+          "name": "未知のschemaRefはINVALID_SCHEMA_REF",
+          "category": "異常系",
+          "viewpoint": "エラー：createが解決できないschemaRefを指定されたときの失敗",
+          "gherkin": "Scenario: 未知のschemaRefはINVALID_SCHEMA_REF\n  Given 解決できないschemaRef\n  When createを実行する\n  Then INVALID_SCHEMA_REFエラーが返る",
+          "covers": "エラー: 未知のschemaRef"
         }
       ]
     },

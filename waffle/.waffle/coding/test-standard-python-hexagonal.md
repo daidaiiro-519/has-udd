@@ -54,10 +54,11 @@
 
 | 対象 | テスト種別 | 配置 |
 |---|---|---|
-| domain | 単体 | `tests/domain/` |
-| application | 単体（port はテストダブル） | `tests/application/` |
-| adapters | 結合 | `tests/adapters/` |
-| usecase の受け入れ | 受け入れ（ネイティブ・.feature は参照専用） | `tests/acceptance/` |
+| domain | unit | `tests/unit/domain/` |
+| application | unit（port はテストダブル） | `tests/unit/application/` |
+| adapters | integration | `tests/integration/` |
+| usecase | acceptance（ネイティブ・.feature は参照専用） | `tests/acceptance/` |
+| CLI / MCP の公開インターフェース | contract | `features/cli.feature, features/mcp.feature（現状はtool=behave。testTypesはtool=pytestと宣言しており未整合・別途解消が必要）` |
 
 ---
 
@@ -69,4 +70,6 @@
 | 必須 | .feature は spec から生成する（手で書かない） |
 | 禁止 | 単体テストが実物の DB・外部サービスに依存する |
 | 推奨 | 不変条件はテストダブルなしで検証する |
-| 必須 | テストファイル名は test_{対応するspecのdocumentIdをsnake_case化したもの}.py で統一する（domain/adapters/acceptanceの全層に適用。実装モジュール名を由来にした命名は禁止） |
+| 必須 | テストファイル名は test_{対応するspecのdocumentIdをsnake_case化したもの}.py で統一する（domain/application/adapters(integration)/acceptanceの全層に適用。実装モジュール名を由来にした命名は禁止） |
+| 必須 | tests/ 配下は testTypes（unit/integration/acceptance/contract）を第一階層とする。domain/applicationはunit/配下の第二階層（対象層の軸）。adaptersは単体テストではなく統合(integration)テストなので tests/unit/配下に置かず tests/integration/ を独立の第一階層にする（testTypesが明示的にintegrationと分類しているため） |
+| 必須 | specのGuaranteeScenarios/TestScenarios/unitTestScenarios/domainServiceScenariosに対応するテスト関数は、対応するgherkinのGiven/When/Thenをdocstringに転記する（関数名の一致だけでは、シナリオ文言の事後編集に対する追従を検知できないため） |

@@ -31,9 +31,9 @@
       "blockType": "Members",
       "title": "構成要素",
       "items": [
-        { "kind": "subdomain", "members": "sd-document-engine / sd-validation / sd-reconciliation" },
+        { "kind": "subdomain", "members": "sd-document-engine / sd-validation / sd-reconciliation / sd-schema-governance" },
         { "kind": "aggregate", "members": "agg-document / agg-schema" },
-        { "kind": "usecase", "members": "uc-scaffold-document / uc-query-document / uc-validate-document / uc-render-document / uc-scan-source-code / uc-lint-docstring" }
+        { "kind": "usecase", "members": "uc-scaffold-document / uc-query-document / uc-validate-document / uc-render-document / uc-scan-source-code / uc-lint-docstring / uc-migrate-schema-version" }
       ]
     }
   }

@@ -13,6 +13,7 @@ import typer
 from waffle.adapters.outbound.fs import FsDocumentRepository
 from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
+from waffle.application.usecases.check_spec_integrity_engine import CheckSpecIntegrityEngine
 from waffle.application.usecases.query_engine import QueryEngine
 from waffle.application.usecases.render_engine import RenderEngine
 from waffle.application.usecases.scaffold_engine import ScaffoldEngine
@@ -101,6 +102,11 @@ def scaffold(
     else:
         params = {}
     _emit(ScaffoldEngine(_docs(), _schemas()).run(operation, params))
+
+@app.command("check-spec-integrity")
+def check_spec_integrity(path: str = typer.Option(..., "--path", help="bounded-context の bc.json のパス")) -> None:
+    """bc.jsonのmembers宣言とディスク上の実ファイルの参照整合性を検証（uc-check-spec-integrity）。"""
+    _emit(CheckSpecIntegrityEngine(_docs()).run(path))
 
 @app.command()
 def serve() -> None:

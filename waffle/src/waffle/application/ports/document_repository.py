@@ -24,3 +24,7 @@ class DocumentRepository(Protocol):
     def list_json(self, directory: str) -> list[str]:
         """directory 直下の *.json パス一覧（昇順）。ディレクトリが無ければ FileNotFoundError。"""
         ...
+
+    def list_dirs(self, directory: str) -> list[str]:
+        """directory 直下のサブディレクトリ名一覧（昇順）。ディレクトリが無ければ FileNotFoundError。"""
+        ...

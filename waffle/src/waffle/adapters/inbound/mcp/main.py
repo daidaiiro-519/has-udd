@@ -11,6 +11,7 @@ from fastmcp import FastMCP
 from waffle.adapters.outbound.fs import FsDocumentRepository
 from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
+from waffle.application.usecases.check_spec_integrity_engine import CheckSpecIntegrityEngine
 from waffle.application.usecases.query_engine import QueryEngine
 from waffle.application.usecases.render_engine import RenderEngine
 from waffle.application.usecases.scaffold_engine import ScaffoldEngine
@@ -92,3 +93,8 @@ def scaffold_document(
     else:
         params = {}
     return _dict(ScaffoldEngine(_docs(), _schemas()).run(operation, params))
+
+@mcp.tool
+def check_spec_integrity(path: str) -> dict:
+    """bc.jsonのmembers宣言とディスク上の実ファイルの参照整合性を検証（uc-check-spec-integrity）。"""
+    return _dict(CheckSpecIntegrityEngine(_docs()).run(path))

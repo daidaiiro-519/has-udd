@@ -93,3 +93,25 @@ def test_scaffold_createは骨格を返す():
     assert result.exit_code == 0, result.output
     data = json.loads(result.output)
     assert data["skeleton"]["documentType"] == "Skill"
+
+
+def test_check_spec_integrityは6フィールドの差分結果を返す():
+    """
+    Given waffle CLI
+    When check-spec-integrity --path bc-waffle-engines.json を実行する
+    Then 終了コードは0で、出力JSONは6フィールド全て空配列（自己整合済み）
+    """
+    result = _runner.invoke(app, [
+        "check-spec-integrity",
+        "--path", ".waffle/documents/specs/bc-waffle-engines/bc-waffle-engines.json",
+    ])
+    assert result.exit_code == 0, result.output
+    data = json.loads(result.output)
+    assert data == {
+        "declared_subdomains_missing_on_disk": [],
+        "subdomains_on_disk_not_declared_in_bc": [],
+        "usecases_orphaned_no_subdomain": [],
+        "usecases_in_subdomain_not_declared_in_bc": [],
+        "usecase_files_missing_on_disk": [],
+        "usecase_files_orphaned_on_disk": [],
+    }

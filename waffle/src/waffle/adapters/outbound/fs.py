@@ -35,3 +35,9 @@ class FsDocumentRepository(DocumentRepository):
         if not d.is_dir():
             raise FileNotFoundError(directory)
         return sorted(str(p) for p in d.glob("*.json"))
+
+    def list_dirs(self, directory: str) -> list[str]:
+        d = Path(directory)
+        if not d.is_dir():
+            raise FileNotFoundError(directory)
+        return sorted(p.name for p in d.iterdir() if p.is_dir())

@@ -3,55 +3,48 @@
 スキーマという型で文書を焼き上げる、構造検証＋意味ガイダンス内蔵のドキュメントエンジン。
 JSON Schemaでdocument.jsonを検証・query・render・scaffoldする。
 
-## 確定した意思決定（ユーザー承認済み）
+## ★最優先ルール: document.json操作は必ずCLI/MCP経由（自分自身がdogfoodの対象）
 
-- **旧称は`has_udd`**（has-udd = Harness Agentic Scrum Usecase-Driven-Developmentの略）。
-  頭字語は HAS（Harness Agentic Scrum＝agent system）と UDD（Usecase-Driven-Development＝
-  engineが支える開発手法）の合成語だったため、UDD色はagent system側（has-uddという名前
-  そのもの）に残し、engine部分には独立の名称「Waffle」を与えた。
-  経緯は `docs/brainstorm/brainstorm-has-udd-oss-separation.md`（論点1〜5）を参照。
-- **バンドルされているschema（SkillSchema/DomainSpecSchema/PresentationSpecSchema/
-  CodingSchema/RenderMetaSchema/DocstringSchema）はWaffle自身の資産**
-  （has-uddから借りた外部依存ではない）。schemaを外部化する設計は採用しない（ユーザー判断）。
-  - `SpecSchema`は`DomainSpecSchema`に改名済み（spec は DDD より広い上位概念であり、
-    UI層を扱う非DDDの`PresentationSpecSchema`と対で「Spec家族」を構成するため）。
-    `DomainSpecSchema`=業務ロジック層（DDD管轄・specKind=bounded-context/subdomain/
-    aggregate/usecase）、`PresentationSpecSchema`=プレゼンテーション層（非DDD管轄・
-    specKind=screen/flow・ビジュアルはFigma等へのURL参照のみ）。
-    経緯は`docs/brainstorm/brainstorm-schema-aggregate-zerobase.md`を参照。
-  - **Schema集約（agg-schema）の対象は「Documentのschemaが指しうる型」のみ**
-    （DomainSpecSchema/PresentationSpecSchema/CodingSchema/SkillSchema）。独自の識別
-    （documentType）を持つ。`src/waffle/domain/model/`に置く。
-  - **RenderMetaSchema/DocstringSchemaは集約ではない**（identityを持たない）。
-    RenderMetaSchemaは他schemaのブロックに埋め込まれる値オブジェクト（x-render宣言）の
-    型定義で`src/waffle/domain/value_objects/`に置く。DocstringSchemaはusecase
-    (uc-scan-source-code)の出力データの形状定義であり、業務ロジック(domain)ではなく
-    usecaseの入出力契約(application)の関心事なので`src/waffle/application/dto/`に置く。
-  - **schemaのバージョン移行機構（x-migration語彙・MigrationEngine）は撤去済み**
-    （実際にx-migrationを必要とした実schemaが無く、各schemaの実document数も少数のため、
-    機械的な一括移行は過剰と判断。ドリフト検知(`uc-check-schema-version-drift`・
-    `waffle check-schema-version-drift`)のみ維持し、schema進化への追従はAIが個別に
-    判断して直す）。経緯は`docs/brainstorm/brainstorm-schema-versioning-migration.md`の
-    後日談を参照。
-  - **scripts/配下に一時的に置いていた3つのドリフト検知スクリプト
-    （check_spec_referential_integrity.py/check_scenario_drift.py/
-    check_schema_version_drift.py）は全て正式なusecase/engineに昇格し撤去済み**
-    （`uc-check-spec-integrity`/`uc-check-scenario-drift`/`uc-check-schema-version-drift`。
-    いずれもCLI/MCP経由で呼ぶ。「一時的な独立スクリプト」自体が二重実装によるドリフト源に
-    なりうるため、reconcileの仕組みは全てengineとして一箇所に統合する）。
-- この`waffle/`ディレクトリは`loomdb/`と同じく**自己完結**しており、
-  `git subtree split --prefix=waffle`でそのまま独立リポジトリに切り出せる想定。
-- `document.json`のパス規約（`x-source-target`/`x-render-target`）は`.has-udd/`ではなく
-  **`.waffle/`**（schema自身がWaffleの資産である以上、規約もWaffle自身のもの。
-  `.git/`が道具の名前を冠するのと同じ発想）。Waffle自身を説明するspec/skill document
-  （harness-query-engine・harness-render-engine・stack・python-hexagonal・
-  bc-waffle-engines等、計14件）は`waffle/.waffle/documents/`に**一元管理**し、
-  repo root側`.has-udd/documents/`との重複コピーは解消済み（旧トレードオフは解消）。
-  repo root側`.has-udd/documents/`には、Waffle固有でない汎用skill
-  （`analyze-domain-model.json`等・has-udd/agent system自身の資産）だけが残る。
+waffleの`.waffle/documents/`配下は**waffle自身が実装したengineで操作する**。
+Claude Code自身がwaffleの最初のユーザーであり、ここでの振る舞いがそのままdogfoodになる。
+
+- **document.jsonの作成**: `uv run waffle scaffold --operation create ...` →
+  `--operation fill ...`（Write/Editで直接JSONを書き起こさない）
+- **既存document.jsonの検証**: `uv run waffle validate --path ...`
+- **document.jsonの内容確認・検索**: `uv run waffle query --operation get_block/get_field/...`
+  （`cat`/`grep`/`python -c "json.load(...)"`で直接読まない）
+- **成果物への描画**: `uv run waffle render --path ...`
+- **spec整合性・シナリオドリフト・schema版ドリフトの確認**:
+  `uv run waffle check-spec-integrity` / `check-scenario-drift` / `check-schema-version-drift`
+- **ソースコードのdocstring確認**: `uv run waffle scan-source-code` / `lint-docstring`
+
+**唯一の例外**: 既存document.jsonの**フィールド追加・削除**（scaffold fill後の構造変更）に
+対応するengineは現状無い（scaffoldはcreate/fillのみで、既存documentの編集操作が未実装）。
+この場合に限りEdit/Writeでの直接編集を許容するが、これは「サボって良い」ではなく
+**「engineが無いから仕方なく」**の扱い——気づいたら編集用usecaseの新設を検討する。
+
+## 確定した意思決定（詳細は各ブレストdocを参照。ここでは結論だけ）
+
+- 旧称`has_udd`から改名。経緯: `docs/brainstorm/brainstorm-has-udd-oss-separation.md`
+- バンドルschema（SkillSchema/DomainSpecSchema/PresentationSpecSchema/CodingSchema/
+  RenderMetaSchema/DocstringSchema）はWaffle自身の資産（外部化しない）。
+  - `DomainSpecSchema`=業務ロジック層（DDD・bounded-context/subdomain/aggregate/usecase）、
+    `PresentationSpecSchema`=プレゼンテーション層（非DDD・screen/flow）。
+    経緯: `docs/brainstorm/brainstorm-schema-aggregate-zerobase.md`
+  - Schema集約（agg-schema）の対象は「Documentのschemaが指しうる型」のみ。`src/waffle/domain/model/`。
+  - RenderMetaSchema（値オブジェクト・`domain/value_objects/`）とDocstringSchema
+    （usecase出力DTO・`application/dto/`）は集約ではない。
+  - schemaのバージョン移行機構（x-migration/MigrationEngine）は撤去済み。ドリフト検知
+    （`uc-check-schema-version-drift`）のみ維持。経緯: `docs/brainstorm/brainstorm-schema-versioning-migration.md`
+  - reconcile系（spec整合性/シナリオドリフト/schema版ドリフト）は全て正式engine化済み
+    （一時スクリプトは全廃）。
+- この`waffle/`ディレクトリは自己完結（`git subtree split --prefix=waffle`で独立可能）。
+- `document.json`のパス規約は`.waffle/`（`.has-udd/`ではない）。Waffle自身を説明する
+  spec/skill documentは`waffle/.waffle/documents/`に一元管理。repo root側`.has-udd/documents/`
+  にはWaffle固有でない汎用skillのみ残る。
 - repo rootからの呼び出しは `uv run --project waffle waffle <command>` の形。
-  Waffle自身のdocumentを`.claude/skills/`へdeployする際は、`waffle/`配下へのパスを明示して
-  呼ぶ（例: `waffle render --path waffle/.waffle/documents/skills/harness-query-engine.json`）。
+  `.claude/skills/`へdeployする際は`waffle/`配下へのパスを明示（例:
+  `waffle render --path waffle/.waffle/documents/skills/harness-query-engine.json`）。
 
 ## 構造メモ
 

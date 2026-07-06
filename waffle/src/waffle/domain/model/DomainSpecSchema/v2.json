@@ -133,7 +133,8 @@
         "members":                { "$ref": "#/$defs/SubdomainMembersBlock" },
         "implementationGuidance": { "$ref": "#/$defs/ImplementationGuidanceBlock" },
         "externalSolution":       { "$ref": "#/$defs/ExternalSolutionBlock" },
-        "domainServices":         { "$ref": "#/$defs/DomainServicesBlock" }
+        "domainServices":         { "$ref": "#/$defs/DomainServicesBlock" },
+        "guaranteeScenarios":     { "$ref": "#/$defs/GuaranteeScenariosBlock" }
       }
     },
 

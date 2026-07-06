@@ -27,6 +27,44 @@
       "blockType": "ImplementationGuidance",
       "title": "実装ガイド",
       "text": "中核ゆえドメインモデルで厚く実装する。schema 走査による骨格生成と意味単位アクセスは自前の決定的コードで書き、外部ライブラリに委ねない。"
+    },
+    "domainServices": {
+      "blockType": "DomainServices",
+      "title": "ドメインサービス",
+      "items": [
+        {
+          "name": "パステンプレート解決",
+          "responsibility": "x-source-target/x-render-target のパステンプレートを document の値で解決(resolve)し、逆に実パスからテンプレート変数を復元(reverse-parse)する。scaffold/render/query の複数usecaseが共通して依存する（特定の集約に属さない）。"
+        }
+      ]
+    },
+    "guaranteeScenarios": {
+      "blockType": "GuaranteeScenarios",
+      "title": "操作保証シナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "パステンプレートは変数を解決する",
+          "category": "正常系",
+          "viewpoint": "パステンプレート解決：{var}形式のプレースホルダを実際の値に置き換える",
+          "gherkin": "Scenario: パステンプレートは変数を解決する\n  Given 変数を含むパステンプレートと解決に必要な値\n  When resolve する\n  Then 全ての変数が値に置き換わった実パスが返る",
+          "covers": "ドメインサービス: パステンプレート解決"
+        },
+        {
+          "name": "逆解析は実パスからテンプレート変数を復元する",
+          "category": "正常系",
+          "viewpoint": "パステンプレート解決：reverse-parseはresolveの逆写像として変数を一意に復元する",
+          "gherkin": "Scenario: 逆解析は実パスからテンプレート変数を復元する\n  Given パステンプレートと、そのテンプレートから解決された実パス\n  When reverse-parse する\n  Then resolve時に使った値と同じ変数が復元される",
+          "covers": "ドメインサービス: パステンプレート解決"
+        },
+        {
+          "name": "テンプレートと一致しないパスは復元できない",
+          "category": "異常系",
+          "viewpoint": "パステンプレート解決：構造が一致しない実パスはreverse-parse不能として扱う",
+          "gherkin": "Scenario: テンプレートと一致しないパスは復元できない\n  Given テンプレートの区切り構造と一致しない実パス\n  When reverse-parse する\n  Then 復元は失敗する",
+          "covers": "ドメインサービス: パステンプレート解決"
+        }
+      ]
     }
   }
 }

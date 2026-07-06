@@ -32,3 +32,14 @@ class PackageSchemaRepository(SchemaRepository):
                 continue
             return json.loads(text)
         raise last_error
+
+    def list_versions(self, name: str) -> list[str]:
+        versions: list[str] = []
+        for package in _PACKAGES:
+            ref = resources.files(package) / name
+            if not ref.is_dir():
+                continue
+            for child in ref.iterdir():
+                if child.name.endswith(".json"):
+                    versions.append(child.name.removesuffix(".json"))
+        return versions

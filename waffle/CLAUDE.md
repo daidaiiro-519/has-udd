@@ -29,9 +29,16 @@ JSON Schemaでdocument.jsonを検証・query・render・scaffoldする。
     usecaseの入出力契約(application)の関心事なので`src/waffle/application/dto/`に置く。
   - **schemaのバージョン移行機構（x-migration語彙・MigrationEngine）は撤去済み**
     （実際にx-migrationを必要とした実schemaが無く、各schemaの実document数も少数のため、
-    機械的な一括移行は過剰と判断。ドリフト検知(`check_schema_version_drift.py`)のみ維持し、
-    schema進化への追従はAIが個別に判断して直す）。
-    経緯は`docs/brainstorm/brainstorm-schema-versioning-migration.md`の後日談を参照。
+    機械的な一括移行は過剰と判断。ドリフト検知(`uc-check-schema-version-drift`・
+    `waffle check-schema-version-drift`)のみ維持し、schema進化への追従はAIが個別に
+    判断して直す）。経緯は`docs/brainstorm/brainstorm-schema-versioning-migration.md`の
+    後日談を参照。
+  - **scripts/配下に一時的に置いていた3つのドリフト検知スクリプト
+    （check_spec_referential_integrity.py/check_scenario_drift.py/
+    check_schema_version_drift.py）は全て正式なusecase/engineに昇格し撤去済み**
+    （`uc-check-spec-integrity`/`uc-check-scenario-drift`/`uc-check-schema-version-drift`。
+    いずれもCLI/MCP経由で呼ぶ。「一時的な独立スクリプト」自体が二重実装によるドリフト源に
+    なりうるため、reconcileの仕組みは全てengineとして一箇所に統合する）。
 - この`waffle/`ディレクトリは`loomdb/`と同じく**自己完結**しており、
   `git subtree split --prefix=waffle`でそのまま独立リポジトリに切り出せる想定。
 - `document.json`のパス規約（`x-source-target`/`x-render-target`）は`.has-udd/`ではなく

@@ -16,6 +16,7 @@ from waffle.adapters.outbound.pydoclint_linter import PydoclintLinter
 from waffle.adapters.outbound.python_ast_source_scanner import PythonAstSourceScanner
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
 from waffle.application.usecases.check_scenario_drift_engine import CheckScenarioDriftEngine
+from waffle.application.usecases.check_schema_version_drift_engine import CheckSchemaVersionDriftEngine
 from waffle.application.usecases.check_spec_integrity_engine import CheckSpecIntegrityEngine
 from waffle.application.usecases.lint_docstring_engine import LintDocstringEngine
 from waffle.application.usecases.query_engine import QueryEngine
@@ -123,6 +124,13 @@ def check_scenario_drift(
 ) -> None:
     """specのシナリオとテストコードの対応関係を検証（uc-check-scenario-drift）。"""
     _emit(CheckScenarioDriftEngine(_docs()).run(spec_path, test_path))
+
+@app.command("check-schema-version-drift")
+def check_schema_version_drift(
+    documents_root: str = typer.Option(".waffle/documents", "--documentsRoot", "--documents-root", help="Document集約の実インスタンス群を走査する対象ディレクトリ"),
+) -> None:
+    """DocumentのschemaRefが実在し最新であるかを検証（uc-check-schema-version-drift）。"""
+    _emit(CheckSchemaVersionDriftEngine(_docs(), _schemas()).run(documents_root))
 
 @app.command("scan-source-code")
 def scan_source_code(

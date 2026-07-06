@@ -121,6 +121,18 @@ def test_check_spec_integrityは10フィールドの差分結果を返す():
     }
 
 
+def test_check_schema_version_driftは2フィールドの差分結果を返す():
+    """
+    Given waffle CLI
+    When check-schema-version-drift を実行する
+    Then 終了コードは0で、出力JSONは2フィールド全て空配列（自己整合済み）
+    """
+    result = _runner.invoke(app, ["check-schema-version-drift"])
+    assert result.exit_code == 0, result.output
+    data = json.loads(result.output)
+    assert data == {"broken_references": [], "newer_version_available": []}
+
+
 def test_check_scenario_driftは4フィールドの差分結果を返す():
     """
     Given waffle CLI

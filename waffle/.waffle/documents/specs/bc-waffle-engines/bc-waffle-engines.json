@@ -55,7 +55,7 @@
         },
         {
           "term": "reconcile",
-          "definition": "スペックが嘘をつかないよう、2種類のドリフト（スペック内部の参照整合性・スペックとテストシナリオの対応関係）を機械的に検知し続けること。docstring の構造化抽出・規約適合検証（uc-scan-source-code/uc-lint-docstring）はreconcileが使う部品であり、reconcile本体ではない。"
+          "definition": "スペックが嘘をつかないよう、3種類のドリフト（スペック内部の参照整合性・スペックとテストシナリオの対応関係・Document集約とSchema版の対応関係）を機械的に検知し続けること。docstring の構造化抽出・規約適合検証（uc-scan-source-code/uc-lint-docstring）はreconcileが使う部品であり、reconcile本体ではない。"
         }
       ]
     },
@@ -73,7 +73,7 @@
         },
         {
           "kind": "usecase",
-          "members": "uc-scaffold-document / uc-query-document / uc-validate-document / uc-render-document / uc-scan-source-code / uc-lint-docstring / uc-check-spec-integrity / uc-check-scenario-drift"
+          "members": "uc-scaffold-document / uc-query-document / uc-validate-document / uc-render-document / uc-scan-source-code / uc-lint-docstring / uc-check-spec-integrity / uc-check-scenario-drift / uc-check-schema-version-drift"
         }
       ]
     }

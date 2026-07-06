@@ -131,3 +131,20 @@ def test_check_scenario_driftは4フィールドの差分結果を返す():
     assert result.exit_code == 0, result.output
     data = json.loads(result.output)
     assert set(data.keys()) == {"missing_in_tests", "orphaned_in_tests", "matched", "gherkin_mismatches"}
+
+
+def test_scan_source_codeは公開要素の一覧を返す(tmp_path):
+    """
+    Given waffle CLI
+    When scan-source-code --path --kind google を実行する
+    Then 終了コードは0で、出力JSONは要素の配列
+    """
+    sample = tmp_path / "sample.py"
+    sample.write_text('def f():\n    """要約。"""\n    pass\n', encoding="utf-8")
+
+    result = _runner.invoke(app, [
+        "scan-source-code", "--path", str(tmp_path), "--kind", "google",
+    ])
+    assert result.exit_code == 0, result.output
+    data = json.loads(result.output)
+    assert any(e["name"] == "f" for e in data)

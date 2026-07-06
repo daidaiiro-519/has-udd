@@ -28,3 +28,7 @@ class DocumentRepository(Protocol):
     def list_dirs(self, directory: str) -> list[str]:
         """directory 直下のサブディレクトリ名一覧（昇順）。ディレクトリが無ければ FileNotFoundError。"""
         ...
+
+    def list_files(self, directory: str, pattern: str) -> list[str]:
+        """directory 直下の pattern(glob) に一致するファイルパス一覧（昇順）。ディレクトリが無ければ FileNotFoundError。"""
+        ...

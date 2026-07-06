@@ -12,12 +12,14 @@ import typer
 
 from waffle.adapters.outbound.fs import FsDocumentRepository
 from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
+from waffle.adapters.outbound.python_ast_source_scanner import PythonAstSourceScanner
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
 from waffle.application.usecases.check_scenario_drift_engine import CheckScenarioDriftEngine
 from waffle.application.usecases.check_spec_integrity_engine import CheckSpecIntegrityEngine
 from waffle.application.usecases.query_engine import QueryEngine
 from waffle.application.usecases.render_engine import RenderEngine
 from waffle.application.usecases.scaffold_engine import ScaffoldEngine
+from waffle.application.usecases.scan_source_code_engine import ScanSourceCodeEngine
 from waffle.application.usecases.validate_engine import ValidateEngine
 from waffle.shared.result import Ok, Result
 
@@ -116,6 +118,14 @@ def check_scenario_drift(
 ) -> None:
     """specのシナリオとテストコードの対応関係を検証（uc-check-scenario-drift）。"""
     _emit(CheckScenarioDriftEngine(_docs()).run(spec_path, test_path))
+
+@app.command("scan-source-code")
+def scan_source_code(
+    path: str = typer.Option(..., "--path", help="対象コードベース(ディレクトリ)のパス"),
+    kind: str = typer.Option(..., "--kind", help="DocstringSchemaのkind（現状はgoogleのみ対応）"),
+) -> None:
+    """対象コードベースの公開要素のdocstringを構造化抽出（uc-scan-source-code）。"""
+    _emit(ScanSourceCodeEngine(_docs(), PythonAstSourceScanner()).run(path, kind))
 
 @app.command()
 def serve() -> None:

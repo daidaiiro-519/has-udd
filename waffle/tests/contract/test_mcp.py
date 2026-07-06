@@ -99,3 +99,16 @@ def test_check_scenario_driftは4フィールドの差分結果を返す():
         "testPath": "tests/integration/test_uc_check_spec_integrity.py",
     }))
     assert set(out.keys()) == {"missing_in_tests", "orphaned_in_tests", "matched", "gherkin_mismatches"}
+
+
+def test_scan_source_codeは公開要素の一覧を返す(tmp_path):
+    """
+    Given waffle MCPサーバ
+    When scan_source_codeツールをkind=googleで呼ぶ
+    Then MCP出力は要素の配列
+    """
+    sample = tmp_path / "sample.py"
+    sample.write_text('def f():\n    """要約。"""\n    pass\n', encoding="utf-8")
+
+    out = asyncio.run(_call("scan_source_code", {"path": str(tmp_path), "kind": "google"}))
+    assert any(e["name"] == "f" for e in out)

@@ -41,3 +41,9 @@ class FsDocumentRepository(DocumentRepository):
         if not d.is_dir():
             raise FileNotFoundError(directory)
         return sorted(p.name for p in d.iterdir() if p.is_dir())
+
+    def list_files(self, directory: str, pattern: str) -> list[str]:
+        d = Path(directory)
+        if not d.is_dir():
+            raise FileNotFoundError(directory)
+        return sorted(str(p) for p in d.glob(pattern))

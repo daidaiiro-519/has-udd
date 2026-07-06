@@ -28,7 +28,7 @@
       "blockType": "ExternalActors",
       "title": "関与する外部",
       "items": [
-        "DocstringSchema（本ユースケースというドメインサービスの戻り値の型。どの集約にも属さず、どこにも永続化されない）"
+        "DocstringSchema（本usecaseの戻り値の型。どの集約にも属さず、どこにも永続化されない）"
       ]
     },
     "preconditions": {
@@ -83,7 +83,6 @@
         "When 要素が class であるとき、エンジンは公開属性の説明（Attributes 相当のセクション）を attributes に含める shall。class 以外は attributes を空配列で返す shall。",
         "When 要素に docstring が無いとき、エンジンは summary/body/args/returns/raises/attributes を空値（空文字・空配列）で返し、走査全体は失敗させない shall。",
         "While 対象言語に対応する DocstringSchema の kind が無いとき、エンジンは UNSUPPORTED_KIND エラーを返す shall。",
-        "If 対象パスが存在しないとき、エンジンは INVALID_PATH エラーを返す shall。",
         "When ソースコードの本体（docstring 以外の行）を返す必要がないとき、エンジンは本体を読み込んだ上でも構造化データ以外を出力に含めない shall。"
       ]
     },
@@ -110,7 +109,7 @@
           "name": "公開要素の docstring を構造化抽出する",
           "category": "正常系",
           "viewpoint": "抽出：kind の構造宣言に従って summary/body/args/returns/raises に分解する",
-          "gherkin": "Scenario: 公開要素の docstring を構造化抽出する\n  Given code_scan と対象コードベース、および google kind\n  When 対象パスを走査する\n  Then 各公開要素が {summary, body, args, returns, raises} を持つ構造で返る",
+          "gherkin": "Scenario: 公開要素の docstring を構造化抽出する\n  Given 対象コードベースと google kind\n  When 対象パスを走査する\n  Then 各公開要素が {summary, body, args, returns, raises} を持つ構造で返る",
           "covers": "受け入れ基準: 構造化データで返す"
         },
         {
@@ -126,13 +125,27 @@
           "viewpoint": "エラー：未対応言語の扱い",
           "gherkin": "Scenario: 対応する kind が無い言語は UNSUPPORTED_KIND\n  Given DocstringSchema に定義の無い言語のコードベース\n  When 対象パスを走査する\n  Then UNSUPPORTED_KIND エラーが返る",
           "covers": "エラー: UNSUPPORTED_KIND"
-        },
+        }
+      ]
+    },
+    "operationGuarantees": {
+      "blockType": "OperationGuarantees",
+      "title": "操作保証",
+      "items": [
+        "When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
+      ]
+    },
+    "guaranteeScenarios": {
+      "blockType": "GuaranteeScenarios",
+      "title": "操作保証シナリオ",
+      "background": "",
+      "scenarios": [
         {
-          "name": "存在しないパスは INVALID_PATH",
+          "name": "存在しないパスはINVALID_PATH",
           "category": "異常系",
-          "viewpoint": "エラー：対象パス不在",
-          "gherkin": "Scenario: 存在しないパスは INVALID_PATH\n  When 存在しないパスを走査する\n  Then INVALID_PATH エラーが返る",
-          "covers": "エラー: INVALID_PATH"
+          "viewpoint": "解決契約：対象パスが実在しないとき、パスの解決に失敗しINVALID_PATHになる",
+          "gherkin": "Scenario: 存在しないパスはINVALID_PATH\n  Given 実在しない対象パス\n  When 本usecaseを実行する\n  Then INVALID_PATHエラーが返る",
+          "covers": "操作保証: 対象パスが存在しないときはINVALID_PATHを返す"
         }
       ]
     }

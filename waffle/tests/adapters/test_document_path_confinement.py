@@ -14,7 +14,7 @@ from waffle.application.usecases.validate_engine import ValidateEngine
 from waffle.shared.result import Err
 
 
-def test_パストラバーサルを含むパスは拒否される_G6():
+def test_パストラバーサルを含むパスは拒否される():
     """
     Given '..' を含む対象パス
     When 任意の operation・command を実行する
@@ -37,7 +37,7 @@ def test_パストラバーサルを含むパスは拒否される_G6():
     assert v.details[0] == "INVALID_PATH"
 
 
-def test_ディレクトリ横断はプロジェクトルート外を拒否する_G7():
+def test_ディレクトリ横断はプロジェクトルート外を拒否する():
     """
     Given プロジェクトルート外を指すディレクトリパス
     When index_scan_dir を実行する

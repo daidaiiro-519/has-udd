@@ -21,7 +21,7 @@ def scenario_names(spec_path: str) -> set[str]:
     doc = json.loads(Path(spec_path).read_text())
     content = doc["content"]
     names: set[str] = set()
-    for block_key in ("testScenarios", "guaranteeScenarios"):
+    for block_key in ("testScenarios", "guaranteeScenarios", "unitTestScenarios"):
         block = content.get(block_key)
         if block:
             names |= {sanitize(s["name"]) for s in block["scenarios"]}

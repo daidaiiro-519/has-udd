@@ -376,14 +376,14 @@
           "covers": "不変条件: DEPRECATED は終端"
         },
         {
-          "name": "パストラバーサルを含むパスは拒否される (G6)",
+          "name": "パストラバーサルを含むパスは拒否される",
           "category": "異常系",
           "viewpoint": "パス解決：'..' を含むパスはどの operation でも拒否される",
           "gherkin": "Scenario: パストラバーサルを含むパスは拒否される\n  Given '..' を含む対象パス\n  When 任意の operation・command を実行する\n  Then INVALID_PATH エラーが返り、プロジェクトルート外へはアクセスしない",
           "covers": "不変条件: パス解決はプロジェクトルート内に閉じ込められる"
         },
         {
-          "name": "ディレクトリ横断はプロジェクトルート外を拒否する (G7)",
+          "name": "ディレクトリ横断はプロジェクトルート外を拒否する",
           "category": "異常系",
           "viewpoint": "パス解決：index_scan_dir 等のディレクトリ横断操作もルート外を拒否する",
           "gherkin": "Scenario: ディレクトリ横断はプロジェクトルート外を拒否する\n  Given プロジェクトルート外を指すディレクトリパス\n  When index_scan_dir を実行する\n  Then INVALID_PATH エラーが返る",

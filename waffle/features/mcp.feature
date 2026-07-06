@@ -21,3 +21,7 @@ Feature: waffle MCP サーバ (inbound adapter)
   Scenario: render_document は md フォーマットを返す
     When MCP ツール "render_document" を引数 "path=.waffle/documents/skills/harness-query-engine.json;deploy=false" で呼ぶ
     Then MCP出力の "format" は "md"
+
+  Scenario: migrate_schema のエラーは {error, message} を返す
+    When MCP ツール "migrate_schema" を引数 "operation=publishVersion" で呼ぶ
+    Then MCP出力の "error" は "MISSING_PARAM"

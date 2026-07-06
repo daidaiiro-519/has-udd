@@ -115,3 +115,19 @@ def test_check_spec_integrityは6フィールドの差分結果を返す():
         "usecase_files_missing_on_disk": [],
         "usecase_files_orphaned_on_disk": [],
     }
+
+
+def test_check_scenario_driftは4フィールドの差分結果を返す():
+    """
+    Given waffle CLI
+    When check-scenario-drift --specPath --testPath を実行する
+    Then 終了コードは0で、出力JSONは4フィールドを持つ
+    """
+    result = _runner.invoke(app, [
+        "check-scenario-drift",
+        "--specPath", ".waffle/documents/specs/bc-waffle-engines/subdomain/sd-reconciliation/usecase/uc-check-spec-integrity.json",
+        "--testPath", "tests/integration/test_uc_check_spec_integrity.py",
+    ])
+    assert result.exit_code == 0, result.output
+    data = json.loads(result.output)
+    assert set(data.keys()) == {"missing_in_tests", "orphaned_in_tests", "matched", "gherkin_mismatches"}

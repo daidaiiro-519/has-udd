@@ -13,6 +13,7 @@ import typer
 from waffle.adapters.outbound.fs import FsDocumentRepository
 from waffle.adapters.outbound.jsonschema_validator import JsonSchemaValidator
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
+from waffle.application.usecases.check_scenario_drift_engine import CheckScenarioDriftEngine
 from waffle.application.usecases.check_spec_integrity_engine import CheckSpecIntegrityEngine
 from waffle.application.usecases.query_engine import QueryEngine
 from waffle.application.usecases.render_engine import RenderEngine
@@ -107,6 +108,14 @@ def scaffold(
 def check_spec_integrity(path: str = typer.Option(..., "--path", help="bounded-context の bc.json のパス")) -> None:
     """bc.jsonのmembers宣言とディスク上の実ファイルの参照整合性を検証（uc-check-spec-integrity）。"""
     _emit(CheckSpecIntegrityEngine(_docs()).run(path))
+
+@app.command("check-scenario-drift")
+def check_scenario_drift(
+    spec_path: str = typer.Option(..., "--specPath", "--spec-path", help="spec.json のパス"),
+    test_path: str = typer.Option(..., "--testPath", "--test-path", help="対応するテストファイル(.py)のパス"),
+) -> None:
+    """specのシナリオとテストコードの対応関係を検証（uc-check-scenario-drift）。"""
+    _emit(CheckScenarioDriftEngine(_docs()).run(spec_path, test_path))
 
 @app.command()
 def serve() -> None:

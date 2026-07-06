@@ -28,19 +28,20 @@ sequenceDiagram
     Orchestrator->>SpecTree: spec.jsonとテストファイルのパスを指定してドリフト検査を依頼する
     SpecTree->>SpecTree: spec.jsonの4種のシナリオブロックからシナリオ名を集め、非単語文字を_に置換しtest_を前置した名前の集合に変換する（sanitize）
     SpecTree->>SpecTree: テストファイルをASTで解析し、test_で始まる関数定義の名前を集める
-    SpecTree->>SpecTree: 2つの名前集合を突き合わせる
-    SpecTree-->>Orchestrator: missing_in_tests・orphaned_in_tests・matchedの3つの文字列配列を返す
+    SpecTree->>SpecTree: 2つの名前集合を突き合わせ、名前が一致するものについてはテスト関数のdocstringがシナリオのgherkin本文（Given/When/Then）を含んでいるかも確認する
+    SpecTree-->>Orchestrator: missing_in_tests・orphaned_in_tests・matched・gherkin_mismatchesの4つの文字列配列を返す
 ```
 
 ---
 
 ## 事後条件
 
-- 返り値は次の3フィールドを持つ: missing_in_tests（specが宣言するが対応するテスト関数が無いシナリオ名）・orphaned_in_tests（テストファイルにあるがどのシナリオ宣言にも対応しない関数名）・matched（両方に存在する名前）
+- 返り値は次の4フィールドを持つ: missing_in_tests（specが宣言するが対応するテスト関数が無いシナリオ名）・orphaned_in_tests（テストファイルにあるがどのシナリオ宣言にも対応しない関数名）・matched（両方に存在する名前）・gherkin_mismatches（名前は一致するが、テスト関数のdocstringがシナリオのgherkin本文を含んでいないシナリオ名）
 - 対象となるシナリオブロックはacceptanceScenarios/guaranteeScenarios/invariantScenarios/domainServiceScenariosの4種
 - シナリオ名からテスト関数名への変換規則（sanitize）は、非単語文字を_に置換しtest_を前置する
-- テスト関数名の抽出はASTのみで行い、実行や意味理解はしない
-- missing_in_tests・orphaned_in_tests両方が空配列であれば、シナリオとテストの対応関係が保たれている（正常系）
+- gherkin本文の比較は、gherkinの"Scenario: ..."見出し行を除いた各行と、テスト関数のdocstringの各行を、前後の空白を無視して比較する（docstringがgherkin本文を含む連続した部分列であれば一致とみなす。docstringに追加の説明文が続いても構わない）
+- テスト関数名・docstringの抽出はASTのみで行い、実行や意味理解はしない
+- missing_in_tests・orphaned_in_tests・gherkin_mismatches全てが空配列であれば、シナリオとテストの対応関係が保たれている（正常系）
 
 ---
 
@@ -49,7 +50,8 @@ sequenceDiagram
 - When specが宣言するシナリオに対応するテスト関数がテストファイルに無いとき、エンジンはそのシナリオ名（sanitize後）をmissing_in_testsに含める shall。
 - When テストファイルの関数が、どのシナリオ宣言にも対応しないとき、エンジンはその関数名をorphaned_in_testsに含める shall。
 - When シナリオ名（sanitize後）とテスト関数名が一致するとき、エンジンはその名前をmatchedに含める shall。
-- While 全シナリオに対応するテストが存在し孤立テストも無いとき、エンジンはmissing_in_tests・orphaned_in_tests両方を空配列で返す shall。
+- When 名前は一致するが、テスト関数のdocstringが対応するシナリオのgherkin本文を含んでいないとき、エンジンはそのシナリオ名をgherkin_mismatchesに含める shall。
+- While 全シナリオに対応するテストが存在し、孤立テストもgherkin本文の不一致も無いとき、エンジンはmissing_in_tests・orphaned_in_tests・gherkin_mismatches全てを空配列で返す shall。
 - If 対象のspec.jsonまたはテストファイルが存在しないとき、エンジンはINVALID_PATHエラーを返す shall。
 - If テストファイルが構文解析できないとき、エンジンはINVALID_SOURCEエラーを返す shall。
 
@@ -79,9 +81,9 @@ sequenceDiagram
 
 ```gherkin
 Scenario: 全シナリオに対応するテストがあり孤立も無いとき整合していると判定する
-  Given 宣言する全シナリオに対応するtest_*関数を持つテストファイル
+  Given 宣言する全シナリオに対応するtest_*関数を持ち、docstringがgherkin本文と一致するテストファイル
   When ドリフト検査を実行する
-  Then missing_in_tests・orphaned_in_tests両方が空配列で返る
+  Then missing_in_tests・orphaned_in_tests・gherkin_mismatches全てが空配列で返る
 ```
 
 ### 宣言されたシナリオに対応するテストが無いことを検出する
@@ -108,6 +110,19 @@ Scenario: 宣言に対応しないテスト関数を検出する
   Given どのシナリオ宣言にも対応しないtest_*関数を含むテストファイル
   When ドリフト検査を実行する
   Then orphaned_in_testsにその関数名が含まれる
+```
+
+### docstringがgherkin本文と一致しないシナリオを検出する
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | ドリフト：名前は一致するがGiven/When/Then本文がずれている |
+
+```gherkin
+Scenario: docstringがgherkin本文と一致しないシナリオを検出する
+  Given シナリオに対応するtest_*関数を持つが、docstringの内容がgherkin本文と異なるテストファイル
+  When ドリフト検査を実行する
+  Then gherkin_mismatchesにそのシナリオ名が含まれる
 ```
 
 ### 構文解析できないテストファイルはINVALID_SOURCE

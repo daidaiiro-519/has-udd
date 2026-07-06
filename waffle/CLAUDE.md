@@ -26,8 +26,9 @@ JSON Schemaでdocument.jsonを検証・query・render・scaffoldする。
   - **RenderMetaSchema/MigrationMetaSchema/DocstringSchemaは集約ではない**（identity・
     x-schema-status・ライフサイクルを持たない）。RenderMetaSchema/MigrationMetaSchemaは
     他schemaのブロックに埋め込まれる値オブジェクト（x-render宣言／x-migration宣言）の
-    型定義、DocstringSchemaはusecase(uc-scan-source-code)の出力データの形状定義であり、
-    どちらも独立した実体ではない。`src/waffle/domain/vocabulary/`に分離して置く。
+    型定義で`src/waffle/domain/value_objects/`に、DocstringSchemaはusecase
+    (uc-scan-source-code)の出力データの形状定義（値オブジェクトでもない）で
+    `src/waffle/domain/dto/`に、それぞれ分離して置く。
 - この`waffle/`ディレクトリは`loomdb/`と同じく**自己完結**しており、
   `git subtree split --prefix=waffle`でそのまま独立リポジトリに切り出せる想定。
 - `document.json`のパス規約（`x-source-target`/`x-render-target`）は`.has-udd/`ではなく
@@ -47,6 +48,6 @@ JSON Schemaでdocument.jsonを検証・query・render・scaffoldする。
 - ワークスペース: `src/waffle/`（domain/application/adapters・ヘキサゴナル）・
   `tests/`（pytest）・`features/`（behave）。
 - schema解決は`PackageSchemaRepository`（`adapters/outbound/schema_repo.py`）が
-  `importlib.resources`でパッケージ内`domain/model/`（集約）と`domain/vocabulary/`
-  （値オブジェクト型定義・usecase出力形状。集約ではない）の2箇所から行う
+  `importlib.resources`でパッケージ内`domain/model/`（集約）・`domain/value_objects/`
+  （値オブジェクト型定義）・`domain/dto/`（usecase出力形状）の3箇所から行う
   （外部プロジェクトからの差し替え口は現状なし）。

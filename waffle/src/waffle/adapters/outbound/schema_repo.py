@@ -1,8 +1,9 @@
 """schema 解決 adapter（SchemaRepository 実装）。
 
-schema はパッケージ内 `waffle/domain/model/`（Documentのschemaが指しうる型＝集約）と
-`waffle/domain/vocabulary/`（他schemaに埋め込まれる値オブジェクトの型定義・usecase出力の
-形状。集約ではない）の2箇所に閉じる（ユーザープロジェクトに配布しない）。
+schema はパッケージ内3箇所に閉じる（ユーザープロジェクトに配布しない）:
+- `waffle/domain/model/`      Documentのschemaが指しうる型＝集約（identity・x-schema-status持ち）
+- `waffle/domain/value_objects/` 他schemaに埋め込まれる値オブジェクトの型定義（集約ではない）
+- `waffle/domain/dto/`        usecaseの出力データの形状定義（集約でも値オブジェクトでもない）
 importlib.resources でパッケージから解決する（インストール後も動く）。
 """
 from __future__ import annotations
@@ -12,7 +13,7 @@ from importlib import resources
 
 from waffle.application.ports.schema_repository import SchemaRepository
 
-_PACKAGES = ["waffle.domain.model", "waffle.domain.vocabulary"]
+_PACKAGES = ["waffle.domain.model", "waffle.domain.value_objects", "waffle.domain.dto"]
 
 class PackageSchemaRepository(SchemaRepository):
     def load(self, schema_ref: str) -> dict:

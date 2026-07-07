@@ -4,6 +4,8 @@
 
 MISSING_DOC_COMMENT は uc-scan-source-code の結果（hasDocstring）から導出し、
 ARGS_MISMATCH は DocstringLinter port（kind ごとの既存lintツール）に委ねる。
+
+@spec uc-lint-docstring
 """
 from __future__ import annotations
 

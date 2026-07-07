@@ -99,10 +99,6 @@
         {
           "code": "INVALID_SOURCE",
           "condition": "対象のテストファイルが構文解析できない（Pythonのパーサでエラー）"
-        },
-        {
-          "code": "INVALID_JSON",
-          "condition": "対象のspec.jsonが存在するが不正なJSON（json.JSONDecodeError）"
         }
       ]
     },
@@ -110,7 +106,8 @@
       "blockType": "OperationGuarantees",
       "title": "操作保証",
       "items": [
-        "When 対象のspec.jsonまたはテストファイルが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
+        "When 対象のspec.jsonまたはテストファイルが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。",
+        "When 対象のspec.jsonが存在するが不正なJSONのとき、engine は INVALID_JSON エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
       ]
     },
     "guaranteeScenarios": {

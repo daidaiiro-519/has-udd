@@ -4,6 +4,8 @@
 構造アクセスは全て Python が担い、`{ prompt, value }` を返す（prompt=value の読み方の指針＝
 対象 block の x-prompt-query を schema から動的算出）。schemaRef を持たないファイルは raw フォールバック。
 全エラーは Result.Err（details[0]=エラーコード）で構造化し、例外を AI に素通りさせない。
+
+@spec uc-query-document
 """
 from __future__ import annotations
 

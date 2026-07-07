@@ -145,6 +145,22 @@ def test_check_agent_skill_driftは2フィールドの差分結果を返す():
     assert data == {"missing_skills": [], "unpreloadable_skills": []}
 
 
+def test_check_error_code_driftは2フィールドの差分結果を返す():
+    """
+    Given waffle CLI
+    When check-error-code-drift --specsRoot --codeRoot を実行する
+    Then 終了コードは0で、出力JSONは2フィールド全て空配列（自己整合済み）
+    """
+    result = _runner.invoke(app, [
+        "check-error-code-drift",
+        "--specs-root", ".waffle/documents/specs",
+        "--code-root", "src/waffle/application/usecases",
+    ])
+    assert result.exit_code == 0, result.output
+    data = json.loads(result.output)
+    assert data == {"unlinked_specs": [], "missing_error_codes": []}
+
+
 def test_check_scenario_driftは4フィールドの差分結果を返す():
     """
     Given waffle CLI

@@ -7,6 +7,8 @@ x-render-target.path の場所へ deploy する application use case。
   「見出し(x-render-level + block.title) + x-render(宣言的部品) 本体」を生成
   （部品の描画は domain/services/part_renderer に委譲）
 - 出力先は x-render-target.path
+
+@spec uc-render-document
 """
 from __future__ import annotations
 

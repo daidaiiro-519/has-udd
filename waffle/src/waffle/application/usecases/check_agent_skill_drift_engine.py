@@ -4,6 +4,8 @@ application use case。
 
 Claude Code公式仕様: disable-model-invocation:trueのSkillはsubagentのskillsフィールドで
 プリロードできない。schema単体からは気づけない文書間の参照整合性を機械的に検出する。
+
+@spec uc-check-agent-skill-drift
 """
 from __future__ import annotations
 

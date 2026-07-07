@@ -2,6 +2,8 @@
 schemaRefの実在性・最新版との一致を検証する application use case。
 
 実行/意味理解はしない（schemaRef文字列と実在するバージョン集合の機械的な突き合わせのみ）。
+
+@spec uc-check-schema-version-drift
 """
 from __future__ import annotations
 

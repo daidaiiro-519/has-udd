@@ -108,7 +108,9 @@
         "When 同じ Document を複数回 render したとき、engine は常に同一の成果物を生成する shall（決定的：入力が同じなら出力も同じ）。",
         "When x-render が RenderMetaSchema の各部品種別（paragraph/list/table/keyvalue/code/section/kvtable/sequence/statediagram/architecture/flowchart）を宣言したとき、engine はその種別ごとの整形規則に従って決定的に描画する shall。",
         "When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。",
-        "When 対象のschemaRefを解決できないとき、engine は INVALID_SCHEMA_REF エラーを返す shall（schemaを特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
+        "When 対象のschemaRefを解決できないとき、engine は INVALID_SCHEMA_REF エラーを返す shall（schemaを特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。",
+        "When ブロックのx-renderが宣言する部品が全て空データで描画結果が空になったとき、engine はそのブロックの見出しごと省略する shall（タイトルだけが残る空セクションを防ぐ）。",
+        "When ブロック定義がx-render-hiddenを宣言しているとき、engine はそのブロックを本文に一切描画しない shall（frontmatter等の値供給のみに使う非表示ブロックを表現できる）。"
       ]
     },
     "guaranteeScenarios": {
@@ -143,6 +145,20 @@
           "viewpoint": "解決契約：schemaRefを解決できないとき、schemaの解決に失敗しINVALID_SCHEMA_REFになる",
           "gherkin": "Scenario: 解決できないschemaRefはINVALID_SCHEMA_REF\n  Given 解決できないschemaRef\n  When 本usecaseを実行する\n  Then INVALID_SCHEMA_REFエラーが返る",
           "covers": "操作保証: schemaRefを解決できないときはINVALID_SCHEMA_REFを返す"
+        },
+        {
+          "name": "データが空の任意ブロックは見出しごと省略する",
+          "category": "正常系",
+          "viewpoint": "省略規則: x-renderが部品を宣言していても対応データが全て空なら描画結果は空になり、ブロックの見出しごと出力から消える",
+          "gherkin": "Scenario: データが空の任意ブロックは見出しごと省略する\n  Given x-renderに部品が宣言されたブロックを含むが値が全て空であるDocument\n  When render する\n  Then そのブロックの見出しを含むセクション全体が出力から省略される",
+          "covers": "操作保証: 空データの任意ブロックは見出しごと省略する"
+        },
+        {
+          "name": "x_render_hiddenを宣言したブロックは本文に描画しない",
+          "category": "正常系",
+          "viewpoint": "非表示ブロック: frontmatter等の値供給のみに使うブロックはx-render-hiddenで本文描画から除外できる",
+          "gherkin": "Scenario: x-render-hiddenを宣言したブロックは本文に描画しない\n  Given x-render-hidden:trueを宣言したブロックを含むDocument\n  When render する\n  Then そのブロックの見出し・本文が出力に一切含まれない",
+          "covers": "操作保証: x-render-hidden指定のブロックは本文に描画しない"
         }
       ]
     },

@@ -69,3 +69,57 @@ def test_同じDocumentを2回renderしても同一の成果物になる():
     assert isinstance(first, Ok), first
     assert isinstance(second, Ok), second
     assert first.value["content"] == second.value["content"]
+
+
+def test_データが空の任意ブロックは見出しごと省略する():
+    """
+    Given x-renderに部品が宣言されたブロックを含むが値が全て空であるDocument
+    When render する
+    Then そのブロックの見出しを含むセクション全体が出力から省略される
+    """
+    import json
+    import tempfile
+
+    doc = {
+        "documentId": "smoke-subagent",
+        "schemaRef": "AgentSchema/v1",
+        "agentKind": "subagent",
+        "content": {
+            "title": {"blockType": "Title", "title": "smoke-subagent"},
+            "runtimeConfig": {"blockType": "RuntimeConfig", "title": "実行設定", "model": "", "permissionMode": ""},
+        },
+    }
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
+        json.dump(doc, f)
+        path = f.name
+
+    result = _engine().run(path, deploy=False)
+    assert isinstance(result, Ok), result
+    assert "実行設定" not in result.value["content"]
+
+
+def test_x_render_hiddenを宣言したブロックは本文に描画しない():
+    """
+    Given x-render-hidden:trueを宣言したブロックを含むDocument
+    When render する
+    Then そのブロックの見出し・本文が出力に一切含まれない
+    """
+    import json
+    import tempfile
+
+    doc = {
+        "documentId": "smoke-custom-skill",
+        "schemaRef": "SkillSchema/v1",
+        "skillKind": "custom",
+        "content": {
+            "title": {"blockType": "Title", "title": "smoke-custom-skill"},
+            "invocationMode": {"blockType": "InvocationMode", "title": "呼び出しモード", "manualOnly": True},
+        },
+    }
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
+        json.dump(doc, f)
+        path = f.name
+
+    result = _engine().run(path, deploy=False)
+    assert isinstance(result, Ok), result
+    assert "呼び出しモード" not in result.value["content"]

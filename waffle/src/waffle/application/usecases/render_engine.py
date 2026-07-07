@@ -152,12 +152,16 @@ class RenderEngine:
 
         parts = []
         for _order, bdef, block in ordered:
+            if bdef.get("x-render-hidden"):
+                continue  # frontmatter等の値供給専用ブロック→本文には一切出さない
             level = bdef.get("x-render-level", 2)
-            title = block.get("title", "")
-            heading = "#" * level + " " + title
             # x-render は宣言的部品配列。小見出しは block 見出し+1 から。
             xr = bdef.get("x-render") or []
             body = render_parts(xr, block, level + 1).strip()
+            if xr and not body:
+                continue  # 部品は宣言されているが対応データが全て空→見出しごと省略（空セクション防止）
+            title = block.get("title", "")
+            heading = "#" * level + " " + title
             parts.append(heading + ("\n\n" + body if body else ""))
         # トップレベルのセクション間に区切り線を入れて境界を明確にする
         return "\n\n---\n\n".join(parts) + "\n"

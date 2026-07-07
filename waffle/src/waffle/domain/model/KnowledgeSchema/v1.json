@@ -1,0 +1,281 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "KnowledgeSchema/v1",
+  "title": "Knowledge Schema v1",
+  "description": "Document集約の一documentType（Knowledge）。1つの概念について、原則・判断基準・実例・アンチパターン・関連概念を記述する参照資料。独立集約ではなくDocument集約のインスタンスであり、create/fill/validate/render/queryは既存engineがそのまま扱う。kind discriminatorは持たない（形は常に1つ）。",
+
+  "type": "object",
+  "required": ["documentId", "documentType", "schemaRef", "status", "content"],
+  "x-source-target": ".waffle/documents/knowledge/{documentId}.json",
+  "x-render-target": {
+    "formats": ["md"],
+    "path": ".waffle/knowledge/{documentId}.md"
+  },
+
+  "properties": {
+    "documentId": {
+      "type": "string",
+      "x-prompt-write": "この概念を一意に識別するIDを kebab-case で付けてください。例: subdomain, bounded-context"
+    },
+    "documentType": {
+      "type": "string",
+      "const": "Knowledge"
+    },
+    "schemaRef": {
+      "type": "string",
+      "const": "KnowledgeSchema/v1"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "ACTIVE", "DEPRECATED"],
+      "x-prompt-write": "作成中は DRAFT、参照可能になったら ACTIVE、廃止する場合は DEPRECATED を指定してください。"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "x-prompt-write": "この概念を分類するタグを namespace:value 形式で付けてください。例: [\"framework:ddd\", \"domain:order\"]"
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "_index": {
+      "description": "waffle が x-prompt-query から自動生成する。AI は直接書かない。",
+      "readOnly": true,
+      "type": "object",
+      "properties": {
+        "blocks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["blockType", "prompt"],
+            "properties": {
+              "blockType": { "type": "string" },
+              "prompt": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "content": { "$ref": "#/$defs/KnowledgeContent" }
+  },
+
+  "$defs": {
+    "KnowledgeContent": {
+      "type": "object",
+      "required": ["title", "overview", "principles"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "$ref": "#/$defs/TitleBlock" },
+        "overview": { "$ref": "#/$defs/OverviewBlock" },
+        "principles": { "$ref": "#/$defs/PrinciplesBlock" },
+        "classifications": { "$ref": "#/$defs/ClassificationsBlock" },
+        "decisionCriteria": { "$ref": "#/$defs/DecisionCriteriaBlock" },
+        "examples": { "$ref": "#/$defs/ExamplesBlock" },
+        "antiPatterns": { "$ref": "#/$defs/AntiPatternsBlock" },
+        "provenance": { "$ref": "#/$defs/ProvenanceBlock" },
+        "relatedConcepts": { "$ref": "#/$defs/RelatedConceptsBlock" }
+      }
+    },
+
+    "TitleBlock": {
+      "type": "object",
+      "required": ["blockType", "title"],
+      "x-render-order": 0,
+      "x-render-level": 1,
+      "x-prompt-query": "この概念のタイトルを持ちます。documentId がそのまま使われます。",
+      "x-render": [],
+      "properties": {
+        "blockType": { "type": "string", "const": "Title" },
+        "title": { "type": "string", "x-prompt-write": "documentId をそのまま設定してください。" }
+      }
+    },
+
+    "OverviewBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "questions", "text"],
+      "x-render-order": 1,
+      "x-render-level": 2,
+      "x-prompt-query": "この概念が答える判断（利用者が抱く問い）と、概念の要約を持ちます。読む前にどんな判断に役立つかを把握します。",
+      "x-render": [
+        { "heading": "この概念が答える判断", "as": "list", "from": "questions" },
+        { "as": "paragraph", "from": "text" }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "Overview" },
+        "title": { "type": "string", "const": "概要" },
+        "questions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "x-prompt-write": "この概念を知ることで答えられるようになる、利用者の具体的な問いを列挙してください。「〜べきか」「〜はどう判断するか」の形で。"
+        },
+        "text": {
+          "type": "string",
+          "x-prompt-write": "この概念が何であるかを1〜2文で要約してください。"
+        }
+      }
+    },
+
+    "PrinciplesBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "text"],
+      "x-render-order": 2,
+      "x-render-level": 2,
+      "x-prompt-query": "この概念の原則（定義・分類・成立根拠）を持ちます。概念そのものの理解に使います。",
+      "x-render": [{ "as": "paragraph", "from": "text" }],
+      "properties": {
+        "blockType": { "type": "string", "const": "Principles" },
+        "title": { "type": "string", "const": "原則" },
+        "text": {
+          "type": "string",
+          "x-prompt-write": "この概念の定義・成り立ち・分類（あれば）を、出典の一般原則に基づいて記述してください。"
+        }
+      }
+    },
+
+    "ClassificationsBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 3,
+      "x-render-level": 2,
+      "x-prompt-query": "この概念が持つ分類軸（種別ごとの特徴）を持ちます。判断時にどの種別に該当するかの参照に使います。分類が無い概念では空配列。",
+      "x-render": [{ "as": "table", "from": "items", "columns": [{ "field": "name", "header": "分類" }, { "field": "description", "header": "特徴" }] }],
+      "properties": {
+        "blockType": { "type": "string", "const": "Classifications" },
+        "title": { "type": "string", "const": "分類" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "この概念の分類（例: 中核/一般/補完）を列挙してください。分類が無ければ空配列にしてください。",
+          "items": {
+            "type": "object",
+            "required": ["name", "description"],
+            "properties": {
+              "name": { "type": "string", "x-prompt-write": "分類名。" },
+              "description": { "type": "string", "x-prompt-write": "その分類の特徴。" }
+            }
+          }
+        }
+      }
+    },
+
+    "DecisionCriteriaBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "stages", "transitions"],
+      "x-render-order": 4,
+      "x-render-level": 2,
+      "x-prompt-query": "この概念に関する判断の分岐点（問いと分岐先）を持ちます。実際の判断作業で辿る決定木として使います。判断基準が無い概念では空配列。",
+      "x-render": [{ "as": "flowchart", "from": "stages", "transitionsFrom": "transitions" }],
+      "properties": {
+        "blockType": { "type": "string", "const": "DecisionCriteria" },
+        "title": { "type": "string", "const": "判断基準" },
+        "stages": {
+          "type": "array",
+          "x-prompt-write": "判断の各分岐点（問いや帰結）をノードとして列挙してください。判断基準が無ければ空配列。",
+          "items": {
+            "type": "object",
+            "required": ["id", "label"],
+            "properties": {
+              "id": { "type": "string", "x-prompt-write": "ノードの識別子。例: q1" },
+              "label": { "type": "string", "x-prompt-write": "問いや帰結の短い文言。" }
+            }
+          }
+        },
+        "transitions": {
+          "type": "array",
+          "x-prompt-write": "分岐点間の遷移を、条件（回答）付きで列挙してください。",
+          "items": {
+            "type": "object",
+            "required": ["from", "to"],
+            "properties": {
+              "from": { "type": "string", "x-prompt-write": "遷移元ノードのid。" },
+              "to": { "type": "string", "x-prompt-write": "遷移先ノードのid。" },
+              "label": { "type": "string", "x-prompt-write": "遷移条件（回答）の短い文言。" }
+            }
+          }
+        }
+      }
+    },
+
+    "ExamplesBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "text"],
+      "x-render-order": 5,
+      "x-render-level": 2,
+      "x-prompt-query": "この概念を具体的な架空の題材に当てはめた実例を持ちます。原則の理解を補強します。",
+      "x-render": [{ "as": "paragraph", "from": "text" }],
+      "properties": {
+        "blockType": { "type": "string", "const": "Examples" },
+        "title": { "type": "string", "const": "実例" },
+        "text": {
+          "type": "string",
+          "x-prompt-write": "架空の題材を使い、この概念を具体的に当てはめた実例を記述してください。特定の実在企業名は避けてください。"
+        }
+      }
+    },
+
+    "AntiPatternsBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 6,
+      "x-render-level": 2,
+      "x-prompt-query": "この概念に関するよくある誤り（アンチパターン）と、その問題点を持ちます。避けるべき判断の参照に使います。",
+      "x-render": [{ "as": "table", "from": "items", "columns": [{ "field": "name", "header": "アンチパターン" }, { "field": "problem", "header": "問題点" }] }],
+      "properties": {
+        "blockType": { "type": "string", "const": "AntiPatterns" },
+        "title": { "type": "string", "const": "アンチパターン" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "この概念に関するよくある誤りを列挙してください。無ければ空配列。",
+          "items": {
+            "type": "object",
+            "required": ["name", "problem"],
+            "properties": {
+              "name": { "type": "string", "x-prompt-write": "アンチパターン名。" },
+              "problem": { "type": "string", "x-prompt-write": "何が問題かの説明。" }
+            }
+          }
+        }
+      }
+    },
+
+    "ProvenanceBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "text"],
+      "x-render-order": 7,
+      "x-render-level": 2,
+      "x-prompt-query": "この概念の内容がどの出典に基づくか、要約か引用かを持ちます。内容の信頼性の確認に使います。",
+      "x-render": [{ "as": "paragraph", "from": "text" }],
+      "properties": {
+        "blockType": { "type": "string", "const": "Provenance" },
+        "title": { "type": "string", "const": "出典・根拠の透明性" },
+        "text": {
+          "type": "string",
+          "x-prompt-write": "内容の出典（書籍・章等）と、要約/再構成であり直接引用でないことを明記してください。"
+        }
+      }
+    },
+
+    "RelatedConceptsBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 8,
+      "x-render-level": 2,
+      "x-prompt-query": "関連する他のKnowledge documentへの参照を持ちます。概念間のつながりを辿るのに使います。",
+      "x-render": [{ "as": "table", "from": "items", "columns": [{ "field": "conceptId", "header": "関連概念" }, { "field": "note", "header": "関係" }] }],
+      "properties": {
+        "blockType": { "type": "string", "const": "RelatedConcepts" },
+        "title": { "type": "string", "const": "関連概念" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "関連するKnowledge documentのdocumentIdと、その関係を短く列挙してください。",
+          "items": {
+            "type": "object",
+            "required": ["conceptId", "note"],
+            "properties": {
+              "conceptId": { "type": "string", "x-prompt-write": "関連するKnowledge documentのdocumentId。" },
+              "note": { "type": "string", "x-prompt-write": "どう関連するかの短い説明。" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

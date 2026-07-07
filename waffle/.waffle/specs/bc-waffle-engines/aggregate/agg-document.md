@@ -33,6 +33,7 @@
 | specKind | DiscriminatorValue |
 | codingKind | DiscriminatorValue |
 | skillKind | DiscriminatorValue |
+| agentKind | DiscriminatorValue |
 | subdomainRef | DocumentId |
 | aggregateRef | DocumentId |
 | stack | 文字列配列 |

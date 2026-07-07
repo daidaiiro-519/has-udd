@@ -2,22 +2,47 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "AgentSchema/v1",
   "title": "Agent Schema v1",
-  "description": "Document集約の一documentType（Agent）。Orchestratorを表す（Role/Advisorは既存SkillSchemaのskillKind=customで表現するため対象外・kind discriminatorは持たない）。x-render-targetのdeployでCLAUDE.md/AGENTS.md等の各ツールネイティブな起動ファイルへrender+deployされる（SkillSchemaがSKILL.mdへrender+deployするのと同型）。ツールはリポジトリルートのCLAUDE.md/AGENTS.mdしか自動発見しないため、サブディレクトリを管轄するOrchestrator（SubOrchestrator）はscope単位で複数存在しうる。",
+  "description": "Document集約の一documentType（Agent）。agentKindで2種を判別する: orchestrator（CLAUDE.md/AGENTS.mdへrender+deployされる編成役）・subagent（Claude Codeのカスタムsubagent・.claude/agents/{documentId}.mdへrender+deployされる独立コンテキストの実行者）。Role/Advisor（継続対話が必要な専門レンズ）は既存SkillSchemaのskillKind=customで表現するため対象外——subagentは独立コンテキストでの一発タスク委譲を想定した別物。",
 
   "type": "object",
-  "required": ["documentId", "documentType", "schemaRef", "status", "content"],
+  "required": ["documentId", "documentType", "schemaRef", "agentKind", "status", "content"],
   "x-source-target": ".waffle/documents/agent/{documentId}.json",
+  "if": { "properties": { "agentKind": { "const": "orchestrator" } }, "required": ["agentKind"] },
+  "then": { "properties": { "content": { "$ref": "#/$defs/OrchestratorContent" } } },
+  "else": { "properties": { "content": { "$ref": "#/$defs/SubagentContent" } } },
+
   "x-render-target": {
     "formats": ["md"],
-    "pathVars": {"scope": "doc.content.scope.path"},
-    "path": ".waffle/agent/{documentId}.md",
-    "deploy": ["{scope}CLAUDE.md", "{scope}AGENTS.md"]
+    "pathVars": {
+      "orchestrator": { "scope": "doc.content.scope.path" },
+      "subagent": {}
+    },
+    "path": {
+      "orchestrator": ".waffle/agent/{documentId}.md",
+      "subagent": ".waffle/agent/{documentId}.md"
+    },
+    "deploy": {
+      "orchestrator": ["{scope}CLAUDE.md", "{scope}AGENTS.md"],
+      "subagent": [".claude/agents/{documentId}.md"]
+    }
+  },
+  "x-frontmatter": {
+    "orchestrator": {},
+    "subagent": {
+      "name": "doc.documentId",
+      "description": "doc.content.description.text",
+      "tools": "doc.content.toolAccess.tools",
+      "disallowedTools": "doc.content.toolAccess.disallowedTools",
+      "model": "doc.content.runtimeConfig.model",
+      "permissionMode": "doc.content.runtimeConfig.permissionMode",
+      "skills": "doc.content.skillPreloads.items"
+    }
   },
 
   "properties": {
     "documentId": {
       "type": "string",
-      "x-prompt-write": "このOrchestratorを一意に識別するIDを kebab-case で付けてください。例: orchestrator-root, orchestrator-waffle"
+      "x-prompt-write": "このAgentを一意に識別するIDを kebab-case で付けてください。例: orchestrator-root, orchestrator-waffle, subagent-audit"
     },
     "documentType": {
       "type": "string",
@@ -27,6 +52,11 @@
       "type": "string",
       "const": "AgentSchema/v1"
     },
+    "agentKind": {
+      "type": "string",
+      "enum": ["orchestrator", "subagent"],
+      "x-prompt-write": "CLAUDE.md/AGENTS.mdとして編成役を担うなら orchestrator、独立コンテキストで一発タスクを委譲されるカスタムsubagentなら subagent を指定してください。"
+    },
     "status": {
       "type": "string",
       "enum": ["DRAFT", "ACTIVE", "DEPRECATED"],
@@ -35,7 +65,7 @@
     "tags": {
       "type": "array",
       "items": { "type": "string" },
-      "x-prompt-write": "このOrchestratorを分類するタグを付けてください。例: [\"repo:has-udd\"]"
+      "x-prompt-write": "このAgentを分類するタグを付けてください。例: [\"repo:has-udd\"]"
     },
     "createdAt": { "type": "string", "format": "date-time" },
     "updatedAt": { "type": "string", "format": "date-time" },
@@ -57,11 +87,11 @@
         }
       }
     },
-    "content": { "$ref": "#/$defs/AgentContent" }
+    "content": {}
   },
 
   "$defs": {
-    "AgentContent": {
+    "OrchestratorContent": {
       "type": "object",
       "required": ["title", "scope", "operatingRules"],
       "additionalProperties": false,
@@ -73,12 +103,26 @@
       }
     },
 
+    "SubagentContent": {
+      "type": "object",
+      "required": ["title", "description", "systemPrompt"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "$ref": "#/$defs/TitleBlock" },
+        "description": { "$ref": "#/$defs/DescriptionBlock" },
+        "toolAccess": { "$ref": "#/$defs/ToolAccessBlock" },
+        "runtimeConfig": { "$ref": "#/$defs/RuntimeConfigBlock" },
+        "skillPreloads": { "$ref": "#/$defs/SkillPreloadsBlock" },
+        "systemPrompt": { "$ref": "#/$defs/SystemPromptBlock" }
+      }
+    },
+
     "TitleBlock": {
       "type": "object",
       "required": ["blockType", "title"],
       "x-render-order": 0,
       "x-render-level": 1,
-      "x-prompt-query": "このOrchestratorのタイトルを持ちます。documentId がそのまま使われます。",
+      "x-prompt-query": "このAgentのタイトルを持ちます。documentId がそのまま使われます。",
       "x-render": [],
       "properties": {
         "blockType": { "type": "string", "const": "Title" },
@@ -161,6 +205,105 @@
               "note": { "type": "string", "x-prompt-write": "そのscopeで作業する際に何を確認すべきかの短い説明。" }
             }
           }
+        }
+      }
+    },
+
+    "DescriptionBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "text"],
+      "x-render-order": 1,
+      "x-render-level": 2,
+      "x-prompt-query": "このSubagentにいつ委譲すべきかを持ちます。ClaudeがこのSubagentを選ぶかどうかの判断に使います。",
+      "x-render": [{ "as": "paragraph", "from": "text" }],
+      "properties": {
+        "blockType": { "type": "string", "const": "Description" },
+        "title": { "type": "string", "const": "委譲判断" },
+        "text": {
+          "type": "string",
+          "x-prompt-write": "このSubagentにどんなときに委譲すべきかを具体的に記述してください。frontmatterのdescriptionとして使われ、Claudeの自動委譲判断の根拠になります。"
+        }
+      }
+    },
+
+    "ToolAccessBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "tools", "disallowedTools"],
+      "x-render-order": 2,
+      "x-render-level": 2,
+      "x-prompt-query": "このSubagentが使えるツール・使えないツールの制限を持ちます。ブロック自体が無ければ制限なし（全ツール継承）。",
+      "x-render": [
+        { "heading": "使えるツール", "as": "list", "from": "tools" },
+        { "heading": "使えないツール", "as": "list", "from": "disallowedTools" }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "ToolAccess" },
+        "title": { "type": "string", "const": "ツール制限" },
+        "tools": {
+          "type": "array",
+          "items": { "type": "string" },
+          "x-prompt-write": "このSubagentに許可するツール名を列挙してください。全ツールを継承する場合はこのブロック自体を省略してください。"
+        },
+        "disallowedTools": {
+          "type": "array",
+          "items": { "type": "string" },
+          "x-prompt-write": "このSubagentに禁止するツール名を列挙してください。無ければ空配列。"
+        }
+      }
+    },
+
+    "RuntimeConfigBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "model", "permissionMode"],
+      "x-render-order": 3,
+      "x-render-level": 2,
+      "x-prompt-query": "このSubagentのモデル・権限モードの上書き指定を持ちます。ブロック自体が無ければメインセッションの既定を継承します。",
+      "x-render": [{ "as": "keyvalue", "pairs": [{ "label": "モデル", "from": "model" }, { "label": "権限モード", "from": "permissionMode" }] }],
+      "properties": {
+        "blockType": { "type": "string", "const": "RuntimeConfig" },
+        "title": { "type": "string", "const": "実行設定" },
+        "model": {
+          "type": "string",
+          "x-prompt-write": "モデルを上書きする場合に指定してください（例: sonnet, opus）。既定を継承する場合はこのブロック自体を省略してください。"
+        },
+        "permissionMode": {
+          "type": "string",
+          "x-prompt-write": "権限モードを指定してください（例: default, plan）。"
+        }
+      }
+    },
+
+    "SkillPreloadsBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 4,
+      "x-render-level": 2,
+      "x-prompt-query": "このSubagentが起動時にプリロードするSkill名の一覧を持ちます。ブロック自体が無ければプリロードなし。",
+      "x-render": [{ "as": "list", "from": "items" }],
+      "properties": {
+        "blockType": { "type": "string", "const": "SkillPreloads" },
+        "title": { "type": "string", "const": "プリロードSkill" },
+        "items": {
+          "type": "array",
+          "items": { "type": "string" },
+          "x-prompt-write": "起動時にプリロードするSkillのdocumentIdを列挙してください。無ければこのブロック自体を省略してください。"
+        }
+      }
+    },
+
+    "SystemPromptBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "text"],
+      "x-render-order": 5,
+      "x-render-level": 2,
+      "x-prompt-query": "このSubagentのシステムプロンプト本文を持ちます。独立コンテキストで最初に読み込まれる指示です。",
+      "x-render": [{ "as": "paragraph", "from": "text" }],
+      "properties": {
+        "blockType": { "type": "string", "const": "SystemPrompt" },
+        "title": { "type": "string", "const": "システムプロンプト" },
+        "text": {
+          "type": "string",
+          "x-prompt-write": "このSubagentが独立コンテキストで実行する際の指示を、具体的な手順・制約を含めて記述してください。"
         }
       }
     }

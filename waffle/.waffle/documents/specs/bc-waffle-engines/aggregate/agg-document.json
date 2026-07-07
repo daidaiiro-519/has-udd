@@ -67,6 +67,11 @@
               "optional": true
             },
             {
+              "name": "agentKind",
+              "type": "DiscriminatorValue",
+              "optional": true
+            },
+            {
               "name": "subdomainRef",
               "type": "DocumentId",
               "optional": true

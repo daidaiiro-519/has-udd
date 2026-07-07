@@ -133,6 +133,8 @@ class RenderEngine:
                 value = _resolve_path({"doc": doc}, path)
             except KeyError:
                 continue  # 任意ブロック省略時：値で埋めずフィールドごと省略する（上書き指定の意味を保つ）
+            if not value:
+                continue  # 空文字・空配列・null も同様に省略する（part_rendererの空値省略規約と一貫）
             # JSON 文字列は YAML のスカラとしても安全（コロン・括弧・日本語を含んでも壊れない）
             lines.append(f"{key}: {json.dumps(value, ensure_ascii=False)}")
         if len(lines) == 1:

@@ -211,18 +211,25 @@ def test_discriminatorごとに異なるx_frontmatterを生成する(tmp_path):
 
 def test_存在しないx_frontmatterのドットパスは省略する(tmp_path):
     """
-    Given x-frontmatterが宣言するドットパスに対応するcontentブロックを持たないDocument
+    Given x-frontmatterが宣言するドットパスに対応するcontentブロックを持たない、または値が空であるDocument
     When renderする
     Then そのフィールドはfrontmatterから省略される
     """
     schema = {
         "properties": {"content": {"type": "object", "properties": {}}},
-        "x-frontmatter": {"name": "doc.documentId", "model": "doc.content.runtimeConfig.model"},
+        "x-frontmatter": {
+            "name": "doc.documentId",
+            "model": "doc.content.runtimeConfig.model",
+            "permissionMode": "doc.content.runtimeConfig.permissionMode",
+        },
         "x-render-target": {"formats": ["md"], "path": str(tmp_path / "{documentId}.md")},
     }
     doc_path = tmp_path / "doc.json"
     doc_path.write_text(
-        json.dumps({"documentId": "x", "schemaRef": "Fake/v1", "content": {}}),
+        json.dumps({
+            "documentId": "x", "schemaRef": "Fake/v1",
+            "content": {"runtimeConfig": {"blockType": "RuntimeConfig", "title": "t", "permissionMode": ""}},
+        }),
         encoding="utf-8",
     )
 
@@ -231,6 +238,7 @@ def test_存在しないx_frontmatterのドットパスは省略する(tmp_path)
     assert isinstance(result, Ok), result
     assert 'name: "x"' in result.value["content"]
     assert "model" not in result.value["content"]
+    assert "permissionMode" not in result.value["content"]
 
 
 

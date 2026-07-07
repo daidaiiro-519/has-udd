@@ -30,6 +30,13 @@ def _select_template(value, spec_kind: str | None) -> str:
         return value.get(spec_kind, "") if spec_kind else ""
     return value or ""
 
+def _select_deploy(value, spec_kind: str | None) -> list:
+    """x-render-target の deploy は、フラットな配列（旧来）か
+    specKind ごとの辞書（discriminatorで出し分け）のどちらでも書ける。辞書なら該当 specKind を選ぶ。"""
+    if isinstance(value, dict):
+        return value.get(spec_kind, []) if spec_kind else []
+    return value or []
+
 class RenderEngine:
     def __init__(
         self,
@@ -75,7 +82,7 @@ class RenderEngine:
                 # canonical（.waffle 配下）に書く
                 self._documents.write_text(canonical, output)
                 # deploy: 同一フォーマットは verbatim copy（更新漏れ防止のため render に内蔵）
-                for dep in target.get("deploy", []):
+                for dep in _select_deploy(target.get("deploy", []), spec_kind):
                     dp = path_template.resolve(dep, **path_vars)
                     self._documents.write_text(dp, output)
                     deployed.append(dp)

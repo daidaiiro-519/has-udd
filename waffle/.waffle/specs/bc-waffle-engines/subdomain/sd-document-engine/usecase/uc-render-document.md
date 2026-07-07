@@ -39,6 +39,7 @@ sequenceDiagram
 - Document が RENDERED 状態になる
 - DocumentRendered が発行される
 - 成果物が canonical に書かれ、deploy 先へ verbatim コピーされる
+- deploy 先は固定の配列だけでなく、discriminator（specKind等）ごとに異なる配列としても宣言できる（canonicalのpath選択と同じ仕組み）
 
 ---
 
@@ -46,6 +47,7 @@ sequenceDiagram
 
 - When 対象 Document が与えられたとき、engine は x-render に従い成果物を生成する shall。
 - When deploy が有効なとき、engine は canonical と deploy 先の両方へ書き込む shall。
+- When deploy 先が discriminator ごとの配列として宣言されているとき、engine は対象 Document の discriminator 値に対応する配列だけへ書き込む shall。
 - If schemaRef が無いとき、engine は MISSING_SCHEMA_REF を返し描画しない shall。
 
 ---
@@ -180,6 +182,19 @@ Scenario: 不正なJSONはINVALID_JSON
   Given 不正なJSONの対象ファイル
   When renderする
   Then INVALID_JSONエラーが返る
+```
+
+### discriminatorごとに異なるdeploy先へ書き分ける
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | 受け入れ基準：deploy先がdiscriminatorごとの配列で宣言されているとき対応する配列だけへ書く |
+
+```gherkin
+Scenario: discriminatorごとに異なるdeploy先へ書き分ける
+  Given deploy先がdiscriminatorの値ごとに異なる配列として宣言されたschemaのDocument
+  When deployを有効にしてrenderする
+  Then そのDocumentのdiscriminator値に対応する配列のdeploy先だけに書かれる
 ```
 
 ---

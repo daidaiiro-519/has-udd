@@ -52,6 +52,46 @@ def test_deploy_すると_canonical_と_deploy_先の両方に書く():
     assert ".claude/skills/harness-query-engine/SKILL.md" in result.value["deployed"]
 
 
+class _FakeSchemaRepository:
+    def __init__(self, schema: dict) -> None:
+        self._schema = schema
+
+    def load(self, schema_ref: str) -> dict:
+        return self._schema
+
+    def list_versions(self, name: str) -> list[str]:
+        return []
+
+
+def test_discriminatorごとに異なるdeploy先へ書き分ける(tmp_path):
+    """
+    Given deploy先がdiscriminatorの値ごとに異なる配列として宣言されたschemaのDocument
+    When deployを有効にしてrenderする
+    Then そのDocumentのdiscriminator値に対応する配列のdeploy先だけに書かれる
+    """
+    schema = {
+        "if": {"properties": {"kind": {"const": "a"}}},
+        "properties": {"content": {"type": "object", "properties": {}}},
+        "x-render-target": {
+            "formats": ["md"],
+            "path": {"a": str(tmp_path / "canonical-a.md"), "b": str(tmp_path / "canonical-b.md")},
+            "deploy": {"a": [str(tmp_path / "deploy-a.md")], "b": [str(tmp_path / "deploy-b.md")]},
+        },
+    }
+    doc_path = tmp_path / "doc.json"
+    doc_path.write_text(
+        json.dumps({"documentId": "x", "schemaRef": "Fake/v1", "kind": "a", "content": {}}),
+        encoding="utf-8",
+    )
+
+    engine = RenderEngine(FsDocumentRepository(), _FakeSchemaRepository(schema))
+    result = engine.run(str(doc_path), deploy=True)
+    assert isinstance(result, Ok), result
+    assert result.value["path"] == str(tmp_path / "canonical-a.md")
+    assert str(tmp_path / "deploy-a.md") in result.value["deployed"]
+    assert str(tmp_path / "deploy-b.md") not in result.value["deployed"]
+
+
 
 
 def test_SkillSchemaをMarkdownにレンダリングする():

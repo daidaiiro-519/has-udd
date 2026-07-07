@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "DocstringSchema/v1",
   "title": "Docstring Schema v1",
-  "description": "code_scan（uc-scan-source-code）の出力を検証するメタ schema。RenderMetaSchema と同格（Document 本体でなく、ソースコードから構造化抽出した別のアウトプットを検証する）。出力 JSON の形は kind によらず単一（抽出方法だけが言語ごとの outbound adapter で異なる）。godoc/rustdoc は各言語の公式規約に args/returns/raises/attributes に相当する構造化記法が存在しないため、この2 kind ではこれらのフィールドは常に空になる（無理に構造を作らない）。",
+  "description": "code_scan（uc-scan-source-code）の出力を検証するメタ schema。RenderMetaSchema と同格（Document 本体でなく、ソースコードから構造化抽出した別のアウトプットを検証する）。出力 JSON の形は kind によらず単一（抽出方法だけが言語ごとの outbound adapter で異なる）想定。godoc/rustdoc は各言語の公式規約に args/returns/raises/attributes に相当する構造化記法が存在しないため、対応するadapterを実装する際はこれらのフィールドは常に空になる設計にする（無理に構造を作らない）。★現状の実装（PythonAstSourceScanner/PydoclintLinter）はgoogle kindのみ対応しており、tsdoc/javadoc/godoc/rustdocのadapterは未実装（他kindを指定するとUNSUPPORTED_KINDエラーになる）。以下の各kindの抽出規則は将来adapterを追加する際の設計として保持している。",
 
   "type": "object",
   "required": ["path", "kind", "elementKind", "name", "hasDocstring", "signatureParams", "summary", "body", "args", "returns", "raises", "attributes"],
@@ -70,7 +70,7 @@
   },
 
   "x-extraction-rules": {
-    "description": "kind ごとの「docstring テキスト → 出力フィールド」への機械的な変換規則。抽出エンジンはこの宣言を読んで汎用的にパースし、言語ごとにマーカー文字列をハードコードしない。各規則は公式仕様（Google Python Style Guide / tsdoc.org / Oracle Javadoc doc-comment spec）で裏付け済み。",
+    "description": "kind ごとの「docstring テキスト → 出力フィールド」への設計上の変換規則。各規則は公式仕様（Google Python Style Guide / tsdoc.org / Oracle Javadoc doc-comment spec）で裏付け済み。★現状のgoogle kind実装（PythonAstSourceScanner）はこの宣言を読んで動的にパースするのではなく、同等のマーカー文字列（_SECTION_HEADERS等）をPython側にハードコードしている（この宣言は正しい対応表として実装と一致しているが、実行時に参照されるデータではなくドキュメントとして保持している）。tsdoc/javadoc/godoc/rustdocは対応するadapter自体が未実装。",
     "google": {
       "summaryBoundary": "line",
       "sections": [

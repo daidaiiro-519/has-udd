@@ -67,10 +67,11 @@
       "blockType": "Postconditions",
       "title": "事後条件",
       "items": [
-        "公開要素ごとに、次のフィールドを持つオブジェクトの配列が返る: path（ファイルパス）・kind（DocstringSchema の kind）・elementKind（module/class/function のいずれか）・name（要素名）・hasDocstring（docstring が存在するか。真偽値）・signatureParams（実シグネチャの引数名の配列。function/method 以外は空配列）・summary（要約行。無ければ空文字）・body（本文。無ければ空文字）・args（docstring の引数説明。{name, description} の配列。無ければ空配列）・returns（戻り値の説明。ジェネレータの Yields も含む。無ければ空文字）・raises（{exceptionType, condition} の配列。無ければ空配列）・attributes（クラスの公開属性説明。{name, description} の配列。elementKind=class 以外は空配列）",
-        "signatureParams は docstring でなく実際の関数シグネチャから取得する（args との突合に使うため）",
-        "private 要素（言語の慣例で非公開とされるもの。例: Python の先頭 `_`）は既定では対象外になる",
-        "インデックスは保存されない（読み取りのたびに再計算する）"
+        "公開要素ごとに、次のフィールドを持つオブジェクトの配列が返る: path（ファイルパス）・kind（DocstringSchemaのkind）・elementKind（module/class/functionのいずれか）・name（要素名）・hasDocstring（docstringが存在するか。真偽値）・signatureParams（実シグネチャの引数名の配列。function/method以外は空配列）・summary（要約行。無ければ空文字）・body（本文。無ければ空文字）・args（docstringの引数説明。{name, description}の配列。無ければ空配列）・returns（戻り値の説明。ジェネレータのYieldsも含む。無ければ空文字）・raises（{exceptionType, condition}の配列。無ければ空配列）・attributes（クラスの公開属性説明。{name, description}の配列。elementKind=class以外は空配列）",
+        "signatureParamsはdocstringでなく実際の関数シグネチャから取得する（argsとの突合に使うため）",
+        "private要素（言語の慣例で非公開とされるもの。例: Pythonの先頭`_`）は既定では対象外になる",
+        "インデックスは保存されない（読み取りのたびに再計算する）",
+        "★現状の実装（PythonAstSourceScanner）はkind=googleのみ対応している。DocstringSchemaが宣言するtsdoc/javadoc/godoc/rustdocの4kindは、対応する言語のoutbound adapterが未実装であり、これらを指定するとUNSUPPORTED_KINDエラーになる（将来対応するadapterを追加する際の設計として維持している）"
       ]
     },
     "acceptanceCriteria": {

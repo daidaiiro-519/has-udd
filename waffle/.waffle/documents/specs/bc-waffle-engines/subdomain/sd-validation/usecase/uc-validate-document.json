@@ -90,12 +90,7 @@
     "errors": {
       "blockType": "Errors",
       "title": "エラー",
-      "items": [
-        {
-          "code": "VALIDATION_FAILED",
-          "condition": "schema に不適合（違反詳細つきで失敗・status は変えない）"
-        }
-      ]
+      "items": []
     },
     "acceptanceScenarios": {
       "blockType": "AcceptanceScenarios",

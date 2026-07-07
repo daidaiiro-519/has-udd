@@ -144,44 +144,34 @@
       "title": "不変条件",
       "items": [
         {
-          "rule": "Spec家族系（DomainSpecSchema/PresentationSpecSchema）の status は CREATED→VALIDATED→RENDERED→SUPERSEDED の順にのみ進み、逆行・飛ばしをしない",
+          "rule": "Spec家族（DomainSpecSchema/PresentationSpecSchema）のstatusはCREATED→VALIDATED→RENDERED→SUPERSEDEDの順にのみ進み、逆行・飛ばしをしない",
           "enforcement": "guard",
           "rationale": "成果物の状態の一貫性を保つ"
         },
         {
-          "rule": "CodingSchema/SkillSchema 系の status は DRAFT→ACTIVE→DEPRECATED の順にのみ進み、逆行・飛ばしをしない",
-          "enforcement": "guard",
-          "rationale": "運用中の規約が予告なく後退・スキップしないことを保証する"
-        },
-        {
-          "rule": "schemaRef は常に存在する",
+          "rule": "schemaRefは常に存在する",
           "enforcement": "schema",
           "rationale": "型が無ければ検証も描画もできない"
         },
         {
-          "rule": "content が schema に適合しない限り VALIDATED へ進めない",
+          "rule": "contentがschemaに適合しない限りVALIDATEDへ進めない",
           "enforcement": "guard",
           "rationale": "不正な成果物を後段（render/deploy）に流さない"
         },
         {
-          "rule": "SUPERSEDED は終端であり、以後どのコマンドも受け付けない",
+          "rule": "SUPERSEDEDは終端であり、以後どのコマンドも受け付けない",
           "enforcement": "guard",
           "rationale": "置換後の変更を防ぐ"
         },
         {
-          "rule": "DEPRECATED は終端であり、以後どのコマンドも受け付けない",
+          "rule": "Documentのパス解決は、いかなるoperation・commandからも常にプロジェクトルート内に閉じ込められる（パストラバーサルを許さない）",
           "enforcement": "guard",
-          "rationale": "廃止後の変更を防ぐ"
+          "rationale": "ファイルアクセスというデータアクセス層の技術的関心事だが、Document集約が扱う全ての操作に横断的に適用される不変条件であり、特定usecaseの業務シナリオではなく集約の不変条件として一箇所で保証する"
         },
         {
-          "rule": "Document のパス解決は、いかなる operation・command からも常にプロジェクトルート内に閉じ込められる（パストラバーサルを許さない）",
+          "rule": "schemaRefを持たないDocumentを対象にした、schema解決を要する操作は、いかなるoperation・commandからも常にMISSING_SCHEMA_REFとして拒否される",
           "enforcement": "guard",
-          "rationale": "ファイルアクセスというデータアクセス層の技術的関心事だが、Document 集約が扱う全ての操作に横断的に適用される不変条件であり、特定 usecase の業務シナリオではなく集約の不変条件として一箇所で保証する"
-        },
-        {
-          "rule": "schemaRef を持たない Document を対象にした、schema 解決を要する操作は、いかなる operation・command からも常に MISSING_SCHEMA_REF として拒否される",
-          "enforcement": "guard",
-          "rationale": "「schemaRef は常に存在する」は理想状態の不変条件だが、scaffold 直後の未検証 Document 等、実際には欠けている状態が生じうる。render/validate が個別に対応していた（重複）この防御的振る舞いを集約の不変条件として一箇所で保証する"
+          "rationale": "「schemaRefは常に存在する」は理想状態の不変条件だが、scaffold直後の未検証Document等、実際には欠けている状態が生じうる。render/validateが個別に対応していた（重複）この防御的振る舞いを集約の不変条件として一箇所で保証する"
         }
       ]
     },
@@ -262,8 +252,8 @@
         },
         {
           "name": "render",
-          "description": "x-render に従い成果物に描画し配置先へ反映する（VALIDATED 前提の不変条件を守る）。",
-          "requiresState": "VALIDATED",
+          "description": "x-render に従い成果物に描画し配置先へ反映する。validate とは疎結合であり、status を前提条件としない（未検証の Document も best-effort で描画される）。",
+          "requiresState": "（任意・不問）",
           "postState": "RENDERED",
           "params": [],
           "emits": [
@@ -284,31 +274,6 @@
           ],
           "emits": [
             "DocumentSuperseded"
-          ]
-        },
-        {
-          "name": "activate",
-          "description": "起草中の Coding/Skill 規約を運用可能にする（CodingSchema/SkillSchema 系のみ）。",
-          "requiresState": "DRAFT",
-          "postState": "ACTIVE",
-          "params": [],
-          "emits": [
-            "DocumentActivated"
-          ]
-        },
-        {
-          "name": "deprecate",
-          "description": "運用中の Coding/Skill 規約を廃止する（CodingSchema/SkillSchema 系のみ）。",
-          "requiresState": "ACTIVE",
-          "postState": "DEPRECATED",
-          "params": [
-            {
-              "name": "successorId",
-              "meaning": "後継 Document の識別子（あれば）"
-            }
-          ],
-          "emits": [
-            "DocumentDeprecated"
           ]
         }
       ]
@@ -438,54 +403,33 @@
           "category": "異常系",
           "viewpoint": "状態遷移：前進のみの不変条件が効く",
           "gherkin": "Scenario: status は逆行できない\n  Given RENDERED 状態の Document\n  When validate へ戻そうとする\n  Then 状態遷移は拒否され、状態は RENDERED のままである",
-          "covers": "不変条件: status は前進のみ"
-        },
-        {
-          "name": "未検証では render できない",
-          "category": "異常系",
-          "viewpoint": "状態遷移：VALIDATED 前提が効く",
-          "gherkin": "Scenario: 未検証では render できない\n  Given CREATED 状態の Document\n  When render する\n  Then 拒否され、状態は CREATED のままである",
-          "covers": "不変条件: 適合前は後段に進めない"
+          "covers": "不変条件: statusは前進のみ"
         },
         {
           "name": "SUPERSEDED は終端",
           "category": "異常系",
           "viewpoint": "状態遷移：終端状態は不変",
           "gherkin": "Scenario: SUPERSEDED は終端\n  Given SUPERSEDED 状態の Document\n  When 任意のコマンドを実行する\n  Then 拒否される",
-          "covers": "不変条件: SUPERSEDED は終端"
-        },
-        {
-          "name": "Coding/Skill の status も逆行できない",
-          "category": "異常系",
-          "viewpoint": "状態遷移：maturityLifecycle も前進のみの不変条件が効く",
-          "gherkin": "Scenario: Coding/Skill の status も逆行できない\n  Given ACTIVE 状態の Coding document\n  When DRAFT へ戻そうとする\n  Then 状態遷移は拒否され、状態は ACTIVE のままである",
-          "covers": "不変条件: CodingSchema/SkillSchema 系の status は前進のみ"
-        },
-        {
-          "name": "DEPRECATED は終端",
-          "category": "異常系",
-          "viewpoint": "状態遷移：終端状態は不変（maturityLifecycle）",
-          "gherkin": "Scenario: DEPRECATED は終端\n  Given DEPRECATED 状態の Skill document\n  When 任意のコマンドを実行する\n  Then 拒否される",
-          "covers": "不変条件: DEPRECATED は終端"
+          "covers": "不変条件: SUPERSEDEDは終端"
         },
         {
           "name": "パストラバーサルを含むパスは拒否される",
           "category": "異常系",
-          "viewpoint": "パス解決：'..' を含むパスはどの operation でも拒否される",
+          "viewpoint": "パス解決：'..'を含むパスはどのoperationでも拒否される",
           "gherkin": "Scenario: パストラバーサルを含むパスは拒否される\n  Given '..' を含む対象パス\n  When 任意の operation・command を実行する\n  Then INVALID_PATH エラーが返り、プロジェクトルート外へはアクセスしない",
           "covers": "不変条件: パス解決はプロジェクトルート内に閉じ込められる"
         },
         {
           "name": "ディレクトリ横断はプロジェクトルート外を拒否する",
           "category": "異常系",
-          "viewpoint": "パス解決：index_scan_dir 等のディレクトリ横断操作もルート外を拒否する",
+          "viewpoint": "パス解決：index_scan_dir等のディレクトリ横断操作もルート外を拒否する",
           "gherkin": "Scenario: ディレクトリ横断はプロジェクトルート外を拒否する\n  Given プロジェクトルート外を指すディレクトリパス\n  When index_scan_dir を実行する\n  Then INVALID_PATH エラーが返る",
           "covers": "不変条件: パス解決はプロジェクトルート内に閉じ込められる"
         },
         {
           "name": "schemaRefを持たないDocumentはMISSING_SCHEMA_REFとして拒否される",
           "category": "異常系",
-          "viewpoint": "パス解決：schema 解決を要する operation・command は schemaRef 欠如を同じ扱いにする",
+          "viewpoint": "パス解決：schema解決を要するoperation・commandはschemaRef欠如を同じ扱いにする",
           "gherkin": "Scenario: schemaRefを持たないDocumentはMISSING_SCHEMA_REFとして拒否される\n  Given schemaRef を持たない Document\n  When schema 解決を要する operation・command を実行する\n  Then MISSING_SCHEMA_REF エラーが返る",
           "covers": "不変条件: schemaRefを持たないDocumentへの操作はMISSING_SCHEMA_REFとして拒否される"
         }

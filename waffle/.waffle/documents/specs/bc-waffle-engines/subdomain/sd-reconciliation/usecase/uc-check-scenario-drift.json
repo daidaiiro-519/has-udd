@@ -74,7 +74,7 @@
         "返り値は次の4フィールドを持つ: missing_in_tests（specが宣言するが対応するテスト関数が無いシナリオ名）・orphaned_in_tests（テストファイルにあるがどのシナリオ宣言にも対応しない関数名）・matched（両方に存在する名前）・gherkin_mismatches（名前は一致するが、テスト関数のdocstringがシナリオのgherkin本文を含んでいないシナリオ名）",
         "対象となるシナリオブロックはacceptanceScenarios/guaranteeScenarios/invariantScenarios/domainServiceScenariosの4種",
         "シナリオ名からテスト関数名への変換規則（sanitize）は、非単語文字を_に置換しtest_を前置する",
-        "gherkin本文の比較は、gherkinの\"Scenario: ...\"見出し行を除いた各行と、テスト関数のdocstringの各行を、前後の空白を無視して比較する（docstringがgherkin本文を含む連続した部分列であれば一致とみなす。docstringに追加の説明文が続いても構わない）",
+        "gherkin本文の比較は、gherkinの\"Scenario: ...\"（または\"Scenario Outline: ...\"）見出し行を除いた各行と、テスト関数のdocstringの各行を、前後の空白を無視して比較する（docstringがgherkin本文を含む連続した部分列であれば一致とみなす。docstringに追加の説明文が続いても構わない）",
         "テスト関数名・docstringの抽出はASTのみで行い、実行や意味理解はしない",
         "missing_in_tests・orphaned_in_tests・gherkin_mismatches全てが空配列であれば、シナリオとテストの対応関係が保たれている（正常系）"
       ]
@@ -99,6 +99,10 @@
         {
           "code": "INVALID_SOURCE",
           "condition": "対象のテストファイルが構文解析できない（Pythonのパーサでエラー）"
+        },
+        {
+          "code": "INVALID_JSON",
+          "condition": "対象のspec.jsonが存在するが不正なJSON（json.JSONDecodeError）"
         }
       ]
     },

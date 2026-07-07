@@ -211,6 +211,33 @@ def test_実document_jsonにある未宣言のフィールドを検出する(tmp
     assert "unexpectedField" in result.value["undeclared_document_fields"]
 
 
+def test_複数entityの属性が全て未宣言判定に使われる(tmp_path):
+    """
+    Given agg-documentが複数のentityを持ち、2つ目のentityにのみ宣言されているフィールドを持つ実document.json
+    When 参照整合性検査を実行する
+    Then そのフィールドはundeclared_document_fieldsに含まれない（entities[0]だけでなく全entityの属性が見られる）
+    """
+    bc_path = tmp_path / "bc-test.json"
+    _write(bc_path, _bc("sd-a", "uc-a"))
+    _write(tmp_path / "subdomain/sd-a/sd-a.json", _sd("sd-a", ["uc-a"]))
+    _write(tmp_path / "subdomain/sd-a/usecase/uc-a.json", {"documentId": "uc-a"})
+    _write(tmp_path / "aggregate/agg-document.json", {
+        "documentId": "agg-document",
+        "content": {
+            "entities": {"items": [
+                {"name": "Document", "attributes": [{"name": "documentId", "type": "DocumentId"}]},
+                {"name": "Schema", "attributes": [{"name": "schemaRef", "type": "SchemaId"}]},
+            ]},
+            "valueObjects": {"items": [{"name": "DocumentId"}, {"name": "SchemaId"}]},
+        },
+    })
+    _write(tmp_path / "real_doc.json", {"documentId": "x", "schemaRef": "y"})
+
+    result = _engine().run(str(bc_path), str(tmp_path))
+    assert isinstance(result, Ok), result
+    assert "schemaRef" not in result.value["undeclared_document_fields"]
+
+
 def test_subdomainRefの食い違いを検出する(tmp_path):
     """
     Given subdomainRefが指すsubdomainのmembersに自分自身が含まれていないusecase document

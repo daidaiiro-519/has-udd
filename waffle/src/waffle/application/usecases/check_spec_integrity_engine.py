@@ -91,7 +91,7 @@ class CheckSpecIntegrityEngine:
             vo_names = {v["name"] for v in content.get("valueObjects", {}).get("items", [])}
             orphaned_value_objects.extend(sorted(vo_names - used_types))
             if agg_name == "agg-document" and entities:
-                agg_document_attrs = {a["name"] for a in entities[0].get("attributes", [])}
+                agg_document_attrs = {a["name"] for e in entities for a in e.get("attributes", [])}
 
         # B: Document集約の実インスタンス群のトップレベルフィールド整合性
         undeclared_document_fields: list[str] = []

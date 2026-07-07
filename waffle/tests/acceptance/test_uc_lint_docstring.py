@@ -149,9 +149,9 @@ def test_非公開要素はセクション欠落判定の対象外とする(tmp_
 
 def test_対応する_kind_が無い言語は_UNSUPPORTED_KIND(tmp_path):
     """
-    Given DocstringSchema に定義の無い言語のコードベース
+    Given DocstringSchemaに定義の無い言語、またはgoogle以外の未実装kindのコードベース
     When 適合判定を実行する
-    Then UNSUPPORTED_KIND エラーが返る
+    Then UNSUPPORTED_KINDエラーが返る
     """
     (tmp_path / "sample.py").write_text("def f():\n    pass\n", encoding="utf-8")
 

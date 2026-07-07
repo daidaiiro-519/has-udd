@@ -39,25 +39,25 @@
         {
           "from": "Orchestrator",
           "to": "SpecTree",
-          "message": "bc.json のパスを指定して参照整合性検査を依頼する",
+          "message": "bc.jsonのパスを指定して参照整合性検査を依頼する",
           "kind": "command"
         },
         {
           "from": "SpecTree",
           "to": "SpecTree",
-          "message": "bc.json の members(kind=subdomain/usecase) が宣言する名前集合を取得する",
+          "message": "bc.jsonのmembers(kind=subdomain/usecase)が宣言する名前集合を取得する",
           "kind": "self"
         },
         {
           "from": "SpecTree",
           "to": "SpecTree",
-          "message": "ディスク上の実際の subdomain ディレクトリ・各 subdomain.json が宣言する usecase 名・実際の usecase ファイルを走査する",
+          "message": "ディスク上の実際のsubdomainディレクトリ・各subdomain.jsonが宣言するusecase名・実際のusecaseファイルを走査する",
           "kind": "self"
         },
         {
           "from": "SpecTree",
           "to": "SpecTree",
-          "message": "宣言集合と実態集合を6方向で突き合わせ、加えて各集約内部の値オブジェクト使用整合性・Document集約と実インスタンスの整合性・usecase間の相互参照整合性を確認する",
+          "message": "宣言集合と実態集合を6方向で突き合わせ、加えて各集約内部の値オブジェクト使用整合性・Document集約と実インスタンスの整合性・usecaseからsubdomain/aggregateへの参照整合性を確認する",
           "kind": "self"
         },
         {
@@ -202,6 +202,13 @@
           "viewpoint": "ドリフト：usecaseのaggregateRefが実在しない集約を指している",
           "gherkin": "Scenario: 存在しない集約を指すaggregateRefを検出する\n  Given 実在しない集約documentIdをaggregateRefに持つusecase document\n  When 参照整合性検査を実行する\n  Then missing_aggregate_refsにその組が含まれる",
           "covers": "受け入れ基準: missing_aggregate_refs"
+        },
+        {
+          "name": "複数entityの属性が全て未宣言判定に使われる",
+          "category": "正常系",
+          "viewpoint": "agg-documentが複数のentityを持つとき、entities[0]だけでなく全entityの属性を未宣言判定の母集合に使う",
+          "gherkin": "Scenario: 複数entityの属性が全て未宣言判定に使われる\n  Given agg-documentが複数のentityを持ち、2つ目のentityにのみ宣言されているフィールドを持つ実document.json\n  When 参照整合性検査を実行する\n  Then そのフィールドはundeclared_document_fieldsに含まれない（entities[0]だけでなく全entityの属性が見られる）",
+          "covers": "受け入れ基準: undeclared_document_fields"
         }
       ]
     }

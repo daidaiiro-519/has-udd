@@ -182,8 +182,8 @@ def test_find_allは全階層を再帰収集する():
 def test_schemaRefを持たないファイルはrawで返す():
     """
     Given schemaRefを持たない対象ファイル
-    When 任意のoperationを実行する
-    Then valueはtype=rawとして生テキストを返す
+    When scan以外の任意のoperationを実行する
+    Then 戻り値は{ prompt, value }ではなく{ type: "raw", content: <生テキスト> }という別形状で返る
     """
     import json
     import tempfile

@@ -37,6 +37,15 @@ def _select_deploy(value, spec_kind: str | None) -> list:
         return value.get(spec_kind, []) if spec_kind else []
     return value or []
 
+def _select_path_vars(value: dict, spec_kind: str | None) -> dict:
+    """x-render-target の pathVars は、フラットな辞書（変数名→ドットパス。discriminator非依存）か
+    discriminatorごとの辞書（kind→{変数名→ドットパス}）のどちらでも書ける。値が全て dict なら
+    discriminatorごとの宣言とみなし、該当 kind を選ぶ（discriminatorの分岐で content の形が
+    変わり、参照できるドットパスも変わるため）。"""
+    if value and all(isinstance(v, dict) for v in value.values()):
+        return value.get(spec_kind, {}) if spec_kind else {}
+    return value
+
 class RenderEngine:
     def __init__(
         self,
@@ -71,8 +80,8 @@ class RenderEngine:
 
         output = self._render_frontmatter(doc, schema) + self._render_body(doc, defs)
 
-        path_vars = self._resolve_path_vars(doc, schema, document_path)
         spec_kind = doc.get(discriminator_key(schema))
+        path_vars = self._resolve_path_vars(doc, schema, document_path, spec_kind)
         path_template_str = _select_template(target.get("path"), spec_kind)
 
         canonical = path_template.resolve(path_template_str, **path_vars) if path_template_str else ""
@@ -93,7 +102,7 @@ class RenderEngine:
             "path": canonical, "deployed": deployed, "format": fmt, "content": output,
         })
 
-    def _resolve_path_vars(self, doc: dict, schema: dict, document_path: str) -> dict:
+    def _resolve_path_vars(self, doc: dict, schema: dict, document_path: str, spec_kind: str | None) -> dict:
         """x-render-target のパステンプレートに渡す変数を組み立てる。
 
         x-source-target が specKind 等でネストしている場合、contextRef のような
@@ -109,7 +118,7 @@ class RenderEngine:
                 recovered = path_template.reverse_parse(template, document_path)
                 if recovered:
                     path_vars.update(recovered)
-        path_vars_decl = schema.get("x-render-target", {}).get("pathVars", {})
+        path_vars_decl = _select_path_vars(schema.get("x-render-target", {}).get("pathVars", {}), spec_kind)
         for var_name, dotted_path in path_vars_decl.items():
             path_vars[var_name] = _resolve_path({"doc": doc}, dotted_path)
         return path_vars

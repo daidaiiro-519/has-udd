@@ -76,7 +76,8 @@
         "DocumentRendered が発行される",
         "成果物が canonical に書かれ、deploy 先へ verbatim コピーされる",
         "deploy 先は固定の配列だけでなく、discriminator（specKind等）ごとに異なる配列としても宣言できる（canonicalのpath選択と同じ仕組み）",
-        "パステンプレートの変数は、documentId等の既定変数に加え、schemaがx-render-target.pathVarsでcontentのドットパスを宣言すれば、そのcontent値も変数として使える（x-frontmatterと同型の宣言的解決）"
+        "パステンプレートの変数は、documentId等の既定変数に加え、schemaがx-render-target.pathVarsでcontentのドットパスを宣言すれば、そのcontent値も変数として使える（x-frontmatterと同型の宣言的解決）",
+        "pathVarsもpath/deployと同様、discriminatorごとに異なる宣言（kindごとの{変数名: ドットパス}の組）としても書ける（discriminatorの分岐によってcontentの形が変わり、参照できるドットパスも変わるため）"
       ]
     },
     "acceptanceCriteria": {
@@ -87,6 +88,7 @@
         "When deploy が有効なとき、engine は canonical と deploy 先の両方へ書き込む shall。",
         "When deploy 先が discriminator ごとの配列として宣言されているとき、engine は対象 Document の discriminator 値に対応する配列だけへ書き込む shall。",
         "When schemaがx-render-target.pathVarsでcontentのドットパスを宣言しているとき、engineはそのcontent値をパステンプレートの変数として使う shall。",
+        "When pathVarsがdiscriminatorごとの宣言（kindごとの変数マップ）であるとき、engineは対象Documentのdiscriminator値に対応する変数マップだけを解決する shall。",
         "If schemaRef が無いとき、engine は MISSING_SCHEMA_REF を返し描画しない shall。"
       ]
     },
@@ -221,6 +223,13 @@
           "viewpoint": "受け入れ基準：x-render-target.pathVarsが宣言するcontentドットパスの値がパステンプレートに反映される",
           "gherkin": "Scenario: pathVarsで宣言したcontent値をパステンプレートの変数として使う\n  Given x-render-target.pathVarsでcontentのドットパスを宣言したschemaのDocument\n  When renderする\n  Then そのcontent値がパステンプレートの変数として解決され、対応するパスに書かれる",
           "covers": "受け入れ基準: pathVarsによるcontent値のパス変数解決"
+        },
+        {
+          "name": "discriminatorごとに異なるpathVarsを解決する",
+          "category": "正常系",
+          "viewpoint": "受け入れ基準：discriminatorの分岐によって参照できるcontentドットパスが変わるため、pathVars自体もdiscriminatorごとに宣言できる",
+          "gherkin": "Scenario: discriminatorごとに異なるpathVarsを解決する\n  Given discriminatorの値ごとに異なるpathVars宣言（kindごとの変数マップ）を持つschemaのDocument\n  When renderする\n  Then そのDocumentのdiscriminator値に対応する変数マップだけが解決され、パステンプレートに反映される",
+          "covers": "受け入れ基準: discriminatorごとのpathVars解決"
         }
       ]
     }

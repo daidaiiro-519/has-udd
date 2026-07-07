@@ -6,6 +6,65 @@
 
 ---
 
+## 現在地サマリー（2026-07 更新・最新のプロダクトコンセプト）
+
+> ⚠️ このセクションは最新状態の要約。以降の本文（論点1〜3）は初期ブレストの歴史的記録であり、
+> 語彙（HarnessAgent/Job/SubAgent等）は当時のもの。現行の語彙は「Orchestrator/Role/agentKind」
+> （[[project-engine-awareness-architecture]]）・engine実装は独立OSS化された**Waffle**
+> （旧`has_udd`パッケージ・`waffle/`配下）に対応する。
+
+### 名前の分解
+
+has-udd = **H**arness **A**gentic **S**crum（HAS）＋ **U**secase-**D**riven-**D**evelopment（UDD）
+
+- **HAS（エージェントシステム側）**：Orchestrator がユーザーの意図を解釈し、Role（PO/SM/Dev/QA等）に
+  作業を委譲する、スクラムに倣ったマルチエージェント体制。
+- **UDD（開発手法側＝Waffle）**：仕様（spec）が嘘をつかない状態を機械的に保証する、
+  schema駆動のdocument.jsonエンジン。単体でも自己完結する独立OSS（`waffle/`）だが、
+  has-uddの中では**HASがWaffleを道具として使う**という一方向の依存になっている。
+
+### 核心の差別化価値
+
+「AI×チーム開発では、コードが大量・高速でAI製になり、コードそのものが人の共通理解の媒体で
+いられなくなる」という問題意識が出発点。**仕様を人とAIの共通言語として別に立て、それが実装から
+乖離しない（陳腐化しない）ことを機械的に保証する**のがhas-udd全体の存在理由
+（[[project-why-spec-exists]]）。
+
+- 詳細設計書は作らない——永続化するのは意図(spec)・制約(規約)・振る舞い検証(シナリオ)のみ。
+  API仕様等はコードから機械的に導出する「投影」であり、手書き禁止
+  （[[project-ai-era-detail-design]] D-2/D-3）。
+- 陳腐化＝キャッシュを人が手で更新することの別名。機械が決定的に再生成できるものは保存してよい。
+
+### ターゲットエンドユーザー
+
+**技術者に限らない**。業務エキスパートのような非技術者も、AIを仲介役として開発に参加できることが
+利点。エンドユーザーはdocument.jsonを直接読み書きせず、全てAI（Orchestrator/Role）が翻訳する。
+
+### コアループ（Waffleが提供する自己完結ループ）
+
+```
+scaffold（骨格生成）→ fill（AIが値だけ生成）→ validate（構造検証）→ render（SKILL.md/HTML化）→ deploy
+```
+
+CLI/MCPを通じたセルフサービスAPIとして提供される（プラットフォームエンジニアリング観点でいう
+Golden Path＝この一本道）。
+
+### DDD × プラットフォームエンジニアリングの統合視点（`brainstorm-platform-engineering-application.md`）
+
+- **DDD**は「何を標準化してよいか（一般/補完サブドメイン）／何を個別に育てるべきか（中核サブドメイン）」
+  の判断基準を提供する。
+- **プラットフォームエンジニアリング**は「その判断に基づき、標準化してよい部分をどう自己完結した
+  セルフサービス製品として磨き込むか」の実践知を提供する。
+- 両者を組み合わせると、**Waffleの磨き込み投資の優先順位は「非技術者が実際に躓く一般/補完サブドメイン
+  （validation/rendering）」に置くべき**、という具体的な指針が出る。
+- Waffleの「顧客」は直接にはOrchestrator/Roleだが、**真の受益者はエンドユーザー**であり、
+  Platform as a Productで測るべき成功指標は「非技術者が技術者の介入なしに、意図の表明から
+  validate緑・render済み成果物まで到達できたか」。
+
+詳細な論点・アイデアダンプは `docs/brainstorm/brainstorm-platform-engineering-application.md` 参照。
+
+---
+
 ## DDDフレーミング: has-uddそのものの業務領域分析
 
 「ドメイン駆動設計をはじめよう」の業務領域（サブドメイン）分類をhas-udd自体に適用する。

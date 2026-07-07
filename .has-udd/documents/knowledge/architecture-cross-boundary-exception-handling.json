@@ -1,0 +1,108 @@
+{
+  "documentId": "architecture-cross-boundary-exception-handling",
+  "documentType": "Knowledge",
+  "schemaRef": "KnowledgeSchema/v1",
+  "status": "DRAFT",
+  "tags": [
+    "advisor:tech-lead",
+    "domain:architecture"
+  ],
+  "createdAt": "2026-07-08T00:00:00Z",
+  "updatedAt": "2026-07-08T00:00:00Z",
+  "content": {
+    "title": {
+      "blockType": "Title",
+      "title": "architecture-cross-boundary-exception-handling"
+    },
+    "overview": {
+      "blockType": "Overview",
+      "title": "概要",
+      "questions": [
+        "インフラ層で発生した例外を、そのままドメイン層・アプリケーション層に伝播させてよいか？",
+        "ドメイン層の業務ルール違反は、どんな形の例外として表現すべきか？",
+        "全ての例外をレイヤー境界で翻訳する必要があるか？"
+      ],
+      "text": "例外もデータと同じくレイヤー境界を越えて伝播する。境界を越えるたびに、その例外は受け取る側の層の語彙に翻訳されるべきであり、外側の技術的な例外型をそのまま内側の層に漏らしてはならない、という原則。"
+    },
+    "principles": {
+      "blockType": "Principles",
+      "title": "原則",
+      "text": "例外には大きく2種類ある。1つは「業務ルール違反」——ドメイン層が意図的に投げる、業務上意味のある例外（例：在庫不足）。もう1つは「技術的失敗」——インフラ層で起きる、ドメインの言葉では説明できない失敗（例：DB接続エラー・タイムアウト）。ドメイン層は業務ルール違反を独自の例外型として定義し、それを投げることでコマンドの失敗を表現する。一方、インフラ層で発生した技術的失敗をそのままドメイン層・アプリケーション層に伝播させると、内側の層が外側の技術詳細（特定のライブラリの例外型等）を知ることになり、依存方向が乱れる。レイヤー境界を越える箇所（多くはSecondaryアダプター）で、技術的例外を、内側の層が理解できるより抽象的な失敗の形に翻訳してから伝えるべきである。ただし全ての技術的失敗を無理にドメイン例外へ翻訳する必要はない——復旧不能な致命的な失敗は、翻訳せずそのまま上位へ伝播させ、システム全体で一括処理する方が適切な場合もある。"
+    },
+    "classifications": {
+      "blockType": "Classifications",
+      "title": "分類",
+      "items": [
+        {
+          "name": "業務ルール違反（ドメイン例外）",
+          "description": "ドメイン層が意図的に投げる。業務上意味のある名前を持つ（例：InsufficientStockError）。呼び出し元は業務判断としてこれを処理する"
+        },
+        {
+          "name": "技術的失敗（インフラ例外）",
+          "description": "外側の層で発生する。ドメインの語彙では説明できない。レイヤー境界を越える際に翻訳するか、翻訳せず抽象化した失敗として伝播させるかを判断する"
+        }
+      ]
+    },
+    "decisionCriteria": {
+      "blockType": "DecisionCriteria",
+      "title": "判断基準",
+      "stages": [
+        { "id": "q1", "label": "この例外はレイヤー境界を越えて内側の層に伝播しようとしているか" },
+        { "id": "r1", "label": "その層の中で処理する。境界を越えないので翻訳は不要" },
+        { "id": "q2", "label": "この例外は業務ルール違反として意味を持つか（呼び出し元が業務判断として処理できるか）" },
+        { "id": "r2", "label": "ドメインの語彙による専用の例外型に変換してから投げる" },
+        { "id": "q3", "label": "回復不能な致命的失敗で、翻訳しても呼び出し元に業務的な意味を提供できないか" },
+        { "id": "r3", "label": "翻訳せず、抽象化した失敗として上位に伝播させ、システム全体の一括処理に委ねる" }
+      ],
+      "transitions": [
+        { "from": "q1", "to": "r1", "label": "いいえ" },
+        { "from": "q1", "to": "q2", "label": "はい" },
+        { "from": "q2", "to": "r2", "label": "はい" },
+        { "from": "q2", "to": "q3", "label": "いいえ" },
+        { "from": "q3", "to": "r3", "label": "はい" }
+      ]
+    },
+    "examples": {
+      "blockType": "Examples",
+      "title": "実例",
+      "text": "架空の物流プラットフォームで、配送先住所の検証に使う外部APIがタイムアウトした場合を考える。これは技術的失敗であり、ドメイン層は業務判断できないため、`AddressValidationUnavailable`というアプリケーション層の抽象化された失敗に変換して伝播させる。一方、在庫確認の結果「集荷可能数を超えている」と判明した場合は、業務ルール違反として`InsufficientCapacityError`というドメイン例外を投げ、呼び出し元（ユースケース）がそれをキャッチしてユーザーに分かりやすいメッセージへ変換する。"
+    },
+    "antiPatterns": {
+      "blockType": "AntiPatterns",
+      "title": "アンチパターン",
+      "items": [
+        {
+          "name": "DB例外（特定ORM/ライブラリ固有の例外型）をそのままユースケース層まで伝播させる",
+          "problem": "アプリケーション層がインフラの実装詳細（使用しているライブラリ）に依存することになり、依存方向が逆転する"
+        },
+        {
+          "name": "全ての例外をキャッチして握りつぶす",
+          "problem": "失敗が握りつぶされると、呼び出し元は成功したと誤認し、データ不整合や無限リトライ等の重大な障害につながる"
+        },
+        {
+          "name": "技術的失敗を無理にドメイン例外として表現する",
+          "problem": "「DB接続エラー」を業務ルール違反であるかのように扱うと、ドメインモデルの語彙が技術的関心事で汚染される"
+        }
+      ]
+    },
+    "provenance": {
+      "blockType": "Provenance",
+      "title": "出典・根拠の透明性",
+      "text": "クリーンアーキテクチャ・ヘキサゴナルアーキテクチャの共通原則（境界を越えるデータは受け手の語彙に翻訳する）を例外処理に適用し、AIが総合してhas-udd独自にまとめたものである（[[brainstorm-platform-engineering-application]] 論点11のddd-advisor/tech-lead-advisor相談結果を受けて着手）。"
+    },
+    "relatedConcepts": {
+      "blockType": "RelatedConcepts",
+      "title": "関連概念",
+      "items": [
+        {
+          "conceptId": "architecture-cross-layer-data-shape",
+          "note": "同じ「境界を越える際は受け手の語彙に翻訳する」原則の、例外・エラー版"
+        },
+        {
+          "conceptId": "architecture-dependency-direction",
+          "note": "例外の型が境界を越えて内側に漏れることは依存方向の逆転そのものである"
+        }
+      ]
+    }
+  }
+}

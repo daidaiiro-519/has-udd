@@ -1,0 +1,133 @@
+{
+  "documentId": "architecture-port-adapter",
+  "documentType": "Knowledge",
+  "schemaRef": "KnowledgeSchema/v1",
+  "status": "DRAFT",
+  "tags": [
+    "advisor:tech-lead",
+    "domain:architecture"
+  ],
+  "createdAt": "2026-07-07T00:00:00Z",
+  "updatedAt": "2026-07-07T00:00:00Z",
+  "content": {
+    "title": {
+      "blockType": "Title",
+      "title": "architecture-port-adapter"
+    },
+    "overview": {
+      "blockType": "Overview",
+      "title": "概要",
+      "questions": [
+        "このインターフェースは誰が定義すべきか、コア側か外側か？",
+        "「ポート」と「アダプター」の違いは何か？",
+        "駆動する側（Primary/Driving）と駆動される側（Secondary/Driven）の違いは？"
+      ],
+      "text": "アプリケーションコア（ドメイン＋アプリケーション層）が外部と接続する箇所を「ポート」（インターフェース）として明示的に定義し、外部の技術的詳細を「アダプター」として実装するパターン。コアは常にポートの所有者であり、外部技術に依存しない。"
+    },
+    "principles": {
+      "blockType": "Principles",
+      "title": "原則",
+      "text": "ポートには2種類ある。1つはアプリケーションコアを外部から呼び出すための「駆動する側（Primary/Driving）」ポート（例：ユースケースを呼び出すAPI）。もう1つはアプリケーションコアが外部を呼び出すための「駆動される側（Secondary/Driven）」ポート（例：データを永続化するリポジトリのインターフェース）。いずれの場合も、ポート（インターフェース）はコア側が定義し、アダプター（実装）は外側が持つ。これにより、コアは「何をする必要があるか」だけを知り、「どうやってそれを実現するか」という技術的詳細を知らずに済む。テスト時はアダプターを差し替える（テスト用の偽実装に置き換える）ことで、コアを外部依存なしに検証できる。"
+    },
+    "classifications": {
+      "blockType": "Classifications",
+      "title": "分類",
+      "items": [
+        {
+          "name": "Primary/Driving ポート・アダプター",
+          "description": "外部からアプリケーションコアを駆動する側。例：HTTP APIハンドラ・CLIコマンド・メッセージキューの受信ハンドラがアダプター、それらが呼び出すユースケースのインターフェースがポート"
+        },
+        {
+          "name": "Secondary/Driven ポート・アダプター",
+          "description": "アプリケーションコアが外部を駆動する側。例：リポジトリインターフェースがポート、実際のDBアクセス実装がアダプター"
+        }
+      ]
+    },
+    "decisionCriteria": {
+      "blockType": "DecisionCriteria",
+      "title": "判断基準",
+      "stages": [
+        {
+          "id": "q1",
+          "label": "このコンポーネントは、外部からコアを呼び出す側か"
+        },
+        {
+          "id": "r1",
+          "label": "Primary/Drivingアダプターとして扱う。コアが公開するポートに合わせて実装する"
+        },
+        {
+          "id": "q2",
+          "label": "このコンポーネントは、コアが外部の技術を呼び出すために使う側か"
+        },
+        {
+          "id": "r2",
+          "label": "Secondary/Drivenアダプターとして扱う。コアが定義したポート（インターフェース）を実装する"
+        },
+        {
+          "id": "r3",
+          "label": "どちらでもない場合、アプリケーションコア自体（ドメイン層・アプリケーション層）に属する可能性が高い"
+        }
+      ],
+      "transitions": [
+        {
+          "from": "q1",
+          "to": "r1",
+          "label": "はい"
+        },
+        {
+          "from": "q1",
+          "to": "q2",
+          "label": "いいえ"
+        },
+        {
+          "from": "q2",
+          "to": "r2",
+          "label": "はい"
+        },
+        {
+          "from": "q2",
+          "to": "r3",
+          "label": "いいえ"
+        }
+      ]
+    },
+    "examples": {
+      "blockType": "Examples",
+      "title": "実例",
+      "text": "架空の物流プラットフォームで、集荷依頼を受け付けるCLIコマンドはPrimaryアダプター（コアの「集荷を依頼する」ユースケースというポートを呼び出す）。配送記録を永続化する処理は、コアが定義した「ShipmentRepository」というポート（インターフェース）を、実際のDB実装がSecondaryアダプターとして実装する。コアのユースケースコード自体は、DBが何であるか（PostgreSQLかDynamoDBか）を一切知らない。"
+    },
+    "antiPatterns": {
+      "blockType": "AntiPatterns",
+      "title": "アンチパターン",
+      "items": [
+        {
+          "name": "アダプター側でポート（インターフェース）を定義する",
+          "problem": "コアが特定の実装技術のインターフェース形状に引きずられる。ポートは常にコアが「何を必要としているか」の視点で定義すべき"
+        },
+        {
+          "name": "1つのポートに無関係な複数の責務を詰め込む",
+          "problem": "テスト用の差し替えが難しくなり、変更の影響範囲が広がる。ポートは1つの明確な目的ごとに分ける"
+        }
+      ]
+    },
+    "provenance": {
+      "blockType": "Provenance",
+      "title": "出典・根拠の透明性",
+      "text": "ヘキサゴナルアーキテクチャ（Alistair Cockburn）が提唱したポートとアダプターの概念を中心に、クリーンアーキテクチャ・オニオンアーキテクチャとの共通点をAIが総合し、has-udd独自にまとめたものである（[[brainstorm-platform-engineering-application]] 論点6の方針転換を参照）。"
+    },
+    "relatedConcepts": {
+      "blockType": "RelatedConcepts",
+      "title": "関連概念",
+      "items": [
+        {
+          "conceptId": "architecture-dependency-direction",
+          "note": "ポートとアダプターは依存性逆転の原則を具体的に実装したパターン"
+        },
+        {
+          "conceptId": "architecture-layer-boundary",
+          "note": "ポートはアプリケーション層・ドメイン層と外側の層の境界そのものを定義する"
+        }
+      ]
+    }
+  }
+}

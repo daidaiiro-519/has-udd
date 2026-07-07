@@ -109,6 +109,9 @@ class RenderEngine:
                 recovered = path_template.reverse_parse(template, document_path)
                 if recovered:
                     path_vars.update(recovered)
+        path_vars_decl = schema.get("x-render-target", {}).get("pathVars", {})
+        for var_name, dotted_path in path_vars_decl.items():
+            path_vars[var_name] = _resolve_path({"doc": doc}, dotted_path)
         return path_vars
 
     def _render_frontmatter(self, doc: dict, schema: dict) -> str:

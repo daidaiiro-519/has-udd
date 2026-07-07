@@ -92,6 +92,37 @@ def test_discriminatorごとに異なるdeploy先へ書き分ける(tmp_path):
     assert str(tmp_path / "deploy-b.md") not in result.value["deployed"]
 
 
+def test_pathVarsで宣言したcontent値をパステンプレートの変数として使う(tmp_path):
+    """
+    Given x-render-target.pathVarsでcontentのドットパスを宣言したschemaのDocument
+    When renderする
+    Then そのcontent値がパステンプレートの変数として解決され、対応するパスに書かれる
+    """
+    schema = {
+        "properties": {"content": {"type": "object", "properties": {}}},
+        "x-render-target": {
+            "formats": ["md"],
+            "pathVars": {"scope": "doc.content.scope.path"},
+            "path": str(tmp_path / "{scope}-canonical.md"),
+            "deploy": [str(tmp_path / "{scope}-deploy.md")],
+        },
+    }
+    doc_path = tmp_path / "doc.json"
+    doc_path.write_text(
+        json.dumps({
+            "documentId": "x", "schemaRef": "Fake/v1",
+            "content": {"scope": {"blockType": "Scope", "title": "scope", "path": "waffle"}},
+        }),
+        encoding="utf-8",
+    )
+
+    engine = RenderEngine(FsDocumentRepository(), _FakeSchemaRepository(schema))
+    result = engine.run(str(doc_path), deploy=True)
+    assert isinstance(result, Ok), result
+    assert result.value["path"] == str(tmp_path / "waffle-canonical.md")
+    assert str(tmp_path / "waffle-deploy.md") in result.value["deployed"]
+
+
 
 
 def test_SkillSchemaをMarkdownにレンダリングする():

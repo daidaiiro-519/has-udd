@@ -40,6 +40,7 @@ sequenceDiagram
 - DocumentRendered が発行される
 - 成果物が canonical に書かれ、deploy 先へ verbatim コピーされる
 - deploy 先は固定の配列だけでなく、discriminator（specKind等）ごとに異なる配列としても宣言できる（canonicalのpath選択と同じ仕組み）
+- パステンプレートの変数は、documentId等の既定変数に加え、schemaがx-render-target.pathVarsでcontentのドットパスを宣言すれば、そのcontent値も変数として使える（x-frontmatterと同型の宣言的解決）
 
 ---
 
@@ -48,6 +49,7 @@ sequenceDiagram
 - When 対象 Document が与えられたとき、engine は x-render に従い成果物を生成する shall。
 - When deploy が有効なとき、engine は canonical と deploy 先の両方へ書き込む shall。
 - When deploy 先が discriminator ごとの配列として宣言されているとき、engine は対象 Document の discriminator 値に対応する配列だけへ書き込む shall。
+- When schemaがx-render-target.pathVarsでcontentのドットパスを宣言しているとき、engineはそのcontent値をパステンプレートの変数として使う shall。
 - If schemaRef が無いとき、engine は MISSING_SCHEMA_REF を返し描画しない shall。
 
 ---
@@ -195,6 +197,19 @@ Scenario: discriminatorごとに異なるdeploy先へ書き分ける
   Given deploy先がdiscriminatorの値ごとに異なる配列として宣言されたschemaのDocument
   When deployを有効にしてrenderする
   Then そのDocumentのdiscriminator値に対応する配列のdeploy先だけに書かれる
+```
+
+### pathVarsで宣言したcontent値をパステンプレートの変数として使う
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | 受け入れ基準：x-render-target.pathVarsが宣言するcontentドットパスの値がパステンプレートに反映される |
+
+```gherkin
+Scenario: pathVarsで宣言したcontent値をパステンプレートの変数として使う
+  Given x-render-target.pathVarsでcontentのドットパスを宣言したschemaのDocument
+  When renderする
+  Then そのcontent値がパステンプレートの変数として解決され、対応するパスに書かれる
 ```
 
 ---

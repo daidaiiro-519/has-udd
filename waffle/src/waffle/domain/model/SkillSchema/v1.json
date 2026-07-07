@@ -18,7 +18,8 @@
   },
   "x-frontmatter": {
     "name": "doc.documentId",
-    "description": "doc.content.purpose.text"
+    "description": "doc.content.purpose.text",
+    "disable-model-invocation": "doc.content.invocationMode.manualOnly"
   },
   "type": "object",
   "required": ["documentId", "documentType", "schemaRef", "skillKind", "status", "content"],
@@ -100,7 +101,8 @@
         "processingTarget": { "$ref": "#/$defs/ProcessingTargetBlock" },
         "steps":            { "$ref": "#/$defs/CustomStepsBlock" },
         "guardrails":       { "$ref": "#/$defs/GuardrailsBlock" },
-        "references":       { "$ref": "#/$defs/ReferencesBlock" }
+        "references":       { "$ref": "#/$defs/ReferencesBlock" },
+        "invocationMode":   { "$ref": "#/$defs/InvocationModeBlock" }
       }
     },
 
@@ -131,7 +133,24 @@
         "title":     { "type": "string", "const": "目的" },
         "text": {
           "type": "string",
-          "x-prompt-write": "このSkillが何をするためのものかを1〜2文で記述してください。動詞で始め、何を実現するかを明示してください。"
+          "x-prompt-write": "このSkillが「何をするか」だけでなく「いつ使うべきか」を1〜2文で記述してください。動詞で始め、判断のトリガーとなる状況・キーワードを含めること（例:「〜を実装・修正する際に必ず使う」「ユーザーが〜と言ったときに使う」）。自動委譲/自動参照の判断根拠として使われる最重要フィールドです。"
+        }
+      }
+    },
+
+    "InvocationModeBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "manualOnly"],
+      "x-render-order": 8,
+      "x-render-level": 2,
+      "x-prompt-query": "このSkillがモデルによる自動呼び出し対象かどうかを持ちます。frontmatterのdisable-model-invocationとして使われます。",
+      "x-render": [],
+      "properties": {
+        "blockType": { "type": "string", "const": "InvocationMode" },
+        "title":     { "type": "string", "const": "呼び出しモード" },
+        "manualOnly": {
+          "type": "boolean",
+          "x-prompt-write": "ユーザーが `/skill-name` で明示的に呼び出す手順型Skill（自動発火させたくない）なら true。ドメイン知識として自動的に参照されてよいリファレンス型Skillなら false。"
         }
       }
     },

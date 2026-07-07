@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "AgentSchema/v1",
   "title": "Agent Schema v1",
-  "description": "Document集約の一documentType（Agent）。agentKindで2種を判別する: orchestrator（CLAUDE.md/AGENTS.mdへrender+deployされる編成役）・subagent（Claude Codeのカスタムsubagent・.claude/agents/{documentId}.mdへrender+deployされる独立コンテキストの実行者）。Role/Advisor（継続対話が必要な専門レンズ）は既存SkillSchemaのskillKind=customで表現するため対象外——subagentは独立コンテキストでの一発タスク委譲を想定した別物。",
+  "description": "Document集約の一documentType（Agent）。agentKindで2種を判別する: orchestrator（CLAUDE.md/AGENTS.mdへrender+deployされる編成役）・subagent（Claude Codeのカスタムsubagent・.claude/agents/{documentId}.mdへrender+deployされる独立コンテキストの実行者）。Role/Advisor（継続対話が必要な専門レンズ）は既存SkillSchemaのskillKind=customで表現するため対象外——subagentは独立コンテキストでの一発タスク委譲を想定した別物。各ブロックのx-prompt-writeは、Claude Codeの公式ベストプラクティス（CLAUDE.mdの具体性・簡潔性、subagentのdescription/システムプロンプト構造、単一責務の原則）に基づく。",
 
   "type": "object",
   "required": ["documentId", "documentType", "schemaRef", "agentKind", "status", "content"],
@@ -42,7 +42,7 @@
   "properties": {
     "documentId": {
       "type": "string",
-      "x-prompt-write": "このAgentを一意に識別するIDを kebab-case で付けてください。例: orchestrator-root, orchestrator-waffle, subagent-audit"
+      "x-prompt-write": "このAgentを一意に識別するIDを kebab-case で付けてください。例: orchestrator-root, orchestrator-waffle, subagent-security-reviewer"
     },
     "documentType": {
       "type": "string",
@@ -99,13 +99,14 @@
         "title": { "$ref": "#/$defs/TitleBlock" },
         "scope": { "$ref": "#/$defs/ScopeBlock" },
         "operatingRules": { "$ref": "#/$defs/OperatingRulesBlock" },
+        "keyCommands": { "$ref": "#/$defs/KeyCommandsBlock" },
         "subOrchestratorRefs": { "$ref": "#/$defs/SubOrchestratorRefsBlock" }
       }
     },
 
     "SubagentContent": {
       "type": "object",
-      "required": ["title", "description", "systemPrompt"],
+      "required": ["title", "description", "persona", "responsibilities"],
       "additionalProperties": false,
       "properties": {
         "title": { "$ref": "#/$defs/TitleBlock" },
@@ -113,7 +114,10 @@
         "toolAccess": { "$ref": "#/$defs/ToolAccessBlock" },
         "runtimeConfig": { "$ref": "#/$defs/RuntimeConfigBlock" },
         "skillPreloads": { "$ref": "#/$defs/SkillPreloadsBlock" },
-        "systemPrompt": { "$ref": "#/$defs/SystemPromptBlock" }
+        "persona": { "$ref": "#/$defs/PersonaBlock" },
+        "responsibilities": { "$ref": "#/$defs/ResponsibilitiesBlock" },
+        "constraints": { "$ref": "#/$defs/ConstraintsBlock" },
+        "outputFormat": { "$ref": "#/$defs/OutputFormatBlock" }
       }
     },
 
@@ -170,13 +174,38 @@
         "title": { "type": "string", "const": "運用ルール" },
         "items": {
           "type": "array",
-          "x-prompt-write": "必ず守るべき運用ルールを列挙してください。各ルールにはタイトルと、なぜそのルールが必要かを含む説明を書いてください。",
+          "x-prompt-write": "必ず守るべき運用ルールを列挙してください。各ルールは検証可能な具体的指示にすること（例:「コミット前にpytestを実行する」であって「テストしてください」ではない）。Claudeがコードから推測できることは書かない。複数ステップにわたる手順はここに書かず、専用のSkillとして切り出すことを検討する。各ルールにはタイトルと、内容＋なぜ必要か（根拠）を書く。",
           "items": {
             "type": "object",
             "required": ["title", "text"],
             "properties": {
               "title": { "type": "string", "x-prompt-write": "ルールの見出し。" },
-              "text": { "type": "string", "x-prompt-write": "ルールの内容と、なぜ必要か（根拠）。" }
+              "text": { "type": "string", "x-prompt-write": "検証可能な具体的指示＋根拠。「〜してください」より「〜する」「〜を実行する」という明確な指示文にする。" }
+            }
+          }
+        }
+      }
+    },
+
+    "KeyCommandsBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 3,
+      "x-render-level": 2,
+      "x-prompt-query": "このscope固有の、Claudeが推測できないコマンド（ビルド・テスト・lint・デプロイ等）とその用途を持ちます。ブロック自体が無ければ、標準的な言語・フレームワークの慣習に従うという意味。",
+      "x-render": [{ "as": "table", "from": "items", "columns": [{ "field": "command", "header": "コマンド" }, { "field": "purpose", "header": "用途" }] }],
+      "properties": {
+        "blockType": { "type": "string", "const": "KeyCommands" },
+        "title": { "type": "string", "const": "主要コマンド" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "このscope固有で、標準的な言語・フレームワークの慣習からは推測できないコマンドを列挙してください（例: 独自のtaskランナー・カスタムビルドスクリプト）。npm test/pytestのような標準的なコマンドは省略して構いません。無ければこのブロック自体を省略してください。",
+          "items": {
+            "type": "object",
+            "required": ["command", "purpose"],
+            "properties": {
+              "command": { "type": "string", "x-prompt-write": "実行するコマンド。" },
+              "purpose": { "type": "string", "x-prompt-write": "何のためのコマンドかを1文で。" }
             }
           }
         }
@@ -186,10 +215,10 @@
     "SubOrchestratorRefsBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 3,
+      "x-render-order": 4,
       "x-render-level": 2,
       "x-prompt-query": "このOrchestratorの管轄下にある、より狭いscopeを持つ子Orchestratorへの参照を持ちます。ツールがルートしか自動発見しないため、対象scopeで作業する際は子Orchestratorのcontentを先に読むべきことを示します。子を持たないOrchestratorでは空配列。",
-      "x-render": [{ "as": "table", "from": "items", "columns": [{ "field": "scope", "header": "対象ディレクトリ" }, { "field": "documentId", "header": "参照Orchestrator" }, { "field": "note", "header": "備考" }] }],
+      "x-render": [{ "as": "table", "heading": "以下のscope配下で作業する場合は、必ず対応するOrchestrator documentのcontentを先に読むこと", "from": "items", "columns": [{ "field": "scope", "header": "対象ディレクトリ" }, { "field": "documentId", "header": "参照Orchestrator" }, { "field": "note", "header": "備考" }] }],
       "properties": {
         "blockType": { "type": "string", "const": "SubOrchestratorRefs" },
         "title": { "type": "string", "const": "委譲先" },
@@ -214,14 +243,14 @@
       "required": ["blockType", "title", "text"],
       "x-render-order": 1,
       "x-render-level": 2,
-      "x-prompt-query": "このSubagentにいつ委譲すべきかを持ちます。ClaudeがこのSubagentを選ぶかどうかの判断に使います。",
+      "x-prompt-query": "このSubagentにいつ委譲すべきかを持ちます。Claudeがこのsubagentを自動的に選ぶかどうかの判断根拠になります（frontmatterのdescriptionとして使われる最重要フィールド）。",
       "x-render": [{ "as": "paragraph", "from": "text" }],
       "properties": {
         "blockType": { "type": "string", "const": "Description" },
         "title": { "type": "string", "const": "委譲判断" },
         "text": {
           "type": "string",
-          "x-prompt-write": "このSubagentにどんなときに委譲すべきかを具体的に記述してください。frontmatterのdescriptionとして使われ、Claudeの自動委譲判断の根拠になります。"
+          "x-prompt-write": "具体的なタスク＋対象領域を行動動詞で始めて1文で記述してください（例:「コードのセキュリティ脆弱性をレビューする」であって「コードを手伝う」ではない）。単一の専門領域に絞ること（複数の異なる責務を1つのSubagentに詰め込まない）。積極的に自動委譲させたい場合は「〜の際は積極的に使う」のように明示してもよい。"
         }
       }
     },
@@ -242,7 +271,7 @@
         "tools": {
           "type": "array",
           "items": { "type": "string" },
-          "x-prompt-write": "このSubagentに許可するツール名を列挙してください。全ツールを継承する場合はこのブロック自体を省略してください。"
+          "x-prompt-write": "このSubagentに許可するツール名を列挙してください。読み取り専用の調査タスクならRead/Grep/Glob等に絞り、Write/Editのような変更系ツールは本当に必要な場合だけ含める。全ツールを継承する場合はこのブロック自体を省略してください。"
         },
         "disallowedTools": {
           "type": "array",
@@ -291,19 +320,72 @@
       }
     },
 
-    "SystemPromptBlock": {
+    "PersonaBlock": {
       "type": "object",
       "required": ["blockType", "title", "text"],
       "x-render-order": 5,
       "x-render-level": 2,
-      "x-prompt-query": "このSubagentのシステムプロンプト本文を持ちます。独立コンテキストで最初に読み込まれる指示です。",
+      "x-prompt-query": "このSubagentの役割・専門性の定義を持ちます。独立コンテキストで最初に読まれる、システムプロンプトの核となる人格定義です。",
       "x-render": [{ "as": "paragraph", "from": "text" }],
       "properties": {
-        "blockType": { "type": "string", "const": "SystemPrompt" },
-        "title": { "type": "string", "const": "システムプロンプト" },
+        "blockType": { "type": "string", "const": "Persona" },
+        "title": { "type": "string", "const": "役割定義" },
         "text": {
           "type": "string",
-          "x-prompt-write": "このSubagentが独立コンテキストで実行する際の指示を、具体的な手順・制約を含めて記述してください。"
+          "x-prompt-write": "このSubagentの役割・専門性を2〜3文で定義してください。例:「あなたはシニアセキュリティエンジニアです。」のように、一人称の人格として明示すること。"
+        }
+      }
+    },
+
+    "ResponsibilitiesBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 6,
+      "x-render-level": 2,
+      "x-prompt-query": "このSubagentが確認・担当すべき具体的な観点の一覧を持ちます。Personaで定義した役割を、実行可能な作業項目に分解したものです。",
+      "x-render": [{ "as": "list", "from": "items" }],
+      "properties": {
+        "blockType": { "type": "string", "const": "Responsibilities" },
+        "title": { "type": "string", "const": "担当領域" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "このSubagentが担当する具体的な観点・確認項目を列挙してください（例:「インジェクション脆弱性（SQL/XSS/コマンド）」「認証・認可の欠陥」）。抽象的な項目でなく、実際に確認できる粒度で書く。",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "ConstraintsBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 7,
+      "x-render-level": 2,
+      "x-prompt-query": "このSubagentが守るべき品質基準・エッジケース・注意点を持ちます。ブロック自体が無ければ特別な制約なし。",
+      "x-render": [{ "as": "list", "from": "items" }],
+      "properties": {
+        "blockType": { "type": "string", "const": "Constraints" },
+        "title": { "type": "string", "const": "品質基準・制約" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "品質基準・見落としやすいエッジケース・作業上の注意点を列挙してください。無ければこのブロック自体を省略してください。",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "OutputFormatBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "text"],
+      "x-render-order": 8,
+      "x-render-level": 2,
+      "x-prompt-query": "このSubagentの報告・出力の形式指定を持ちます。ブロック自体が無ければ自由形式。",
+      "x-render": [{ "as": "paragraph", "from": "text" }],
+      "properties": {
+        "blockType": { "type": "string", "const": "OutputFormat" },
+        "title": { "type": "string", "const": "出力形式" },
+        "text": {
+          "type": "string",
+          "x-prompt-write": "報告・出力の形式を指定してください（例:「具体的な行番号と修正案を示すこと」）。無ければこのブロック自体を省略してください。"
         }
       }
     }

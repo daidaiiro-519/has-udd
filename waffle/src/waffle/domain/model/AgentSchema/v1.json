@@ -307,12 +307,14 @@
 
     "SkillPreloadsBlock": {
       "type": "object",
-      "required": ["blockType", "title", "items"],
-      "x-render-order": 12,
+      "required": ["blockType", "title", "items", "guidance"],
+      "x-render-order": 5,
       "x-render-level": 2,
-      "x-render-hidden": true,
-      "x-prompt-query": "このSubagentが起動時にプリロードするSkill名の一覧を持ちます。ブロック自体が無ければプリロードなし。frontmatterのskillsとしてのみ使われ、本文には出力されません。",
-      "x-render": [{ "as": "list", "from": "items" }],
+      "x-prompt-query": "このSubagentが起動時にプリロードするSkillの一覧と、それをどう使うかの手引きを持ちます。frontmatterのskillsはSkillの中身をコンテキストに注入するだけの機械的な処理であり、実行時にいつ・どう使うかはAIの裁量に委ねられるため、本文に明記します（frontmatterで完結できるのは単体で機械的に判断できる値だけで、判断を要するものは本文に書く）。ブロック自体が無ければプリロードなし。",
+      "x-render": [
+        { "as": "list", "from": "items" },
+        { "as": "paragraph", "from": "guidance" }
+      ],
       "properties": {
         "blockType": { "type": "string", "const": "SkillPreloads" },
         "title": { "type": "string", "const": "プリロードSkill" },
@@ -320,6 +322,10 @@
           "type": "array",
           "items": { "type": "string" },
           "x-prompt-write": "起動時にプリロードするSkillのdocumentIdを列挙してください。無ければこのブロック自体を省略してください。"
+        },
+        "guidance": {
+          "type": "string",
+          "x-prompt-write": "列挙した各Skillを、どのような場面で・どう使うべきかを記述してください（例:「tech-lead-advisorは技術選定の判断が必要な場面で参照する」）。プリロードはSkillの中身を注入するだけで使い方までは指定しないため、ここで明示すること。"
         }
       }
     },
@@ -392,7 +398,7 @@
     "ConstraintsBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 5,
+      "x-render-order": 6,
       "x-render-level": 2,
       "x-prompt-query": "このSubagentが守るべき品質基準・エッジケース・注意点を持ちます。ブロック自体が無ければ特別な制約なし。",
       "x-render": [{ "as": "list", "from": "items" }],
@@ -410,7 +416,7 @@
     "OutputFormatBlock": {
       "type": "object",
       "required": ["blockType", "title", "text"],
-      "x-render-order": 6,
+      "x-render-order": 7,
       "x-render-level": 2,
       "x-prompt-query": "このSubagentの報告・出力の形式指定を持ちます。ブロック自体が無ければ自由形式。",
       "x-render": [{ "as": "paragraph", "from": "text" }],

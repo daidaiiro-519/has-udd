@@ -133,6 +133,18 @@ def test_check_schema_version_driftは3フィールドの差分結果を返す()
     assert data == {"broken_references": [], "newer_version_available": [], "missing_declared_fields": []}
 
 
+def test_check_agent_skill_driftは2フィールドの差分結果を返す():
+    """
+    Given waffle CLI
+    When check-agent-skill-drift を実行する
+    Then 終了コードは0で、出力JSONは2フィールド全て空配列（自己整合済み）
+    """
+    result = _runner.invoke(app, ["check-agent-skill-drift"])
+    assert result.exit_code == 0, result.output
+    data = json.loads(result.output)
+    assert data == {"missing_skills": [], "unpreloadable_skills": []}
+
+
 def test_check_scenario_driftは4フィールドの差分結果を返す():
     """
     Given waffle CLI

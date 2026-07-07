@@ -102,6 +102,16 @@ def test_check_schema_version_driftは3フィールドの差分結果を返す()
     assert out == {"broken_references": [], "newer_version_available": [], "missing_declared_fields": []}
 
 
+def test_check_agent_skill_driftは2フィールドの差分結果を返す():
+    """
+    Given waffle MCPサーバ
+    When check_agent_skill_driftツールを呼ぶ
+    Then MCP出力は2フィールド全て空配列（自己整合済み）
+    """
+    out = asyncio.run(_call("check_agent_skill_drift", {}))
+    assert out == {"missing_skills": [], "unpreloadable_skills": []}
+
+
 def test_check_scenario_driftは4フィールドの差分結果を返す():
     """
     Given waffle MCPサーバ

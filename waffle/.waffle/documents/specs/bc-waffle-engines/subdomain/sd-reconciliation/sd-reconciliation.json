@@ -4,9 +4,14 @@
   "schemaRef": "DomainSpecSchema/v2",
   "specKind": "subdomain",
   "status": "CREATED",
-  "tags": ["context:waffle-engines"],
+  "tags": [
+    "context:waffle-engines"
+  ],
   "content": {
-    "title": { "blockType": "Title", "title": "sd-reconciliation" },
+    "title": {
+      "blockType": "Title",
+      "title": "sd-reconciliation"
+    },
     "summary": {
       "blockType": "Summary",
       "title": "概要",
@@ -21,7 +26,12 @@
     "members": {
       "blockType": "SubdomainMembers",
       "title": "所属ユースケース",
-      "items": ["uc-check-spec-integrity", "uc-check-scenario-drift", "uc-check-schema-version-drift"]
+      "items": [
+        "uc-check-spec-integrity",
+        "uc-check-scenario-drift",
+        "uc-check-schema-version-drift",
+        "uc-check-agent-skill-drift"
+      ]
     },
     "implementationGuidance": {
       "blockType": "ImplementationGuidance",

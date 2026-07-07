@@ -1,0 +1,161 @@
+{
+  "documentId": "uc-check-agent-skill-drift",
+  "documentType": "DomainSpec",
+  "schemaRef": "DomainSpecSchema/v2",
+  "specKind": "usecase",
+  "status": "CREATED",
+  "content": {
+    "title": {
+      "blockType": "Title",
+      "title": "uc-check-agent-skill-drift"
+    },
+    "summary": {
+      "blockType": "Summary",
+      "title": "概要",
+      "text": "Agent(subagent)集約の実インスタンスがskillPreloadsで参照するSkillが、実在するか・Claude Codeの制約上プリロード可能か（disable-model-invocation:trueでないか）を機械的に検証する。Waffleのschema単体からは検出できないSubagent文書↔Skill文書間の参照整合性のドリフト。"
+    },
+    "actorIntent": {
+      "blockType": "ActorIntent",
+      "title": "主アクターと意図",
+      "actor": "Orchestrator（HarnessAgent）",
+      "intent": "Subagentがskillsとしてプリロード指定しているSkillが、実在しかつプリロード可能な状態であるかを確認したい"
+    },
+    "externalActors": {
+      "blockType": "ExternalActors",
+      "title": "関与する外部",
+      "items": []
+    },
+    "preconditions": {
+      "blockType": "Preconditions",
+      "title": "事前条件",
+      "items": [
+        "Document集約の実インスタンス群を走査する対象ディレクトリ（documents_root）が与えられている"
+      ]
+    },
+    "mainFlow": {
+      "blockType": "MainFlow",
+      "title": "基本フロー",
+      "participants": [],
+      "steps": [
+        {
+          "from": "Orchestrator",
+          "to": "AgentSkillTree",
+          "message": "documents_rootを指定してAgent-Skill整合検査を依頼する",
+          "kind": "command"
+        },
+        {
+          "from": "AgentSkillTree",
+          "to": "AgentSkillTree",
+          "message": "documents_root配下のAgent document(agentKind=subagent)を走査し、各documentのcontent.skillPreloads.itemsが参照するskillIdを集める",
+          "kind": "self"
+        },
+        {
+          "from": "AgentSkillTree",
+          "to": "AgentSkillTree",
+          "message": "各skillIdについて、対応するSkill document(.waffle/documents/skills/{skillId}.json)が実在するかを確認する",
+          "kind": "self"
+        },
+        {
+          "from": "AgentSkillTree",
+          "to": "AgentSkillTree",
+          "message": "実在するSkill documentについて、content.invocationMode.manualOnlyがtrueでないか（プリロード可能か）を確認する",
+          "kind": "self"
+        },
+        {
+          "from": "AgentSkillTree",
+          "to": "Orchestrator",
+          "message": "missing_skills・unpreloadable_skillsの2つのオブジェクト配列を返す",
+          "kind": "return"
+        }
+      ]
+    },
+    "postconditions": {
+      "blockType": "Postconditions",
+      "title": "事後条件",
+      "items": [
+        "返り値は次の2フィールドを持つ: missing_skills（参照先Skill documentが実在しないAgent-skillIdの組）・unpreloadable_skills（参照先Skill documentは実在するが、content.invocationMode.manualOnlyがtrueであるためClaude Code上プリロードできないAgent-skillIdの組）",
+        "agentKind=orchestratorのAgent documentは対象外とする（skillPreloadsを持たないため）",
+        "content.skillPreloads自体を持たないsubagentは対象外とする",
+        "Agent documentが1件も無い（agentサブディレクトリ自体が無い）場合もエラーにせず空配列を返す",
+        "missing_skills・unpreloadable_skillsが共に空配列であれば、全subagentのskillPreloads参照が実在しかつプリロード可能である（正常系）"
+      ]
+    },
+    "acceptanceCriteria": {
+      "blockType": "AcceptanceCriteria",
+      "title": "受け入れ基準",
+      "items": [
+        "When subagentのskillPreloads.itemsが参照するskillIdに対応するSkill documentが実在しないとき、エンジンはその組をmissing_skillsに含める shall。",
+        "When 参照先Skill documentのcontent.invocationMode.manualOnlyがtrueであるとき、エンジンはその組をunpreloadable_skillsに含める shall（Claude Code公式仕様上、disable-model-invocation:trueのSkillはpreloadできないため）。",
+        "While 全subagentのskillPreloads参照が実在しかつプリロード可能であるとき、エンジンはmissing_skills・unpreloadable_skills両方を空配列で返す shall。",
+        "If 対象のdocuments_rootが存在しないとき、エンジンはINVALID_PATHエラーを返す shall。"
+      ]
+    },
+    "errors": {
+      "blockType": "Errors",
+      "title": "エラー",
+      "items": [
+        {
+          "code": "INVALID_PATH",
+          "condition": "documents_rootが存在しない、またはパストラバーサルを含む"
+        }
+      ]
+    },
+    "acceptanceScenarios": {
+      "blockType": "AcceptanceScenarios",
+      "title": "受け入れシナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "agentディレクトリがまだ無いとき空配列を返す",
+          "category": "正常系",
+          "viewpoint": "境界値: Agent documentが1件も無い状態はエラーではなく空配列とする",
+          "gherkin": "Scenario: agentディレクトリがまだ無いとき空配列を返す\n  Given documents_rootは実在するがagentサブディレクトリがまだ無い（Agent documentが1件も無い）\n  When Agent-Skill整合検査を実行する\n  Then missing_skills・unpreloadable_skills両方が空配列で返る（エラーにしない）",
+          "covers": "受け入れ基準: Agent document不在は正常系"
+        },
+        {
+          "name": "全subagentの参照が実在しプリロード可能なとき差分なしと判定する",
+          "category": "正常系",
+          "viewpoint": "整合：全skillPreloads参照が実在しmanualOnlyでないSkillを指しているとき正常系（空配列）",
+          "gherkin": "Scenario: 全subagentの参照が実在しプリロード可能なとき差分なしと判定する\n  Given 全subagentのskillPreloads.itemsが、実在しmanualOnlyでないSkillを参照しているspecツリー\n  When Agent-Skill整合検査を実行する\n  Then missing_skills・unpreloadable_skills両方が空配列で返る",
+          "covers": "受け入れ基準: 全参照が実在しプリロード可能で空配列"
+        },
+        {
+          "name": "実在しないskillIdを参照するsubagentを検出する",
+          "category": "異常系",
+          "viewpoint": "ドリフト：skillPreloads.itemsが実在しないSkillを参照している",
+          "gherkin": "Scenario: 実在しないskillIdを参照するsubagentを検出する\n  Given 実在しないskillIdをskillPreloads.itemsに持つsubagent\n  When Agent-Skill整合検査を実行する\n  Then missing_skillsにその組が含まれる",
+          "covers": "受け入れ基準: missing_skills"
+        },
+        {
+          "name": "manualOnlyのSkillをプリロード指定しているsubagentを検出する",
+          "category": "異常系",
+          "viewpoint": "ドリフト：参照先SkillはinvocationMode.manualOnly=trueでありプリロード不可能",
+          "gherkin": "Scenario: manualOnlyのSkillをプリロード指定しているsubagentを検出する\n  Given invocationMode.manualOnly=trueのSkillをskillPreloads.itemsに持つsubagent\n  When Agent-Skill整合検査を実行する\n  Then unpreloadable_skillsにその組が含まれる",
+          "covers": "受け入れ基準: unpreloadable_skills"
+        }
+      ]
+    },
+    "operationGuarantees": {
+      "blockType": "OperationGuarantees",
+      "title": "操作保証",
+      "items": [
+        "When 対象のdocuments_rootが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
+      ]
+    },
+    "guaranteeScenarios": {
+      "blockType": "GuaranteeScenarios",
+      "title": "操作保証シナリオ",
+      "background": "",
+      "scenarios": [
+        {
+          "name": "存在しないdocuments_rootはINVALID_PATH",
+          "category": "異常系",
+          "viewpoint": "エラー：走査起点の不在",
+          "gherkin": "Scenario: 存在しないdocuments_rootはINVALID_PATH\n  When 存在しないdocuments_rootでAgent-Skill整合検査を実行する\n  Then INVALID_PATHエラーが返る",
+          "covers": "操作保証: documents_rootが存在しないときINVALID_PATH"
+        }
+      ]
+    }
+  },
+  "tags": []
+}

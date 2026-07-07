@@ -244,12 +244,11 @@
       "required": ["blockType", "title", "text"],
       "x-render-order": 1,
       "x-render-level": 2,
-      "x-render-hidden": true,
-      "x-prompt-query": "このSubagentにいつ委譲すべきかを持ちます。Claudeがこのsubagentを自動的に選ぶかどうかの判断根拠になります。frontmatterのdescriptionとしてのみ使われ、本文には出力されません（呼び出し側は本文を読む前にfrontmatterで判断するため、本文で同じ文言を繰り返す必要が無い）。",
+      "x-prompt-query": "このSubagentの目的（いつ委譲すべきか）を持ちます。frontmatterのdescriptionとしてClaudeの自動委譲判断にも使われますが、本文でも先頭に描画します（Persona/Responsibilities/InputExpectationを読む前に、そもそも何のために存在するSubagentかを読み手が知っている必要があるため）。",
       "x-render": [{ "as": "paragraph", "from": "text" }],
       "properties": {
         "blockType": { "type": "string", "const": "Description" },
-        "title": { "type": "string", "const": "委譲判断" },
+        "title": { "type": "string", "const": "目的" },
         "text": {
           "type": "string",
           "x-prompt-write": "具体的なタスク＋対象領域を行動動詞で始めて1文で記述してください（例:「コードのセキュリティ脆弱性をレビューする」であって「コードを手伝う」ではない）。単一の専門領域に絞ること（複数の異なる責務を1つのSubagentに詰め込まない）。積極的に自動委譲させたい場合は「〜の際は積極的に使う」のように明示してもよい。"
@@ -260,7 +259,7 @@
     "ToolAccessBlock": {
       "type": "object",
       "required": ["blockType", "title", "tools", "disallowedTools"],
-      "x-render-order": 2,
+      "x-render-order": 10,
       "x-render-level": 2,
       "x-render-hidden": true,
       "x-prompt-query": "このSubagentが使えるツール・使えないツールの制限を持ちます。ブロック自体が無ければ制限なし（全ツール継承）。frontmatterのtools/disallowedToolsとしてのみ使われ、本文には出力されません（Claude Codeはfrontmatterの値を実際の制限として強制するため、本文にprose化した一覧を重複させない）。",
@@ -287,7 +286,7 @@
     "RuntimeConfigBlock": {
       "type": "object",
       "required": ["blockType", "title", "model", "permissionMode"],
-      "x-render-order": 3,
+      "x-render-order": 11,
       "x-render-level": 2,
       "x-render-hidden": true,
       "x-prompt-query": "このSubagentのモデル・権限モードの上書き指定を持ちます。ブロック自体が無ければメインセッションの既定を継承します。frontmatterのmodel/permissionModeとしてのみ使われ、本文には出力されません。",
@@ -309,7 +308,7 @@
     "SkillPreloadsBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 4,
+      "x-render-order": 12,
       "x-render-level": 2,
       "x-render-hidden": true,
       "x-prompt-query": "このSubagentが起動時にプリロードするSkill名の一覧を持ちます。ブロック自体が無ければプリロードなし。frontmatterのskillsとしてのみ使われ、本文には出力されません。",
@@ -328,7 +327,7 @@
     "InputExpectationBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 5,
+      "x-render-order": 4,
       "x-render-level": 2,
       "x-prompt-query": "委譲元（Orchestratorや他のSubagent）がタスクを渡す際に含めるべき情報と、情報が不足・曖昧な場合の解釈方法を持ちます。Subagentは独立コンテキストで起動され、渡された自然言語のテキストだけを手がかりに動くため、解釈がぶれると再現性が損なわれます。",
       "x-render": [
@@ -358,7 +357,7 @@
     "PersonaBlock": {
       "type": "object",
       "required": ["blockType", "title", "text"],
-      "x-render-order": 6,
+      "x-render-order": 2,
       "x-render-level": 2,
       "x-prompt-query": "このSubagentの役割・専門性の定義を持ちます。独立コンテキストで最初に読まれる、システムプロンプトの核となる人格定義です。",
       "x-render": [{ "as": "paragraph", "from": "text" }],
@@ -375,7 +374,7 @@
     "ResponsibilitiesBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 7,
+      "x-render-order": 3,
       "x-render-level": 2,
       "x-prompt-query": "このSubagentが確認・担当すべき具体的な観点の一覧を持ちます。Personaで定義した役割を、実行可能な作業項目に分解したものです。",
       "x-render": [{ "as": "list", "from": "items" }],
@@ -393,7 +392,7 @@
     "ConstraintsBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 8,
+      "x-render-order": 5,
       "x-render-level": 2,
       "x-prompt-query": "このSubagentが守るべき品質基準・エッジケース・注意点を持ちます。ブロック自体が無ければ特別な制約なし。",
       "x-render": [{ "as": "list", "from": "items" }],
@@ -411,7 +410,7 @@
     "OutputFormatBlock": {
       "type": "object",
       "required": ["blockType", "title", "text"],
-      "x-render-order": 9,
+      "x-render-order": 6,
       "x-render-level": 2,
       "x-prompt-query": "このSubagentの報告・出力の形式指定を持ちます。ブロック自体が無ければ自由形式。",
       "x-render": [{ "as": "paragraph", "from": "text" }],

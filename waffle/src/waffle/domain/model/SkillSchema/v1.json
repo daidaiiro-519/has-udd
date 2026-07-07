@@ -161,7 +161,7 @@
     "RoleBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 3,
+      "x-render-order": 2,
       "x-render-level": 2,
       "x-prompt-query": "このSkillの役割リストを持ちます。Skillの責務範囲の把握に使います。",
       "x-render": [
@@ -181,7 +181,7 @@
     "InterfaceBlock": {
       "type": "object",
       "required": ["blockType", "title", "input", "output"],
-      "x-render-order": 4,
+      "x-render-order": 3,
       "x-render-level": 2,
       "x-prompt-query": "この engine の I/O 定義を持ちます。受け取ったテキスト(意図)を、ここで定義された params に成型して CLI/MCP を呼ぶための『成型ガイド』。各 param の description がその意味を表す（Orchestrator が外部から満たす契約ではなく、受け手 Skill が成型に使う）。",
       "x-render": [
@@ -240,7 +240,7 @@
     "InputExpectationBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 2,
+      "x-render-order": 4,
       "x-render-level": 2,
       "x-prompt-query": "このSkillを呼び出す際に渡されるべき情報と、情報が不足・曖昧な場合の解釈方法を持ちます。テキストベース疎結合の入力（自然言語の意図）を受け手がどう構造化するかの手引きであり、呼び出しごとに解釈がぶれて再現性が損なわれることを防ぎます。",
       "x-render": [
@@ -287,7 +287,7 @@
     "ProcessingTargetBlock": {
       "type": "object",
       "required": ["blockType", "title", "target", "artifact"],
-      "x-render-order": 4,
+      "x-render-order": 3,
       "x-render-level": 2,
       "x-prompt-query": "このcustom Skillの処理対象と成果物を持ちます。SubAgentがSkillの意味的な入出力を把握するために使います。",
       "x-render": [

@@ -169,6 +169,46 @@ def test_discriminatorごとに異なるpathVarsを解決する(tmp_path):
     assert str(tmp_path / "agents" / "y.md") in result2.value["deployed"]
 
 
+def test_discriminatorごとに異なるx_frontmatterを生成する(tmp_path):
+    """
+    Given discriminatorの値ごとに異なるx-frontmatter宣言（kindごとのフィールドマップ）を持つschemaのDocument
+    When renderする
+    Then そのDocumentのdiscriminator値に対応するフィールドマップだけからfrontmatterが生成される
+    """
+    schema = {
+        "if": {"properties": {"kind": {"const": "subagent"}}},
+        "properties": {"content": {"type": "object", "properties": {}}},
+        "x-frontmatter": {
+            "subagent": {"name": "doc.documentId", "description": "doc.content.description.text"},
+            "orchestrator": {},
+        },
+        "x-render-target": {"formats": ["md"], "path": str(tmp_path / "{documentId}.md")},
+    }
+    doc_path = tmp_path / "doc.json"
+    doc_path.write_text(
+        json.dumps({
+            "documentId": "x", "schemaRef": "Fake/v1", "kind": "subagent",
+            "content": {"description": {"blockType": "Description", "title": "d", "text": "when to use"}},
+        }),
+        encoding="utf-8",
+    )
+
+    engine = RenderEngine(FsDocumentRepository(), _FakeSchemaRepository(schema))
+    result = engine.run(str(doc_path), deploy=False)
+    assert isinstance(result, Ok), result
+    assert 'name: "x"' in result.value["content"]
+    assert 'description: "when to use"' in result.value["content"]
+
+    doc_path2 = tmp_path / "doc2.json"
+    doc_path2.write_text(
+        json.dumps({"documentId": "y", "schemaRef": "Fake/v1", "kind": "orchestrator", "content": {}}),
+        encoding="utf-8",
+    )
+    result2 = engine.run(str(doc_path2), deploy=False)
+    assert isinstance(result2, Ok), result2
+    assert "---" not in result2.value["content"]
+
+
 
 
 def test_SkillSchemaをMarkdownにレンダリングする():

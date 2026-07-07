@@ -37,11 +37,11 @@ def _select_deploy(value, spec_kind: str | None) -> list:
         return value.get(spec_kind, []) if spec_kind else []
     return value or []
 
-def _select_path_vars(value: dict, spec_kind: str | None) -> dict:
-    """x-render-target の pathVars は、フラットな辞書（変数名→ドットパス。discriminator非依存）か
-    discriminatorごとの辞書（kind→{変数名→ドットパス}）のどちらでも書ける。値が全て dict なら
-    discriminatorごとの宣言とみなし、該当 kind を選ぶ（discriminatorの分岐で content の形が
-    変わり、参照できるドットパスも変わるため）。"""
+def _select_field_map(value: dict, spec_kind: str | None) -> dict:
+    """x-render-target.pathVars・x-frontmatter は、フラットな辞書（フィールド名→ドットパス。
+    discriminator非依存）か discriminatorごとの辞書（kind→{フィールド名→ドットパス}）の
+    どちらでも書ける。値が全て dict なら discriminatorごとの宣言とみなし、該当 kind を選ぶ
+    （discriminatorの分岐で content の形が変わり、参照できるドットパスも変わるため）。"""
     if value and all(isinstance(v, dict) for v in value.values()):
         return value.get(spec_kind, {}) if spec_kind else {}
     return value
@@ -78,9 +78,9 @@ class RenderEngine:
         fmt = formats[0]  # MD 正本（HTML は将来 viewer が担うため engine は MD のみ描画）
         defs = schema.get("$defs", {})
 
-        output = self._render_frontmatter(doc, schema) + self._render_body(doc, defs)
-
         spec_kind = doc.get(discriminator_key(schema))
+        output = self._render_frontmatter(doc, schema, spec_kind) + self._render_body(doc, defs)
+
         path_vars = self._resolve_path_vars(doc, schema, document_path, spec_kind)
         path_template_str = _select_template(target.get("path"), spec_kind)
 
@@ -118,13 +118,13 @@ class RenderEngine:
                 recovered = path_template.reverse_parse(template, document_path)
                 if recovered:
                     path_vars.update(recovered)
-        path_vars_decl = _select_path_vars(schema.get("x-render-target", {}).get("pathVars", {}), spec_kind)
+        path_vars_decl = _select_field_map(schema.get("x-render-target", {}).get("pathVars", {}), spec_kind)
         for var_name, dotted_path in path_vars_decl.items():
             path_vars[var_name] = _resolve_path({"doc": doc}, dotted_path)
         return path_vars
 
-    def _render_frontmatter(self, doc: dict, schema: dict) -> str:
-        fm = schema.get("x-frontmatter")
+    def _render_frontmatter(self, doc: dict, schema: dict, spec_kind: str | None) -> str:
+        fm = _select_field_map(schema.get("x-frontmatter") or {}, spec_kind)
         if not fm:
             return ""
         lines = ["---"]

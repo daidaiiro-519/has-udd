@@ -42,6 +42,7 @@ sequenceDiagram
 - deploy 先は固定の配列だけでなく、discriminator（specKind等）ごとに異なる配列としても宣言できる（canonicalのpath選択と同じ仕組み）
 - パステンプレートの変数は、documentId等の既定変数に加え、schemaがx-render-target.pathVarsでcontentのドットパスを宣言すれば、そのcontent値も変数として使える（x-frontmatterと同型の宣言的解決）
 - pathVarsもpath/deployと同様、discriminatorごとに異なる宣言（kindごとの{変数名: ドットパス}の組）としても書ける（discriminatorの分岐によってcontentの形が変わり、参照できるドットパスも変わるため）
+- x-frontmatterも同様に、discriminatorの値ごとに異なるフィールド宣言（kindごとの{フィールド名: ドットパス}の組）として書ける（discriminatorによってcontentの形が変わり、frontmatterに出すべきフィールド自体も変わるため。frontmatterを持たないdiscriminator値は宣言しなければ生成されない）
 
 ---
 
@@ -52,6 +53,7 @@ sequenceDiagram
 - When deploy 先が discriminator ごとの配列として宣言されているとき、engine は対象 Document の discriminator 値に対応する配列だけへ書き込む shall。
 - When schemaがx-render-target.pathVarsでcontentのドットパスを宣言しているとき、engineはそのcontent値をパステンプレートの変数として使う shall。
 - When pathVarsがdiscriminatorごとの宣言（kindごとの変数マップ）であるとき、engineは対象Documentのdiscriminator値に対応する変数マップだけを解決する shall。
+- When x-frontmatterがdiscriminatorごとの宣言（kindごとのフィールドマップ）であるとき、engineは対象Documentのdiscriminator値に対応するフィールドマップだけからfrontmatterを生成する shall。
 - If schemaRef が無いとき、engine は MISSING_SCHEMA_REF を返し描画しない shall。
 
 ---
@@ -225,6 +227,19 @@ Scenario: discriminatorごとに異なるpathVarsを解決する
   Given discriminatorの値ごとに異なるpathVars宣言（kindごとの変数マップ）を持つschemaのDocument
   When renderする
   Then そのDocumentのdiscriminator値に対応する変数マップだけが解決され、パステンプレートに反映される
+```
+
+### discriminatorごとに異なるx_frontmatterを生成する
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | 受け入れ基準：discriminatorの分岐によってfrontmatterに出すべきフィールド自体が変わる（frontmatter無しの分岐も許容） |
+
+```gherkin
+Scenario: discriminatorごとに異なるx_frontmatterを生成する
+  Given discriminatorの値ごとに異なるx-frontmatter宣言（kindごとのフィールドマップ）を持つschemaのDocument
+  When renderする
+  Then そのDocumentのdiscriminator値に対応するフィールドマップだけからfrontmatterが生成される
 ```
 
 ---

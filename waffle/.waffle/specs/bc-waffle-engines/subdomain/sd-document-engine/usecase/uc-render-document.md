@@ -43,6 +43,7 @@ sequenceDiagram
 - パステンプレートの変数は、documentId等の既定変数に加え、schemaがx-render-target.pathVarsでcontentのドットパスを宣言すれば、そのcontent値も変数として使える（x-frontmatterと同型の宣言的解決）
 - pathVarsもpath/deployと同様、discriminatorごとに異なる宣言（kindごとの{変数名: ドットパス}の組）としても書ける（discriminatorの分岐によってcontentの形が変わり、参照できるドットパスも変わるため）
 - x-frontmatterも同様に、discriminatorの値ごとに異なるフィールド宣言（kindごとの{フィールド名: ドットパス}の組）として書ける（discriminatorによってcontentの形が変わり、frontmatterに出すべきフィールド自体も変わるため。frontmatterを持たないdiscriminator値は宣言しなければ生成されない）
+- x-frontmatterが指すドットパスがDocumentの実データに存在しない（任意ブロックが省略されている等）場合、そのfrontmatterフィールドは省略する（値を空文字や空配列で埋めない。任意の上書き指定という意味を保つため）
 
 ---
 
@@ -54,6 +55,7 @@ sequenceDiagram
 - When schemaがx-render-target.pathVarsでcontentのドットパスを宣言しているとき、engineはそのcontent値をパステンプレートの変数として使う shall。
 - When pathVarsがdiscriminatorごとの宣言（kindごとの変数マップ）であるとき、engineは対象Documentのdiscriminator値に対応する変数マップだけを解決する shall。
 - When x-frontmatterがdiscriminatorごとの宣言（kindごとのフィールドマップ）であるとき、engineは対象Documentのdiscriminator値に対応するフィールドマップだけからfrontmatterを生成する shall。
+- When x-frontmatterが指すドットパスがDocumentの実データに存在しないとき、engineはそのフィールドをfrontmatterから省略する shall。
 - If schemaRef が無いとき、engine は MISSING_SCHEMA_REF を返し描画しない shall。
 
 ---
@@ -240,6 +242,19 @@ Scenario: discriminatorごとに異なるx_frontmatterを生成する
   Given discriminatorの値ごとに異なるx-frontmatter宣言（kindごとのフィールドマップ）を持つschemaのDocument
   When renderする
   Then そのDocumentのdiscriminator値に対応するフィールドマップだけからfrontmatterが生成される
+```
+
+### 存在しないx_frontmatterのドットパスは省略する
+
+| 分類 | 観点 |
+|---|---|
+| 境界値 | 受け入れ基準：任意ブロック省略時にfrontmatterフィールドを空値で埋めず省略する（上書き指定の意味を保つ） |
+
+```gherkin
+Scenario: 存在しないx_frontmatterのドットパスは省略する
+  Given x-frontmatterが宣言するドットパスに対応するcontentブロックを持たないDocument
+  When renderする
+  Then そのフィールドはfrontmatterから省略される
 ```
 
 ---

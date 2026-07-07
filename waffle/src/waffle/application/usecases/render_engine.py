@@ -129,9 +129,14 @@ class RenderEngine:
             return ""
         lines = ["---"]
         for key, path in fm.items():
-            value = _resolve_path({"doc": doc}, path)
+            try:
+                value = _resolve_path({"doc": doc}, path)
+            except KeyError:
+                continue  # 任意ブロック省略時：値で埋めずフィールドごと省略する（上書き指定の意味を保つ）
             # JSON 文字列は YAML のスカラとしても安全（コロン・括弧・日本語を含んでも壊れない）
             lines.append(f"{key}: {json.dumps(value, ensure_ascii=False)}")
+        if len(lines) == 1:
+            return ""  # 全フィールドが省略された場合は frontmatter 自体を出さない
         lines.append("---")
         return "\n".join(lines) + "\n\n"
 

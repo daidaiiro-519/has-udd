@@ -3,8 +3,6 @@
 
 宣言先ファイルがディスクに存在しないことはエラーではなく、それ自体が検出結果（ドリフト）。
 実行/意味理解はしない（宣言された名前集合の機械的な突き合わせのみ）。
-
-@spec uc-check-spec-integrity
 """
 from __future__ import annotations
 

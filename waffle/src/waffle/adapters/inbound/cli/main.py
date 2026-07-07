@@ -16,7 +16,6 @@ from waffle.adapters.outbound.pydoclint_linter import PydoclintLinter
 from waffle.adapters.outbound.python_ast_source_scanner import PythonAstSourceScanner
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
 from waffle.application.usecases.check_agent_skill_drift_engine import CheckAgentSkillDriftEngine
-from waffle.application.usecases.check_error_code_drift_engine import CheckErrorCodeDriftEngine
 from waffle.application.usecases.check_scenario_drift_engine import CheckScenarioDriftEngine
 from waffle.application.usecases.check_schema_version_drift_engine import CheckSchemaVersionDriftEngine
 from waffle.application.usecases.check_spec_integrity_engine import CheckSpecIntegrityEngine
@@ -140,14 +139,6 @@ def check_agent_skill_drift(
 ) -> None:
     """subagentのskillPreloadsが参照するSkillの実在性・プリロード可能性を検証（uc-check-agent-skill-drift）。"""
     _emit(CheckAgentSkillDriftEngine(_docs()).run(documents_root))
-
-@app.command("check-error-code-drift")
-def check_error_code_drift(
-    specs_root: str = typer.Option(..., "--specsRoot", "--specs-root", help="usecase spec群を走査する対象ディレクトリ"),
-    code_root: str = typer.Option(..., "--codeRoot", "--code-root", help="実装コード群を走査する対象ディレクトリ"),
-) -> None:
-    """specのErrorsが宣言するコードが@specタグでリンクされた実装に実在するかを検証（uc-check-error-code-drift）。"""
-    _emit(CheckErrorCodeDriftEngine(_docs()).run(specs_root, code_root))
 
 @app.command("scan-source-code")
 def scan_source_code(

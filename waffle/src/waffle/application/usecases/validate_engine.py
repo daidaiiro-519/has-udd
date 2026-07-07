@@ -2,8 +2,6 @@
 
 driven port（DocumentRepository / SchemaRepository / Validator）を編成する。
 inbound（driving）側のエントリは run()。
-
-@spec uc-validate-document
 """
 from __future__ import annotations
 

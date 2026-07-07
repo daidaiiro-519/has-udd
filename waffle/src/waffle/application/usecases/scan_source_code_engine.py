@@ -2,8 +2,6 @@
 kind 別に構造化抽出する application use case。
 
 SourceScanner port（kind ごとの言語パーサ技術を隠蔽する Secondary Port）を編成する。
-
-@spec uc-scan-source-code
 """
 from __future__ import annotations
 

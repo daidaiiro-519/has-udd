@@ -112,19 +112,6 @@ def test_check_agent_skill_driftは2フィールドの差分結果を返す():
     assert out == {"missing_skills": [], "unpreloadable_skills": []}
 
 
-def test_check_error_code_driftは2フィールドの差分結果を返す():
-    """
-    Given waffle MCPサーバ
-    When check_error_code_driftツールを呼ぶ
-    Then MCP出力は2フィールド全て空配列（自己整合済み）
-    """
-    out = asyncio.run(_call("check_error_code_drift", {
-        "specsRoot": ".waffle/documents/specs",
-        "codeRoot": "src/waffle/application/usecases",
-    }))
-    assert out == {"unlinked_specs": [], "missing_error_codes": []}
-
-
 def test_check_scenario_driftは4フィールドの差分結果を返す():
     """
     Given waffle MCPサーバ

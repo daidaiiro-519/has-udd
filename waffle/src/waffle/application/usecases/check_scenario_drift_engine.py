@@ -2,8 +2,6 @@
 ファイルのテスト関数名・docstring内容を突き合わせる application use case。
 
 実行/意味理解はしない（AST解析のみ）。検出した差分の中身の妥当性評価はAIが担う。
-
-@spec uc-check-scenario-drift
 """
 from __future__ import annotations
 

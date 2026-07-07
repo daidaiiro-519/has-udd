@@ -15,7 +15,6 @@ from waffle.adapters.outbound.python_ast_source_scanner import PythonAstSourceSc
 from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
 from waffle.application.usecases.check_scenario_drift_engine import CheckScenarioDriftEngine
 from waffle.application.usecases.check_agent_skill_drift_engine import CheckAgentSkillDriftEngine
-from waffle.application.usecases.check_error_code_drift_engine import CheckErrorCodeDriftEngine
 from waffle.application.usecases.check_schema_version_drift_engine import CheckSchemaVersionDriftEngine
 from waffle.application.usecases.check_spec_integrity_engine import CheckSpecIntegrityEngine
 from waffle.application.usecases.lint_docstring_engine import LintDocstringEngine
@@ -121,11 +120,6 @@ def check_schema_version_drift(documentsRoot: str = ".waffle/documents") -> dict
 def check_agent_skill_drift(documentsRoot: str = ".waffle/documents") -> dict:
     """subagentのskillPreloadsが参照するSkillの実在性・プリロード可能性を検証（uc-check-agent-skill-drift）。"""
     return _dict(CheckAgentSkillDriftEngine(_docs()).run(documentsRoot))
-
-@mcp.tool
-def check_error_code_drift(specsRoot: str, codeRoot: str) -> dict:
-    """specのErrorsが宣言するコードが@specタグでリンクされた実装に実在するかを検証（uc-check-error-code-drift）。"""
-    return _dict(CheckErrorCodeDriftEngine(_docs()).run(specsRoot, codeRoot))
 
 @mcp.tool
 def scan_source_code(path: str, kind: str) -> dict | list:

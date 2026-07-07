@@ -5,8 +5,6 @@ Harness 原則: AI は「値」だけを生成し、document.json の構造は e
   fillTemplate（値フィールドの path × x-prompt-write）を生成し、x-source-target に書く。
 - fill: AI が生成した values を、宣言済み値フィールドにのみ機械的に書き込む（構造保護）。
   値の型/enum 適合検証は uc-validate-document の責務（疎結合）。
-
-@spec uc-scaffold-document
 """
 from __future__ import annotations
 

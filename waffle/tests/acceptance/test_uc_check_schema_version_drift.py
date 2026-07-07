@@ -7,19 +7,23 @@ from waffle.application.usecases.check_schema_version_drift_engine import CheckS
 from waffle.shared.result import Ok
 
 
+_EMPTY_SCHEMA = {"properties": {"content": {"type": "object", "properties": {}}}}
+
+
 class _FakeSchemaRepository:
-    def __init__(self, versions_by_name: dict[str, list[str]]) -> None:
+    def __init__(self, versions_by_name: dict[str, list[str]], schemas_by_ref: dict[str, dict] | None = None) -> None:
         self._versions_by_name = versions_by_name
+        self._schemas_by_ref = schemas_by_ref or {}
 
     def load(self, schema_ref: str) -> dict:
-        raise NotImplementedError
+        return self._schemas_by_ref.get(schema_ref, _EMPTY_SCHEMA)
 
     def list_versions(self, name: str) -> list[str]:
         return self._versions_by_name.get(name, [])
 
 
-def _engine(versions_by_name: dict[str, list[str]]) -> CheckSchemaVersionDriftEngine:
-    return CheckSchemaVersionDriftEngine(FsDocumentRepository(), _FakeSchemaRepository(versions_by_name))
+def _engine(versions_by_name: dict[str, list[str]], schemas_by_ref: dict[str, dict] | None = None) -> CheckSchemaVersionDriftEngine:
+    return CheckSchemaVersionDriftEngine(FsDocumentRepository(), _FakeSchemaRepository(versions_by_name, schemas_by_ref))
 
 
 def _write(path: Path, doc: dict) -> None:
@@ -31,13 +35,13 @@ def test_全Documentが最新版を参照しているとき差分なしと判定
     """
     Given 全DocumentのschemaRefが、実在する同名Schemaの最新版を指しているspecツリー
     When schema版ドリフト検査を実行する
-    Then broken_references・newer_version_available共に空配列で返る
+    Then broken_references・newer_version_available・missing_declared_fields全てが空配列で返る
     """
     _write(tmp_path / "doc-a.json", {"documentId": "doc-a", "schemaRef": "FooSchema/v2"})
 
     result = _engine({"FooSchema": ["v1", "v2"]}).run(str(tmp_path))
     assert isinstance(result, Ok), result
-    assert result.value == {"broken_references": [], "newer_version_available": []}
+    assert result.value == {"broken_references": [], "newer_version_available": [], "missing_declared_fields": []}
 
 
 def test_実在しない版を指すschemaRefを検出する(tmp_path):
@@ -65,4 +69,30 @@ def test_最新でない版を参照しているDocumentを検出する(tmp_path
     assert isinstance(result, Ok), result
     assert result.value["newer_version_available"] == [
         {"document": str(tmp_path / "doc-a.json"), "schemaRef": "FooSchema/v1", "latest": "FooSchema/v2"}
+    ]
+
+
+def test_Schemaが宣言する値フィールドをDocumentが持たないことを検出する(tmp_path):
+    """
+    Given 参照先Schemaが宣言する値フィールドのキーを実データに持たないDocument
+    When schema版ドリフト検査を実行する
+    Then missing_declared_fieldsにその組が含まれる
+    """
+    schema = {
+        "properties": {
+            "content": {
+                "type": "object",
+                "required": ["note"],
+                "properties": {
+                    "note": {"type": "string", "x-prompt-write": "備考"},
+                },
+            }
+        }
+    }
+    _write(tmp_path / "doc-a.json", {"documentId": "doc-a", "schemaRef": "FooSchema/v2", "content": {}})
+
+    result = _engine({"FooSchema": ["v2"]}, {"FooSchema/v2": schema}).run(str(tmp_path))
+    assert isinstance(result, Ok), result
+    assert result.value["missing_declared_fields"] == [
+        {"document": str(tmp_path / "doc-a.json"), "path": "content.note"}
     ]

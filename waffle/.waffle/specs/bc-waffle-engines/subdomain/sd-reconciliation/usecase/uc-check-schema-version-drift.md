@@ -4,7 +4,7 @@
 
 ## 概要
 
-Document集約の実インスタンス群が持つschemaRefを、実在するSchemaの版集合と突き合わせ、指す先が存在しない参照・最新版でない参照を機械的に検出する。Schemaが進化した際に既存Documentが気づかれず陳腐化するリスクに対する第4のドリフト検知。
+Document集約の実インスタンス群が持つschemaRefを、実在するSchemaの版集合と突き合わせ、指す先が存在しない参照・最新版でない参照を機械的に検出する。加えて、参照先Schemaが現在宣言する値フィールド（fillTemplateのpath）にDocumentの実インスタンスが追従できているかも確認する。Schemaが進化した際に既存Documentが気づかれず陳腐化するリスクに対する第4のドリフト検知。
 
 ---
 
@@ -28,17 +28,19 @@ sequenceDiagram
     Orchestrator->>SchemaTree: documents_rootを指定してschema版ドリフト検査を依頼する
     SchemaTree->>SchemaTree: documents_root配下の実在するdocument.json群を走査し、各documentが持つschemaRef（Schema名＋版の組）を集める
     SchemaTree->>SchemaTree: 各schemaRefについて、同名Schemaの実在する版集合を取得し、参照している版がその集合に含まれるか・最新の版と一致するかを確認する
-    SchemaTree-->>Orchestrator: broken_references・newer_version_availableの2つのオブジェクト配列を返す
+    SchemaTree->>SchemaTree: 参照が実在する各Documentについて、参照先Schemaが現在宣言する値フィールドのpath一覧を機械走査し、Documentの実データにそのpathのキーが存在するかを確認する
+    SchemaTree-->>Orchestrator: broken_references・newer_version_available・missing_declared_fieldsの3つのオブジェクト配列を返す
 ```
 
 ---
 
 ## 事後条件
 
-- 返り値は次の2フィールドを持つ: broken_references（schemaRefが指す版が実在しないDocumentの組）・newer_version_available（schemaRefは実在するが、同名Schemaの最新版ではないDocumentの組。参照先の最新schemaRefも併せて含む）
+- 返り値は次の3フィールドを持つ: broken_references（schemaRefが指す版が実在しないDocumentの組）・newer_version_available（schemaRefは実在するが、同名Schemaの最新版ではないDocumentの組。参照先の最新schemaRefも併せて含む）・missing_declared_fields（参照先Schemaが現在宣言する値フィールドのpathを、Documentの実データが持たない組）
 - 版の新旧比較は、版識別子（例: v2）から取り出した数値の大小で行う（文字列としての辞書順比較はしない。'v10'と'v2'の大小を誤らないため）
 - schemaRefを持たないDocumentは対象外とする（MISSING_SCHEMA_REFの判定は本usecaseの対象外）
-- broken_references・newer_version_availableが共に空配列であれば、全DocumentのSchema参照が最新かつ実在する（正常系）
+- missing_declared_fieldsは、schemaRefが実在する参照が指すSchema自体（versionの新旧は問わない）に対して確認する。参照先Schemaのfill対象path一覧（値フィールドのpath×discriminator分岐）のうち、Documentの実データがそのキーを持たないものを報告する
+- broken_references・newer_version_available・missing_declared_fieldsが全て空配列であれば、全DocumentのSchema参照が最新かつ実在し、宣言済みフィールドにも追従している（正常系）
 
 ---
 
@@ -46,7 +48,8 @@ sequenceDiagram
 
 - When Documentのschema参照が指す版が実在しないとき、エンジンはその組をbroken_referencesに含める shall。
 - When Documentのschema参照は実在するが、同名Schemaの最新版でないとき、エンジンはその組（参照先の最新schemaRef付き）をnewer_version_availableに含める shall。
-- While 全DocumentのSchema参照が実在しかつ最新であるとき、エンジンはbroken_references・newer_version_available共に空配列で返す shall。
+- When 参照先Schemaが宣言する値フィールドのpathを、Documentの実データが持たないとき、エンジンはその組をmissing_declared_fieldsに含める shall。
+- While 全DocumentのSchema参照が実在しかつ最新であり、宣言済みフィールドにも追従しているとき、エンジンはbroken_references・newer_version_available・missing_declared_fields全てを空配列で返す shall。
 - If 対象のdocuments_rootが存在しないとき、エンジンはINVALID_PATHエラーを返す shall。
 
 ---
@@ -63,13 +66,13 @@ sequenceDiagram
 
 | 分類 | 観点 |
 |---|---|
-| 正常系 | 整合：全参照が実在かつ最新は正常系（空配列） |
+| 正常系 | 整合：全参照が実在かつ最新、かつ宣言済みフィールドにも追従は正常系（空配列） |
 
 ```gherkin
 Scenario: 全Documentが最新版を参照しているとき差分なしと判定する
   Given 全DocumentのschemaRefが、実在する同名Schemaの最新版を指しているspecツリー
   When schema版ドリフト検査を実行する
-  Then broken_references・newer_version_available共に空配列で返る
+  Then broken_references・newer_version_available・missing_declared_fields全てが空配列で返る
 ```
 
 ### 実在しない版を指すschemaRefを検出する
@@ -96,6 +99,19 @@ Scenario: 最新でない版を参照しているDocumentを検出する
   Given 同名Schemaに新しい版が実在するが、旧い版をschemaRefに持つDocument
   When schema版ドリフト検査を実行する
   Then newer_version_availableにその組が含まれる
+```
+
+### Schemaが宣言する値フィールドをDocumentが持たないことを検出する
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | ドリフト：参照先Schemaが宣言する値フィールドにDocumentが追従できていない |
+
+```gherkin
+Scenario: Schemaが宣言する値フィールドをDocumentが持たないことを検出する
+  Given 参照先Schemaが宣言する値フィールドのキーを実データに持たないDocument
+  When schema版ドリフト検査を実行する
+  Then missing_declared_fieldsにその組が含まれる
 ```
 
 ---

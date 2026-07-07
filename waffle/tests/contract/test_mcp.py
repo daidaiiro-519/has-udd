@@ -92,14 +92,14 @@ def test_check_spec_integrityは10フィールドの差分結果を返す():
     }
 
 
-def test_check_schema_version_driftは2フィールドの差分結果を返す():
+def test_check_schema_version_driftは3フィールドの差分結果を返す():
     """
     Given waffle MCPサーバ
     When check_schema_version_driftツールを呼ぶ
-    Then MCP出力は2フィールド全て空配列（自己整合済み）
+    Then MCP出力は3フィールド全て空配列（自己整合済み）
     """
     out = asyncio.run(_call("check_schema_version_drift", {}))
-    assert out == {"broken_references": [], "newer_version_available": []}
+    assert out == {"broken_references": [], "newer_version_available": [], "missing_declared_fields": []}
 
 
 def test_check_scenario_driftは4フィールドの差分結果を返す():

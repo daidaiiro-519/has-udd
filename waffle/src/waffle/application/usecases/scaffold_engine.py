@@ -14,6 +14,9 @@ from waffle.application.ports.document_repository import DocumentRepository
 from waffle.application.ports.schema_repository import SchemaRepository
 from waffle.application.services.document_loading import load_document, load_schema, require_schema_ref
 from waffle.domain.services import path_template
+from waffle.domain.services.fill_template import build_fill_template as _build_fill_template
+from waffle.domain.services.fill_template import content_def as _content_def
+from waffle.domain.services.fill_template import resolve_ref as _resolve
 from waffle.domain.services.schema_discriminator import discriminator_key as _discriminator_key
 from waffle.shared.result import Err, Ok, Result
 
@@ -110,33 +113,8 @@ class ScaffoldEngine:
 
 # --- schema 走査ヘルパ（純ロジック・機械的） ---
 
-def _resolve(schema: dict, ref: str):
-    node = schema
-    for part in ref.lstrip("#/").split("/"):
-        node = node[part]
-    return node
-
 def _discriminator_candidates(schema: dict, key: str) -> list:
     return schema.get("properties", {}).get(key, {}).get("enum", [])
-
-def _matches(if_clause: dict, discriminator: dict) -> bool:
-    for key, cond in if_clause.get("properties", {}).items():
-        if "const" in cond and discriminator.get(key) != cond["const"]:
-            return False
-    return True
-
-def _content_def(schema: dict, discriminator: dict) -> dict:
-    if "if" in schema:
-        branch = schema.get("then", {}) if _matches(schema["if"], discriminator) else schema.get("else", {})
-        ref = branch.get("properties", {}).get("content", {}).get("$ref")
-        if ref:
-            return _resolve(schema, ref)
-    for entry in schema.get("allOf", []):
-        if "if" in entry and _matches(entry["if"], discriminator):
-            ref = entry.get("then", {}).get("properties", {}).get("content", {}).get("$ref")
-            if ref:
-                return _resolve(schema, ref)
-    return schema.get("properties", {}).get("content", {})
 
 def _skeleton_from_def(schema: dict, d: dict):
     if "$ref" in d:
@@ -173,49 +151,6 @@ def _build_skeleton(schema, document_id, disc_key, discriminator, content_def) -
     if "tags" in props and "tags" not in out:
         out["tags"] = []
     return out
-
-def _merge_allof(schema: dict, d: dict) -> dict:
-    if "allOf" not in d:
-        return d
-    merged: dict = {"properties": {}}
-    for part in d["allOf"]:
-        if "$ref" in part:
-            part = _resolve(schema, part["$ref"])
-        merged["properties"].update(part.get("properties", {}))
-    merged["properties"].update(d.get("properties", {}))
-    return merged
-
-def _build_fill_template(schema: dict, content_def: dict) -> list:
-    entries: list = []
-    _walk_fill(schema, content_def, "content", entries)
-    return entries
-
-def _walk_fill(schema, d, path, entries):
-    if "$ref" in d:
-        return _walk_fill(schema, _resolve(schema, d["$ref"]), path, entries)
-    t = d.get("type")
-    if t == "object":
-        for k, v in d.get("properties", {}).items():
-            _walk_fill(schema, v, f"{path}.{k}", entries)
-        return
-    if "const" in d or "x-prompt-write" not in d:
-        return
-    entry = {"path": path, "type": t or "any", "prompt": d["x-prompt-write"], "required": True}
-    if "enum" in d:
-        entry["enum"] = d["enum"]
-    if t == "array":
-        item = d.get("items", {})
-        if "$ref" in item:
-            item = _resolve(schema, item["$ref"])
-        item = _merge_allof(schema, item)
-        element = {
-            ik: iv["x-prompt-write"]
-            for ik, iv in item.get("properties", {}).items()
-            if "x-prompt-write" in iv and "const" not in iv
-        }
-        if element:
-            entry["element"] = element
-    entries.append(entry)
 
 def _set_path(doc: dict, path: str, value) -> bool:
     parts = path.split(".")

@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "AgentSchema/v1",
+  "title": "Agent Schema v1",
+  "description": "Document集約の一documentType（Agent）。Orchestratorを表す（Role/Advisorは既存SkillSchemaのskillKind=customで表現するため対象外・kind discriminatorは持たない）。x-render-targetのdeployでCLAUDE.md/AGENTS.md等の各ツールネイティブな起動ファイルへrender+deployされる（SkillSchemaがSKILL.mdへrender+deployするのと同型）。ツールはリポジトリルートのCLAUDE.md/AGENTS.mdしか自動発見しないため、サブディレクトリを管轄するOrchestrator（SubOrchestrator）はscope単位で複数存在しうる。",
+
+  "type": "object",
+  "required": ["documentId", "documentType", "schemaRef", "status", "content"],
+  "x-source-target": ".waffle/documents/agent/{documentId}.json",
+  "x-render-target": {
+    "formats": ["md"],
+    "pathVars": {"scope": "doc.content.scope.path"},
+    "path": ".waffle/agent/{documentId}.md",
+    "deploy": ["{scope}CLAUDE.md", "{scope}AGENTS.md"]
+  },
+
+  "properties": {
+    "documentId": {
+      "type": "string",
+      "x-prompt-write": "このOrchestratorを一意に識別するIDを kebab-case で付けてください。例: orchestrator-root, orchestrator-waffle"
+    },
+    "documentType": {
+      "type": "string",
+      "const": "Agent"
+    },
+    "schemaRef": {
+      "type": "string",
+      "const": "AgentSchema/v1"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "ACTIVE", "DEPRECATED"],
+      "x-prompt-write": "作成中は DRAFT、稼働させるなら ACTIVE、廃止する場合は DEPRECATED を指定してください。"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "x-prompt-write": "このOrchestratorを分類するタグを付けてください。例: [\"repo:has-udd\"]"
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "_index": {
+      "description": "waffle が x-prompt-query から自動生成する。AI は直接書かない。",
+      "readOnly": true,
+      "type": "object",
+      "properties": {
+        "blocks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["blockType", "prompt"],
+            "properties": {
+              "blockType": { "type": "string" },
+              "prompt": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "content": { "$ref": "#/$defs/AgentContent" }
+  },
+
+  "$defs": {
+    "AgentContent": {
+      "type": "object",
+      "required": ["title", "scope", "operatingRules"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "$ref": "#/$defs/TitleBlock" },
+        "scope": { "$ref": "#/$defs/ScopeBlock" },
+        "operatingRules": { "$ref": "#/$defs/OperatingRulesBlock" },
+        "subOrchestratorRefs": { "$ref": "#/$defs/SubOrchestratorRefsBlock" }
+      }
+    },
+
+    "TitleBlock": {
+      "type": "object",
+      "required": ["blockType", "title"],
+      "x-render-order": 0,
+      "x-render-level": 1,
+      "x-prompt-query": "このOrchestratorのタイトルを持ちます。documentId がそのまま使われます。",
+      "x-render": [],
+      "properties": {
+        "blockType": { "type": "string", "const": "Title" },
+        "title": { "type": "string", "x-prompt-write": "documentId をそのまま設定してください。" }
+      }
+    },
+
+    "ScopeBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "path", "description"],
+      "x-render-order": 1,
+      "x-render-level": 2,
+      "x-prompt-query": "このOrchestratorが管轄するディレクトリと、その概要を持ちます。deploy先の解決・複数Orchestratorの管轄範囲の把握に使います。",
+      "x-render": [{ "as": "keyvalue", "pairs": [{ "label": "管轄ディレクトリ", "from": "path" }, { "label": "概要", "from": "description" }] }],
+      "properties": {
+        "blockType": { "type": "string", "const": "Scope" },
+        "title": { "type": "string", "const": "管轄範囲" },
+        "path": {
+          "type": "string",
+          "x-prompt-write": "このOrchestratorが管轄するディレクトリをリポジトリルートからの相対パスで指定してください。ルート自身なら空文字。例: \"\", \"waffle/\""
+        },
+        "description": {
+          "type": "string",
+          "x-prompt-write": "このディレクトリ・プロダクトが何であるかを1〜2文で記述してください。"
+        }
+      }
+    },
+
+    "OperatingRulesBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 2,
+      "x-render-level": 2,
+      "x-prompt-query": "このscope配下で作業する際に必ず守るべき運用ルールを持ちます。CLAUDE.md/AGENTS.mdの本文として最初に読まれる指示です。",
+      "x-render": [
+        {
+          "as": "section",
+          "from": "items",
+          "titleFrom": "title",
+          "each": [{ "as": "paragraph", "from": "text" }]
+        }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "OperatingRules" },
+        "title": { "type": "string", "const": "運用ルール" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "必ず守るべき運用ルールを列挙してください。各ルールにはタイトルと、なぜそのルールが必要かを含む説明を書いてください。",
+          "items": {
+            "type": "object",
+            "required": ["title", "text"],
+            "properties": {
+              "title": { "type": "string", "x-prompt-write": "ルールの見出し。" },
+              "text": { "type": "string", "x-prompt-write": "ルールの内容と、なぜ必要か（根拠）。" }
+            }
+          }
+        }
+      }
+    },
+
+    "SubOrchestratorRefsBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 3,
+      "x-render-level": 2,
+      "x-prompt-query": "このOrchestratorの管轄下にある、より狭いscopeを持つ子Orchestratorへの参照を持ちます。ツールがルートしか自動発見しないため、対象scopeで作業する際は子Orchestratorのcontentを先に読むべきことを示します。子を持たないOrchestratorでは空配列。",
+      "x-render": [{ "as": "table", "from": "items", "columns": [{ "field": "scope", "header": "対象ディレクトリ" }, { "field": "documentId", "header": "参照Orchestrator" }, { "field": "note", "header": "備考" }] }],
+      "properties": {
+        "blockType": { "type": "string", "const": "SubOrchestratorRefs" },
+        "title": { "type": "string", "const": "委譲先" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "子Orchestratorへの参照を列挙してください。子を持たなければ空配列。",
+          "items": {
+            "type": "object",
+            "required": ["scope", "documentId", "note"],
+            "properties": {
+              "scope": { "type": "string", "x-prompt-write": "子Orchestratorが管轄するディレクトリ。例: \"waffle/\"" },
+              "documentId": { "type": "string", "x-prompt-write": "子OrchestratorのdocumentId。" },
+              "note": { "type": "string", "x-prompt-write": "そのscopeで作業する際に何を確認すべきかの短い説明。" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

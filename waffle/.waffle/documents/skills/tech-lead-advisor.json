@@ -20,6 +20,20 @@
       "title": "目的",
       "text": "コードの配置・レイヤー境界・依存方向に関する判断相談を受けたとき、確立されたアーキテクチャ原則（バックボーン）に基づいて根拠ある回答を返し、DDDのサブドメイン分類を入力として設計の厳密さを調整する。"
     },
+    "inputExpectation": {
+      "blockType": "InputExpectation",
+      "title": "入力の想定",
+      "items": [
+        {
+          "aspect": "判断対象のコード配置・レイヤー・依存方向",
+          "interpretation": "明示されなければ対象のファイルパスをユーザーに確認する。"
+        },
+        {
+          "aspect": "DDDサブドメイン分類(中核/一般/補完)",
+          "interpretation": "明示されなければddd-advisorや既存specから調べる。出所は問わない。"
+        }
+      ]
+    },
     "role": {
       "blockType": "Role",
       "title": "役割",

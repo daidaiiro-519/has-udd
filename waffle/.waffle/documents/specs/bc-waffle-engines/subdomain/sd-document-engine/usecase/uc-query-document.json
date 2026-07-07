@@ -67,7 +67,8 @@
       "title": "事後条件",
       "items": [
         "要求された意味単位が value として返る",
-        "ブロック/配列取得時は value の読み方の指針が prompt に付く"
+        "ブロック/配列取得時は value の読み方の指針が prompt に付く",
+        "index_scan_dirは各Documentのindexに加え、そのDocument自身のtagsも含めて返す"
       ]
     },
     "acceptanceCriteria": {
@@ -181,10 +182,10 @@
           "covers": "operation: index_scan"
         },
         {
-          "name": "index_scan_dirはディレクトリ横断でindexを集約する",
+          "name": "index_scan_dirはディレクトリ横断でindexとtagsを集約する",
           "category": "正常系",
-          "viewpoint": "ファイル単位：index_scan_dirは複数Documentのindexを1回で集約する",
-          "gherkin": "Scenario: index_scan_dirはディレクトリ横断でindexを集約する\n  Given query engine と対象ディレクトリ\n  When operation index_scan_dir を実行する\n  Then ディレクトリ配下の各Documentのindexがまとめて返る",
+          "viewpoint": "ファイル単位：index_scan_dirは複数Documentのindexとtagsを1回で集約する",
+          "gherkin": "Scenario: index_scan_dirはディレクトリ横断でindexとtagsを集約する\n  Given query engine と対象ディレクトリ\n  When operation index_scan_dir を実行する\n  Then ディレクトリ配下の各Documentのindexとtagsがまとめて返る",
           "covers": "operation: index_scan_dir"
         },
         {

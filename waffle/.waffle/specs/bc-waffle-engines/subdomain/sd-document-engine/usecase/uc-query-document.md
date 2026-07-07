@@ -37,6 +37,7 @@ sequenceDiagram
 
 - 要求された意味単位が value として返る
 - ブロック/配列取得時は value の読み方の指針が prompt に付く
+- index_scan_dirは各Documentのindexに加え、そのDocument自身のtagsも含めて返す
 
 ---
 
@@ -197,17 +198,17 @@ Scenario: index_scanはblockTypeとpromptをschemaから動的算出する
   Then 各blockのblockTypeとx-prompt-query由来のpromptが返る
 ```
 
-### index_scan_dirはディレクトリ横断でindexを集約する
+### index_scan_dirはディレクトリ横断でindexとtagsを集約する
 
 | 分類 | 観点 |
 |---|---|
-| 正常系 | ファイル単位：index_scan_dirは複数Documentのindexを1回で集約する |
+| 正常系 | ファイル単位：index_scan_dirは複数Documentのindexとtagsを1回で集約する |
 
 ```gherkin
-Scenario: index_scan_dirはディレクトリ横断でindexを集約する
+Scenario: index_scan_dirはディレクトリ横断でindexとtagsを集約する
   Given query engine と対象ディレクトリ
   When operation index_scan_dir を実行する
-  Then ディレクトリ配下の各Documentのindexがまとめて返る
+  Then ディレクトリ配下の各Documentのindexとtagsがまとめて返る
 ```
 
 ### get_fieldはblockの1フィールドを返す

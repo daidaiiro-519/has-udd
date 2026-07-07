@@ -128,17 +128,19 @@ def test_index_scanはblockTypeとpromptをschemaから動的算出する():
     assert result.value["value"]["mainFlow"]["prompt"]
 
 
-def test_index_scan_dirはディレクトリ横断でindexを集約する():
+def test_index_scan_dirはディレクトリ横断でindexとtagsを集約する():
     """
     Given query engine と対象ディレクトリ
     When operation index_scan_dir を実行する
-    Then ディレクトリ配下の各Documentのindexがまとめて返る
+    Then ディレクトリ配下の各Documentのindexとtagsがまとめて返る
     """
     result = _engine().run(
         "index_scan_dir", ".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase",
     )
     assert isinstance(result, Ok), result
-    assert any("uc-query-document.json" in k for k in result.value["value"])
+    entry = next(v for k, v in result.value["value"].items() if "uc-query-document.json" in k)
+    assert "context:waffle-engines" in entry["tags"]
+    assert entry["blocks"]["mainFlow"]["prompt"]
 
 
 def test_get_fieldはblockの1フィールドを返す():

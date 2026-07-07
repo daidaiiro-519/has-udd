@@ -1,5 +1,29 @@
 # harness-knowledge-engine 設計ブレスト
 
+## ★後日談（別セッション）: 独立engineとしては撤回
+
+このブレストの結論（別Secondary Port・K-1〜K-6）は撤回した。ユーザー指摘:
+「knowledge自体もドキュメント集約だと思いますよ」。
+
+Knowledgeを独立集約でなくDocument集約の一documentTypeとして扱えば、この設計の
+大部分は既にWaffleの`query`engineが満たしている:
+- `list_index`相当 → `index_scan_dir`が既に「ディレクトリ走査＋各blockTypeの
+  x-prompt-queryを動的算出」を実装済み（`_index_scan_dir`・`_index.json`を
+  保存しない設計まで一致、K-3と同一結論）
+- `get_by_ids`相当 → 複数documentへの`get_field`/`get_block`呼び出しで代替可能
+- 別engineにする根拠だったFacadeパターン・意味的語彙の違いは、Knowledgeを
+  独立集約として見る前提が崩れたことで成立しなくなった
+
+唯一の実ギャップ（tagベースの絞り込み用にindex出力へtagsが無かった）は
+`index_scan_dir`の小さな拡張（各documentの`tags`を出力に含める）で解消済み
+（uc-query-document.json・query_engine.py実装済み）。
+
+**残タスク**: `KnowledgeSchema`をagg-schemaの対象（`domain/model/`）に追加すれば、
+既存のcreate/fill/validate/render/queryが全てそのまま動く（新規engineコード不要）。
+下記のK-1〜K-6の設計内容（7 blockType・タグ規約・x-render=HTML等）は
+KnowledgeSchema自体の設計として参考にできる部分もあるが、「別engine」の
+決定は無効。
+
 ## 目的
 
 `harness-knowledge-engine` の document.json を Python 実装レベルで設計する。

@@ -164,7 +164,10 @@ class QueryEngine:
         for p in paths:
             doc = self._documents.load(p)
             if isinstance(doc, dict) and "schemaRef" in doc:
-                out[p] = _index(doc, self._schemas.load(doc["schemaRef"]))
+                out[p] = {
+                    "tags": doc.get("tags", []),
+                    "blocks": _index(doc, self._schemas.load(doc["schemaRef"])),
+                }
         return Ok({"prompt": None, "value": out})
 
 # --- 純ヘルパ ---

@@ -92,14 +92,16 @@
 
     "CustomContent": {
       "type": "object",
-      "required": ["title", "purpose", "role", "processingTarget", "steps"],
+      "required": ["title", "purpose", "inputExpectation", "role", "processingTarget", "steps"],
       "additionalProperties": false,
       "properties": {
         "title":            { "$ref": "#/$defs/TitleBlock" },
         "purpose":          { "$ref": "#/$defs/PurposeBlock" },
+        "inputExpectation": { "$ref": "#/$defs/InputExpectationBlock" },
         "role":             { "$ref": "#/$defs/RoleBlock" },
         "processingTarget": { "$ref": "#/$defs/ProcessingTargetBlock" },
         "steps":            { "$ref": "#/$defs/CustomStepsBlock" },
+        "outputFormat":     { "$ref": "#/$defs/OutputFormatBlock" },
         "guardrails":       { "$ref": "#/$defs/GuardrailsBlock" },
         "references":       { "$ref": "#/$defs/ReferencesBlock" },
         "invocationMode":   { "$ref": "#/$defs/InvocationModeBlock" }
@@ -141,7 +143,7 @@
     "InvocationModeBlock": {
       "type": "object",
       "required": ["blockType", "title", "manualOnly"],
-      "x-render-order": 8,
+      "x-render-order": 10,
       "x-render-level": 2,
       "x-render-hidden": true,
       "x-prompt-query": "このSkillがモデルによる自動呼び出し対象かどうかを持ちます。frontmatterのdisable-model-invocationとして使われます。",
@@ -159,7 +161,7 @@
     "RoleBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 2,
+      "x-render-order": 3,
       "x-render-level": 2,
       "x-prompt-query": "このSkillの役割リストを持ちます。Skillの責務範囲の把握に使います。",
       "x-render": [
@@ -179,7 +181,7 @@
     "InterfaceBlock": {
       "type": "object",
       "required": ["blockType", "title", "input", "output"],
-      "x-render-order": 3,
+      "x-render-order": 4,
       "x-render-level": 2,
       "x-prompt-query": "この engine の I/O 定義を持ちます。受け取ったテキスト(意図)を、ここで定義された params に成型して CLI/MCP を呼ぶための『成型ガイド』。各 param の description がその意味を表す（Orchestrator が外部から満たす契約ではなく、受け手 Skill が成型に使う）。",
       "x-render": [
@@ -235,10 +237,57 @@
       }
     },
 
+    "InputExpectationBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 2,
+      "x-render-level": 2,
+      "x-prompt-query": "このSkillを呼び出す際に渡されるべき情報と、情報が不足・曖昧な場合の解釈方法を持ちます。テキストベース疎結合の入力（自然言語の意図）を受け手がどう構造化するかの手引きであり、呼び出しごとに解釈がぶれて再現性が損なわれることを防ぎます。",
+      "x-render": [
+        { "as": "table", "from": "items", "columns": [
+          { "field": "aspect", "header": "受け取る情報" },
+          { "field": "interpretation", "header": "解釈・既定値" }
+        ] }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "InputExpectation" },
+        "title":     { "type": "string", "const": "入力の想定" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "このSkillを呼び出す際、自然言語の意図から読み取るべき情報の種類と、明示されなかった場合にどう解釈する（既定値を使う・確認を挟む等）かを列挙してください。呼び出すたびに解釈が変わらないようにするための手引きです。",
+          "items": {
+            "type": "object",
+            "required": ["aspect", "interpretation"],
+            "properties": {
+              "aspect":         { "type": "string", "x-prompt-write": "受け取ると想定する情報の種類（例: 対象ブランチ、対象ファイル範囲）。" },
+              "interpretation": { "type": "string", "x-prompt-write": "その情報が明示されなかった場合にどう解釈するか（既定値・確認を挟む等）。" }
+            }
+          }
+        }
+      }
+    },
+
+    "OutputFormatBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "text"],
+      "x-render-order": 7,
+      "x-render-level": 2,
+      "x-prompt-query": "このSkillの実行結果・報告の形式を持ちます。ブロック自体が無ければ自由形式。",
+      "x-render": [{ "as": "paragraph", "from": "text" }],
+      "properties": {
+        "blockType": { "type": "string", "const": "OutputFormat" },
+        "title":     { "type": "string", "const": "出力形式" },
+        "text": {
+          "type": "string",
+          "x-prompt-write": "実行結果・報告の形式を指定してください（例:「チェック項目ごとに✓/✗と理由を箇条書きで報告する」）。無ければこのブロック自体を省略してください。"
+        }
+      }
+    },
+
     "ProcessingTargetBlock": {
       "type": "object",
       "required": ["blockType", "title", "target", "artifact"],
-      "x-render-order": 3,
+      "x-render-order": 4,
       "x-render-level": 2,
       "x-prompt-query": "このcustom Skillの処理対象と成果物を持ちます。SubAgentがSkillの意味的な入出力を把握するために使います。",
       "x-render": [
@@ -262,7 +311,7 @@
     "InvocationSpecBlock": {
       "type": "object",
       "required": ["blockType", "title", "cliTemplate", "cliExamples", "mcpTemplate", "mcpExamples"],
-      "x-render-order": 4,
+      "x-render-order": 5,
       "x-render-level": 2,
       "x-prompt-query": "この engine の具体的な呼び出し形（CLI/MCP のテンプレと、operation+params を埋めた実例）を持ちます。実際に動く呼び出しを組み立てるために使います。",
       "x-render": [
@@ -306,7 +355,7 @@
     "EngineStepsBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 5,
+      "x-render-order": 6,
       "x-render-level": 2,
       "x-prompt-write": "この engine の『使い方』を定義してください: どの操作・どのコマンド/MCP ツールを・どんな時に呼び、返り値（{prompt,value}）をどう解釈・活用するか。内部実装（ファイル読込・パース・例外処理等）は書かないでください（ソースコードが担保・2ヘキサゴンで不可視）。",
       "x-prompt-query": "この engine の使い方を持ちます。Orchestrator が呼び出し方と返り値の扱いを把握するために使います。",
@@ -340,7 +389,7 @@
     "CustomStepsBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 5,
+      "x-render-order": 6,
       "x-render-level": 2,
       "x-prompt-write": "このcustom Skillのドメイン実行手順を定義してください。インフラ語彙（document.json・MCP・ファイルパス・Python API 等）は絶対に書かないでください。SubAgentが実行するドメイン固有の操作のみを記述してください。",
       "x-prompt-query": "このcustom Skillの実行手順を持ちます。SubAgentがSkillのドメイン操作を把握・実行するために使います。",
@@ -479,7 +528,7 @@
     "GuardrailsBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 6,
+      "x-render-order": 8,
       "x-render-level": 2,
       "x-prompt-write": "このSkillを実行する際に必ず守るべき制約・禁止事項・前提条件を列挙してください。",
       "x-prompt-query": "このSkillの実行制約を持ちます。Skillを実行する前に確認すべきガードレールの一覧です。",
@@ -499,7 +548,7 @@
     "ReferencesBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 7,
+      "x-render-order": 9,
       "x-render-level": 2,
       "x-prompt-write": "このSkillが参照するファイル・ドキュメント・スキーマを列挙してください。",
       "x-prompt-query": "このSkillが参照するリソースの一覧を持ちます。Skill実行時に読み込むべきファイルの特定に使います。",

@@ -106,11 +106,12 @@
 
     "SubagentContent": {
       "type": "object",
-      "required": ["title", "description", "persona", "responsibilities"],
+      "required": ["title", "description", "inputExpectation", "persona", "responsibilities"],
       "additionalProperties": false,
       "properties": {
         "title": { "$ref": "#/$defs/TitleBlock" },
         "description": { "$ref": "#/$defs/DescriptionBlock" },
+        "inputExpectation": { "$ref": "#/$defs/InputExpectationBlock" },
         "toolAccess": { "$ref": "#/$defs/ToolAccessBlock" },
         "runtimeConfig": { "$ref": "#/$defs/RuntimeConfigBlock" },
         "skillPreloads": { "$ref": "#/$defs/SkillPreloadsBlock" },
@@ -324,10 +325,40 @@
       }
     },
 
+    "InputExpectationBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 5,
+      "x-render-level": 2,
+      "x-prompt-query": "委譲元（Orchestratorや他のSubagent）がタスクを渡す際に含めるべき情報と、情報が不足・曖昧な場合の解釈方法を持ちます。Subagentは独立コンテキストで起動され、渡された自然言語のテキストだけを手がかりに動くため、解釈がぶれると再現性が損なわれます。",
+      "x-render": [
+        { "as": "table", "from": "items", "columns": [
+          { "field": "aspect", "header": "受け取る情報" },
+          { "field": "interpretation", "header": "解釈・既定値" }
+        ] }
+      ],
+      "properties": {
+        "blockType": { "type": "string", "const": "InputExpectation" },
+        "title":     { "type": "string", "const": "入力の想定" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "このSubagentが委譲されるタスクの自然言語の中から読み取るべき情報の種類と、明示されなかった場合にどう解釈する（既定の対象範囲を使う・確認を挟む等）かを列挙してください。呼び出すたびに解釈が変わらないようにするための手引きです。",
+          "items": {
+            "type": "object",
+            "required": ["aspect", "interpretation"],
+            "properties": {
+              "aspect":         { "type": "string", "x-prompt-write": "受け取ると想定する情報の種類（例: 対象ファイル/ディレクトリ、確認したい脆弱性の種類）。" },
+              "interpretation": { "type": "string", "x-prompt-write": "その情報が明示されなかった場合にどう解釈するか（既定値・確認を挟む等）。" }
+            }
+          }
+        }
+      }
+    },
+
     "PersonaBlock": {
       "type": "object",
       "required": ["blockType", "title", "text"],
-      "x-render-order": 5,
+      "x-render-order": 6,
       "x-render-level": 2,
       "x-prompt-query": "このSubagentの役割・専門性の定義を持ちます。独立コンテキストで最初に読まれる、システムプロンプトの核となる人格定義です。",
       "x-render": [{ "as": "paragraph", "from": "text" }],
@@ -344,7 +375,7 @@
     "ResponsibilitiesBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 6,
+      "x-render-order": 7,
       "x-render-level": 2,
       "x-prompt-query": "このSubagentが確認・担当すべき具体的な観点の一覧を持ちます。Personaで定義した役割を、実行可能な作業項目に分解したものです。",
       "x-render": [{ "as": "list", "from": "items" }],
@@ -362,7 +393,7 @@
     "ConstraintsBlock": {
       "type": "object",
       "required": ["blockType", "title", "items"],
-      "x-render-order": 7,
+      "x-render-order": 8,
       "x-render-level": 2,
       "x-prompt-query": "このSubagentが守るべき品質基準・エッジケース・注意点を持ちます。ブロック自体が無ければ特別な制約なし。",
       "x-render": [{ "as": "list", "from": "items" }],
@@ -380,7 +411,7 @@
     "OutputFormatBlock": {
       "type": "object",
       "required": ["blockType", "title", "text"],
-      "x-render-order": 8,
+      "x-render-order": 9,
       "x-render-level": 2,
       "x-prompt-query": "このSubagentの報告・出力の形式指定を持ちます。ブロック自体が無ければ自由形式。",
       "x-render": [{ "as": "paragraph", "from": "text" }],

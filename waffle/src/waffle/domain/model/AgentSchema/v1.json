@@ -243,7 +243,8 @@
       "required": ["blockType", "title", "text"],
       "x-render-order": 1,
       "x-render-level": 2,
-      "x-prompt-query": "このSubagentにいつ委譲すべきかを持ちます。Claudeがこのsubagentを自動的に選ぶかどうかの判断根拠になります（frontmatterのdescriptionとして使われる最重要フィールド）。",
+      "x-render-hidden": true,
+      "x-prompt-query": "このSubagentにいつ委譲すべきかを持ちます。Claudeがこのsubagentを自動的に選ぶかどうかの判断根拠になります。frontmatterのdescriptionとしてのみ使われ、本文には出力されません（呼び出し側は本文を読む前にfrontmatterで判断するため、本文で同じ文言を繰り返す必要が無い）。",
       "x-render": [{ "as": "paragraph", "from": "text" }],
       "properties": {
         "blockType": { "type": "string", "const": "Description" },
@@ -260,7 +261,8 @@
       "required": ["blockType", "title", "tools", "disallowedTools"],
       "x-render-order": 2,
       "x-render-level": 2,
-      "x-prompt-query": "このSubagentが使えるツール・使えないツールの制限を持ちます。ブロック自体が無ければ制限なし（全ツール継承）。",
+      "x-render-hidden": true,
+      "x-prompt-query": "このSubagentが使えるツール・使えないツールの制限を持ちます。ブロック自体が無ければ制限なし（全ツール継承）。frontmatterのtools/disallowedToolsとしてのみ使われ、本文には出力されません（Claude Codeはfrontmatterの値を実際の制限として強制するため、本文にprose化した一覧を重複させない）。",
       "x-render": [
         { "heading": "使えるツール", "as": "list", "from": "tools" },
         { "heading": "使えないツール", "as": "list", "from": "disallowedTools" }
@@ -286,7 +288,8 @@
       "required": ["blockType", "title", "model", "permissionMode"],
       "x-render-order": 3,
       "x-render-level": 2,
-      "x-prompt-query": "このSubagentのモデル・権限モードの上書き指定を持ちます。ブロック自体が無ければメインセッションの既定を継承します。",
+      "x-render-hidden": true,
+      "x-prompt-query": "このSubagentのモデル・権限モードの上書き指定を持ちます。ブロック自体が無ければメインセッションの既定を継承します。frontmatterのmodel/permissionModeとしてのみ使われ、本文には出力されません。",
       "x-render": [{ "as": "keyvalue", "pairs": [{ "label": "モデル", "from": "model" }, { "label": "権限モード", "from": "permissionMode" }] }],
       "properties": {
         "blockType": { "type": "string", "const": "RuntimeConfig" },
@@ -307,7 +310,8 @@
       "required": ["blockType", "title", "items"],
       "x-render-order": 4,
       "x-render-level": 2,
-      "x-prompt-query": "このSubagentが起動時にプリロードするSkill名の一覧を持ちます。ブロック自体が無ければプリロードなし。",
+      "x-render-hidden": true,
+      "x-prompt-query": "このSubagentが起動時にプリロードするSkill名の一覧を持ちます。ブロック自体が無ければプリロードなし。frontmatterのskillsとしてのみ使われ、本文には出力されません。",
       "x-render": [{ "as": "list", "from": "items" }],
       "properties": {
         "blockType": { "type": "string", "const": "SkillPreloads" },

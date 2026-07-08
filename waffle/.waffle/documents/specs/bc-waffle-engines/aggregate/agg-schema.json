@@ -3,7 +3,7 @@
   "documentType": "DomainSpec",
   "schemaRef": "DomainSpecSchema/v2",
   "specKind": "aggregate",
-  "status": "CREATED",
+  "status": "VALIDATED",
   "tags": [
     "context:waffle-engines"
   ],

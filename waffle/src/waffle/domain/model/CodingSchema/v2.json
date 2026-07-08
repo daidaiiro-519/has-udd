@@ -10,14 +10,6 @@
   },
   "x-source-target": ".waffle/documents/coding/{documentId}.json",
 
-  "x-lifecycle": {
-    "transitions": [
-      { "from": null,      "to": "DRAFT",      "command": "create" },
-      { "from": "DRAFT",   "to": "ACTIVE",     "command": "activate" },
-      { "from": "ACTIVE",  "to": "DEPRECATED", "command": "deprecate" }
-    ]
-  },
-
   "type": "object",
   "required": ["documentId", "documentType", "schemaRef", "codingKind", "stack", "status", "content"],
   "properties": {

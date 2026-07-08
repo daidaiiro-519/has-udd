@@ -3,10 +3,15 @@
   "documentType": "DomainSpec",
   "schemaRef": "DomainSpecSchema/v2",
   "specKind": "subdomain",
-  "status": "CREATED",
-  "tags": ["context:waffle-engines"],
+  "status": "VALIDATED",
+  "tags": [
+    "context:waffle-engines"
+  ],
   "content": {
-    "title": { "blockType": "Title", "title": "sd-validation" },
+    "title": {
+      "blockType": "Title",
+      "title": "sd-validation"
+    },
     "summary": {
       "blockType": "Summary",
       "title": "概要",
@@ -21,7 +26,9 @@
     "members": {
       "blockType": "SubdomainMembers",
       "title": "所属ユースケース",
-      "items": ["uc-validate-document"]
+      "items": [
+        "uc-validate-document"
+      ]
     },
     "implementationGuidance": {
       "blockType": "ImplementationGuidance",

@@ -34,6 +34,15 @@ def test_status_は逆行できない():
     assert next_status(_SCHEMA, "RENDERED", "validate") is None
 
 
+def test_未検証では_render_できない():
+    """
+    Given schemaがrenderをVALIDATED起点の遷移として宣言しているのに、CREATED状態のDocument
+    When render する
+    Then 拒否され、成果物は書き出されない
+    """
+    assert next_status(_SCHEMA, "CREATED", "render") is None
+
+
 def test_SUPERSEDED_は終端():
     """
     Given SUPERSEDED 状態の Document

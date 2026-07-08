@@ -3,7 +3,7 @@
   "documentType": "DomainSpec",
   "schemaRef": "DomainSpecSchema/v2",
   "specKind": "usecase",
-  "status": "CREATED",
+  "status": "VALIDATED",
   "subdomainRef": "sd-validation",
   "aggregateRef": "agg-document",
   "tags": [
@@ -72,9 +72,9 @@
       "blockType": "Postconditions",
       "title": "事後条件",
       "items": [
-        "適合なら VALIDATED へ進めてよいという判定が返る",
+        "適合し、状態遷移も可能なとき、判定されたstatus（例: VALIDATED）が実際にdocumentへ書き込まれる",
         "適合時は DocumentValidated が発行される",
-        "status 自体は書き換えない（判定のみ・冪等）"
+        "schemaがこのdocument種別で\"validate\"を状態遷移コマンドと定義していない場合（例: SkillSchema/CodingSchemaのmaturityLifecycleにはx-lifecycle自体が無い）、statusは変更しない"
       ]
     },
     "acceptanceCriteria": {
@@ -84,7 +84,7 @@
         "When 適合する Document が与えられたとき、engine は VALIDATED 判定を返す shall。",
         "When 不適合のとき、engine は違反詳細つきで失敗を返す shall。",
         "If schemaRef が無いとき、engine は MISSING_SCHEMA_REF を返す shall。",
-        "While 検証中、engine は Document の status を書き換えない shall（副作用なし）。"
+        "When 適合し状態遷移も可能なとき、engine は判定したstatusを実際にDocumentへ書き込む shall。"
       ]
     },
     "errors": {
@@ -138,6 +138,13 @@
           "viewpoint": "エラー：対象ファイルがJSONとして解釈できないときの失敗",
           "gherkin": "Scenario: 不正なJSONはINVALID_JSON\n  Given 不正なJSONの対象ファイル\n  When validateする\n  Then INVALID_JSONエラーが返る",
           "covers": "エラー: JSON解釈不能"
+        },
+        {
+          "name": "適合判定は実際にstatusをdocumentへ書き込む",
+          "category": "正常系",
+          "viewpoint": "永続化：適合し状態遷移も可能なとき、判定結果を実際にdocumentへ書き込む",
+          "gherkin": "Scenario: 適合判定は実際にstatusをdocumentへ書き込む\n  Given CREATED状態の、schemaに適合するDocument\n  When validateする\n  Then 判定結果のstatusが実際にdocument.jsonへ書き込まれる（再読込しても反映されている）",
+          "covers": "受け入れ基準: 判定したstatusを実際にDocumentへ書き込む"
         }
       ]
     },

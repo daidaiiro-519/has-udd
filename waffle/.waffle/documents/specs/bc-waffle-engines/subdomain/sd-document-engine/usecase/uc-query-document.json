@@ -3,7 +3,7 @@
   "documentType": "DomainSpec",
   "schemaRef": "DomainSpecSchema/v2",
   "specKind": "usecase",
-  "status": "CREATED",
+  "status": "VALIDATED",
   "subdomainRef": "sd-document-engine",
   "aggregateRef": "agg-document",
   "tags": [

@@ -3,7 +3,7 @@
   "documentType": "DomainSpec",
   "schemaRef": "DomainSpecSchema/v2",
   "specKind": "usecase",
-  "status": "CREATED",
+  "status": "VALIDATED",
   "subdomainRef": "sd-document-engine",
   "aggregateRef": "agg-document",
   "tags": [
@@ -110,7 +110,8 @@
         "When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。",
         "When 対象のschemaRefを解決できないとき、engine は INVALID_SCHEMA_REF エラーを返す shall（schemaを特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。",
         "When ブロックのx-renderが宣言する部品が全て空データで描画結果が空になったとき、engine はそのブロックの見出しごと省略する shall（タイトルだけが残る空セクションを防ぐ）。",
-        "When ブロック定義がx-render-hiddenを宣言しているとき、engine はそのブロックを本文に一切描画しない shall（frontmatter等の値供給のみに使う非表示ブロックを表現できる）。"
+        "When ブロック定義がx-render-hiddenを宣言しているとき、engine はそのブロックを本文に一切描画しない shall（frontmatter等の値供給のみに使う非表示ブロックを表現できる）。",
+        "When schemaがrenderを状態遷移コマンドとして宣言しているのに、Documentのstatusがその前提を満たさないとき、engine は INVALID_TRANSITION エラーを返す shall（宣言しないschema種別はstatusを問わない）。"
       ]
     },
     "guaranteeScenarios": {
@@ -159,6 +160,13 @@
           "viewpoint": "非表示ブロック: frontmatter等の値供給のみに使うブロックはx-render-hiddenで本文描画から除外できる",
           "gherkin": "Scenario: x-render-hiddenを宣言したブロックは本文に描画しない\n  Given x-render-hidden:trueを宣言したブロックを含むDocument\n  When render する\n  Then そのブロックの見出し・本文が出力に一切含まれない",
           "covers": "操作保証: x-render-hidden指定のブロックは本文に描画しない"
+        },
+        {
+          "name": "未検証ではrenderできない",
+          "category": "異常系",
+          "viewpoint": "状態遷移：schemaがrenderをVALIDATED起点の遷移として宣言する場合、VALIDATED前提が効く",
+          "gherkin": "Scenario: 未検証ではrenderできない\n  Given schemaがrenderをVALIDATED起点の遷移として宣言しているのに、CREATED状態のDocument\n  When renderする\n  Then INVALID_TRANSITIONエラーが返り、成果物は書き出されない",
+          "covers": "操作保証: schemaがrenderを状態遷移コマンドとして宣言する場合はVALIDATED以降でなければrenderできない"
         }
       ]
     },

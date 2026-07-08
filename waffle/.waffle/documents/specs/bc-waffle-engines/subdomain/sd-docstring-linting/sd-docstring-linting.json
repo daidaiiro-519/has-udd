@@ -3,10 +3,15 @@
   "documentType": "DomainSpec",
   "schemaRef": "DomainSpecSchema/v2",
   "specKind": "subdomain",
-  "status": "CREATED",
-  "tags": ["context:waffle-engines"],
+  "status": "VALIDATED",
+  "tags": [
+    "context:waffle-engines"
+  ],
   "content": {
-    "title": { "blockType": "Title", "title": "sd-docstring-linting" },
+    "title": {
+      "blockType": "Title",
+      "title": "sd-docstring-linting"
+    },
     "summary": {
       "blockType": "Summary",
       "title": "概要",
@@ -21,7 +26,9 @@
     "members": {
       "blockType": "SubdomainMembers",
       "title": "所属ユースケース",
-      "items": ["uc-lint-docstring"]
+      "items": [
+        "uc-lint-docstring"
+      ]
     },
     "implementationGuidance": {
       "blockType": "ImplementationGuidance",

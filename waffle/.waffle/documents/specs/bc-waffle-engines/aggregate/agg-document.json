@@ -3,7 +3,7 @@
   "documentType": "DomainSpec",
   "schemaRef": "DomainSpecSchema/v2",
   "specKind": "aggregate",
-  "status": "CREATED",
+  "status": "VALIDATED",
   "tags": [
     "context:waffle-engines"
   ],
@@ -159,6 +159,11 @@
           "rationale": "不正な成果物を後段（render/deploy）に流さない"
         },
         {
+          "rule": "schemaがrenderを状態遷移コマンドとして宣言する場合、VALIDATED以降でなければrenderできない（宣言しないschema種別はstatusを問わない）",
+          "enforcement": "guard",
+          "rationale": "未検証の成果物がdeploy先（CLAUDE.md/SKILL.md等の生きているファイル）へ反映されることを防ぐ"
+        },
+        {
           "rule": "SUPERSEDEDは終端であり、以後どのコマンドも受け付けない",
           "enforcement": "guard",
           "rationale": "置換後の変更を防ぐ"
@@ -242,7 +247,7 @@
         },
         {
           "name": "validate",
-          "description": "content が schema に適合するか検証する（適合判定の不変条件を守る・副作用なし）。",
+          "description": "content が schema に適合するか判定する（適合判定の不変条件を守る・副作用なし・判定結果の永続化はscaffold fillで別途行う）。",
           "requiresState": "CREATED",
           "postState": "VALIDATED",
           "params": [],
@@ -252,8 +257,8 @@
         },
         {
           "name": "render",
-          "description": "x-render に従い成果物に描画し配置先へ反映する。validate とは疎結合であり、status を前提条件としない（未検証の Document も best-effort で描画される）。",
-          "requiresState": "（任意・不問）",
+          "description": "x-render に従い成果物に描画し配置先へ反映する（schemaがrenderを状態遷移コマンドとして宣言する場合はVALIDATED前提の不変条件を守る。宣言しないschema種別はstatusを問わない）。",
+          "requiresState": "VALIDATED",
           "postState": "RENDERED",
           "params": [],
           "emits": [
@@ -404,6 +409,13 @@
           "viewpoint": "状態遷移：前進のみの不変条件が効く",
           "gherkin": "Scenario: status は逆行できない\n  Given RENDERED 状態の Document\n  When validate へ戻そうとする\n  Then 状態遷移は拒否され、状態は RENDERED のままである",
           "covers": "不変条件: statusは前進のみ"
+        },
+        {
+          "name": "未検証では render できない",
+          "category": "異常系",
+          "viewpoint": "状態遷移：schemaがrenderをVALIDATED起点の遷移として宣言する場合、VALIDATED前提が効く",
+          "gherkin": "Scenario: 未検証では render できない\n  Given schemaがrenderをVALIDATED起点の遷移として宣言しているのに、CREATED状態のDocument\n  When render する\n  Then 拒否され、成果物は書き出されない",
+          "covers": "不変条件: schemaがrenderを状態遷移コマンドとして宣言する場合はVALIDATED以降でなければrenderできない"
         },
         {
           "name": "SUPERSEDED は終端",

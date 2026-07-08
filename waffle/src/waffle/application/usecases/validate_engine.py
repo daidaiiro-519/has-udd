@@ -58,7 +58,8 @@ class ValidateEngine:
         if not defines_validate:
             return Ok({"path": document_path, "schemaRef": schema_ref, "status": document.get("status")})
 
-        # status 自体は書き換えない（判定のみ・冪等）。next_status は「進んでよい状態」の判定値。
+        # next_status は「進んでよい状態」の判定値。遷移可能なら実際に document へ書き込む
+        # （schema適合の判定結果を記録するのがvalidateの本来の役割）。
         current_status = document.get("status")
         target_status = next_status(schema, current_status, "validate")
         if target_status is None:
@@ -66,4 +67,6 @@ class ValidateEngine:
                 "INVALID_TRANSITION",
                 f"status '{current_status}' から validate では遷移できません",
             )
+        if target_status != current_status:
+            self._documents.save(document_path, {**document, "status": target_status})
         return Ok({"path": document_path, "schemaRef": schema_ref, "status": target_status})

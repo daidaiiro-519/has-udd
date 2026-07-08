@@ -3,7 +3,7 @@
   "documentType": "DomainSpec",
   "schemaRef": "DomainSpecSchema/v2",
   "specKind": "bounded-context",
-  "status": "CREATED",
+  "status": "VALIDATED",
   "tags": [
     "context:waffle-engines"
   ],

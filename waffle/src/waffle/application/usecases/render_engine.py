@@ -16,6 +16,7 @@ from waffle.application.ports.document_repository import DocumentRepository
 from waffle.application.ports.schema_repository import SchemaRepository
 from waffle.application.services.document_loading import load_document, load_schema, require_schema_ref
 from waffle.domain.services import path_template
+from waffle.domain.services.lifecycle_guard import next_status
 from waffle.domain.services.part_renderer import render_parts
 from waffle.domain.services.schema_discriminator import discriminator_key
 from waffle.shared.result import Err, Ok, Result
@@ -73,6 +74,19 @@ class RenderEngine:
 
         # render は schema 適合検証をしない（検証は uc-validate-document の責務・疎結合）。
         # 不正な構造の document は best-effort で描画される（Orchestrator が事前 validate する前提）。
+        # ただし status 遷移の可否だけは schema の x-lifecycle（宣言的）を読む薄い guard で守る。
+        # schema がこの document 種別で "render" を状態遷移コマンドと定義していない場合
+        # （例: SkillSchema/AgentSchema には無い）、status は問わない。
+        lifecycle = schema.get("x-lifecycle")
+        defines_render = lifecycle is not None and any(
+            t["command"] == "render" for t in lifecycle["transitions"]
+        )
+        if defines_render and next_status(schema, doc.get("status"), "render") is None:
+            return _err(
+                "INVALID_TRANSITION",
+                f"status '{doc.get('status')}' からrenderへは遷移できません",
+            )
+
         target = schema.get("x-render-target", {})
         formats = target.get("formats") or ["md"]
         fmt = formats[0]  # MD 正本（HTML は将来 viewer が担うため engine は MD のみ描画）

@@ -83,15 +83,41 @@ def test_schemaRef_を持たない_Document_は検証できない():
 
 
 @pytest.mark.parametrize("path,expected_status", _DOGFOOD_DOCUMENTS)
-def test_既存documentはschemaに適合する(path, expected_status):
+def test_既存documentはschemaに適合する(path, expected_status, tmp_path):
     """
     Given waffle自身のdocument
     When validateする
     Then 成功し、schemaのlifecycleに応じた正しいstatusになる
+
+    validateはstatusを実際に書き込むため、実リポジトリのdocumentを汚さないよう
+    一時コピーに対して実行する。
     """
-    result = _engine().run(path)
+    copy_path = tmp_path / Path(path).name
+    copy_path.write_text(Path(path).read_text(encoding="utf-8"), encoding="utf-8")
+
+    result = _engine().run(str(copy_path))
     assert isinstance(result, Ok), result
     assert result.value["status"] == expected_status
+
+
+def test_適合判定は実際にstatusをdocumentへ書き込む(tmp_path):
+    """
+    Given CREATED状態の、schemaに適合するDocument
+    When validateする
+    Then 判定結果のstatusが実際にdocument.jsonへ書き込まれる（再読込しても反映されている）
+    """
+    source = Path(".waffle/documents/specs/bc-waffle-engines/bc-waffle-engines.json")
+    doc = json.loads(source.read_text(encoding="utf-8"))
+    doc["status"] = "CREATED"
+    copy_path = tmp_path / "bc-waffle-engines.json"
+    copy_path.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+
+    result = _engine().run(str(copy_path))
+    assert isinstance(result, Ok), result
+    assert result.value["status"] == "VALIDATED"
+
+    reloaded = json.loads(copy_path.read_text(encoding="utf-8"))
+    assert reloaded["status"] == "VALIDATED"
 
 
 def test_SUPERSEDEDは終端でありvalidateを受け付けない():

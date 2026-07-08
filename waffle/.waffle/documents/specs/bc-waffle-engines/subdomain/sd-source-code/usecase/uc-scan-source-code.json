@@ -71,7 +71,7 @@
         "signatureParamsはdocstringでなく実際の関数シグネチャから取得する（argsとの突合に使うため）",
         "private要素（言語の慣例で非公開とされるもの。例: Pythonの先頭`_`）は既定では対象外になる",
         "インデックスは保存されない（読み取りのたびに再計算する）",
-        "★現状の実装（PythonAstSourceScanner）はkind=googleのみ対応している。DocstringSchemaが宣言するtsdoc/javadoc/godoc/rustdocの4kindは、対応する言語のoutbound adapterが未実装であり、これらを指定するとUNSUPPORTED_KINDエラーになる（将来対応するadapterを追加する際の設計として維持している）"
+        "★現状の実装ではkind=googleのみ対応している。DocstringSchemaが宣言するtsdoc/javadoc/godoc/rustdocの4kindは、対応する言語のadapterが未実装であり、これらを指定するとUNSUPPORTED_KINDエラーになる（将来対応するadapterを追加する際の設計として維持している）"
       ]
     },
     "acceptanceCriteria": {

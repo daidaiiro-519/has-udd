@@ -40,16 +40,31 @@ def test_schemaRef_を持たない_Document_は描画しない():
 
 
 
-def test_deploy_すると_canonical_と_deploy_先の両方に書く():
+def test_deploy_すると_canonical_と_deploy_先の両方に書く(tmp_path):
     """
     Given deploy 先を持つ Document
     When deploy を有効にして render する
     Then canonical と deploy 先の両方に成果物が書かれる
     """
-    result = _engine().run(".waffle/documents/skills/tech-lead-advisor.json", deploy=True)
+    schema = {
+        "properties": {"content": {"type": "object", "properties": {}}},
+        "x-render-target": {
+            "formats": ["md"],
+            "path": str(tmp_path / "canonical" / "{documentId}.md"),
+            "deploy": [str(tmp_path / "deploy" / "{documentId}.md")],
+        },
+    }
+    doc_path = tmp_path / "doc.json"
+    doc_path.write_text(
+        json.dumps({"documentId": "x", "schemaRef": "Fake/v1", "content": {}}),
+        encoding="utf-8",
+    )
+
+    engine = RenderEngine(FsDocumentRepository(), _FakeSchemaRepository(schema))
+    result = engine.run(str(doc_path), deploy=True)
     assert isinstance(result, Ok), result
-    assert result.value["path"] == ".waffle/skills/tech-lead-advisor/SKILL.md"
-    assert ".claude/skills/tech-lead-advisor/SKILL.md" in result.value["deployed"]
+    assert result.value["path"] == str(tmp_path / "canonical" / "x.md")
+    assert str(tmp_path / "deploy" / "x.md") in result.value["deployed"]
 
 
 class _FakeSchemaRepository:

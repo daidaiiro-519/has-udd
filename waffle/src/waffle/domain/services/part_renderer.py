@@ -19,7 +19,18 @@ def render_part(part: dict, data: dict, level: int) -> str:
     # kvtable は from を取らず現在の data 自身を1行として描く
     src = data.get(part["from"]) if "from" in part else None
     if "from" in part and not src:
-        return ""  # データ無し → 見出しごと省略（条件付き部品）
+        empty_text = part.get("emptyText")
+        if empty_text is None:
+            return ""  # データ無し・emptyText宣言なし → 見出しごと省略（条件付き部品）
+        # emptyText宣言あり → 見出しは残し、代替文を本文として描画（「無い」ことを明示する）
+        out: list[str] = []
+        if part.get("heading"):
+            out.append(_heading(part["heading"], level))
+        if kind == "table":
+            # table は列見出しだけの空表を保ち、下に emptyText を添える（表としての形を崩さない）
+            out.append(_table([], part["columns"]))
+        out.append(_para(empty_text))
+        return _join(out)
 
     out: list[str] = []
     if part.get("heading"):

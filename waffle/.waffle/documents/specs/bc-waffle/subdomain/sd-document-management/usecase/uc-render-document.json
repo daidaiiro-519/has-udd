@@ -4,10 +4,10 @@
   "schemaRef": "DomainSpecSchema/v2",
   "specKind": "usecase",
   "status": "VALIDATED",
-  "subdomainRef": "sd-document-engine",
+  "subdomainRef": "sd-document-management",
   "aggregateRef": "agg-document",
   "tags": [
-    "context:waffle-engines"
+    "context:waffle"
   ],
   "content": {
     "title": {
@@ -18,6 +18,11 @@
       "blockType": "Summary",
       "title": "概要",
       "text": "検証済みの Document を schema の x-render に従って人間可読な成果物（SKILL.md / HTML）に描画し、配置先へ反映する。"
+    },
+    "name": {
+      "blockType": "Name",
+      "title": "名前",
+      "name": "RenderDocument"
     },
     "actorIntent": {
       "blockType": "ActorIntent",
@@ -86,14 +91,14 @@
       "blockType": "AcceptanceCriteria",
       "title": "受け入れ基準",
       "items": [
-        "When 対象 Document が与えられたとき、engine は x-render に従い成果物を生成する shall。",
-        "When deploy が有効なとき、engine は canonical と deploy 先の両方へ書き込む shall。",
-        "When deploy 先が discriminator ごとの配列として宣言されているとき、engine は対象 Document の discriminator 値に対応する配列だけへ書き込む shall。",
-        "When schemaがx-render-target.pathVarsでcontentのドットパスを宣言しているとき、engineはそのcontent値をパステンプレートの変数として使う shall。",
-        "When pathVarsがdiscriminatorごとの宣言（kindごとの変数マップ）であるとき、engineは対象Documentのdiscriminator値に対応する変数マップだけを解決する shall。",
-        "When x-frontmatterがdiscriminatorごとの宣言（kindごとのフィールドマップ）であるとき、engineは対象Documentのdiscriminator値に対応するフィールドマップだけからfrontmatterを生成する shall。",
-        "When x-frontmatterが指すドットパスがDocumentの実データに存在しない、または値が空であるとき、engineはそのフィールドをfrontmatterから省略する shall。",
-        "If schemaRef が無いとき、engine は MISSING_SCHEMA_REF を返し描画しない shall。"
+        "When 対象 Document が与えられたとき、システムは x-render に従い成果物を生成する shall。",
+        "When deploy が有効なとき、システムは canonical と deploy 先の両方へ書き込む shall。",
+        "When deploy 先が discriminator ごとの配列として宣言されているとき、システムは対象 Document の discriminator 値に対応する配列だけへ書き込む shall。",
+        "When schemaがx-render-target.pathVarsでcontentのドットパスを宣言しているとき、システムはそのcontent値をパステンプレートの変数として使う shall。",
+        "When pathVarsがdiscriminatorごとの宣言（kindごとの変数マップ）であるとき、システムは対象Documentのdiscriminator値に対応する変数マップだけを解決する shall。",
+        "When x-frontmatterがdiscriminatorごとの宣言（kindごとのフィールドマップ）であるとき、システムは対象Documentのdiscriminator値に対応するフィールドマップだけからfrontmatterを生成する shall。",
+        "When x-frontmatterが指すドットパスがDocumentの実データに存在しない、または値が空であるとき、システムはそのフィールドをfrontmatterから省略する shall。",
+        "If schemaRef が無いとき、システムは MISSING_SCHEMA_REF を返し描画しない shall。"
       ]
     },
     "errors": {
@@ -105,13 +110,13 @@
       "blockType": "OperationGuarantees",
       "title": "操作保証",
       "items": [
-        "When 同じ Document を複数回 render したとき、engine は常に同一の成果物を生成する shall（決定的：入力が同じなら出力も同じ）。",
-        "When x-render が RenderMetaSchema の各部品種別（paragraph/list/table/keyvalue/code/section/kvtable/sequence/statediagram/architecture/flowchart）を宣言したとき、engine はその種別ごとの整形規則に従って決定的に描画する shall。",
-        "When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。",
-        "When 対象のschemaRefを解決できないとき、engine は INVALID_SCHEMA_REF エラーを返す shall（schemaを特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。",
-        "When ブロックのx-renderが宣言する部品が全て空データで描画結果が空になったとき、engine はそのブロックの見出しごと省略する shall（タイトルだけが残る空セクションを防ぐ）。",
-        "When ブロック定義がx-render-hiddenを宣言しているとき、engine はそのブロックを本文に一切描画しない shall（frontmatter等の値供給のみに使う非表示ブロックを表現できる）。",
-        "When schemaがrenderを状態遷移コマンドとして宣言しているのに、Documentのstatusがその前提を満たさないとき、engine は INVALID_TRANSITION エラーを返す shall（宣言しないschema種別はstatusを問わない）。"
+        "When 同じ Document を複数回 render したとき、システムは常に同一の成果物を生成する shall（決定的：入力が同じなら出力も同じ）。",
+        "When x-render が RenderMetaSchema の各部品種別（paragraph/list/table/keyvalue/code/section/kvtable/sequence/statediagram/architecture/flowchart）を宣言したとき、システムはその種別ごとの整形規則に従って決定的に描画する shall。",
+        "When 対象パスが存在しないとき、システムは INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。",
+        "When 対象のschemaRefを解決できないとき、システムは INVALID_SCHEMA_REF エラーを返す shall（schemaを特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。",
+        "When ブロックのx-renderが宣言する部品が全て空データで描画結果が空になったとき、システムはそのブロックの見出しごと省略する shall（タイトルだけが残る空セクションを防ぐ）。",
+        "When ブロック定義がx-render-hiddenを宣言しているとき、システムはそのブロックを本文に一切描画しない shall（frontmatter等の値供給のみに使う非表示ブロックを表現できる）。",
+        "When schemaがrenderを状態遷移コマンドとして宣言しているのに、Documentのstatusがその前提を満たさないとき、システムは INVALID_TRANSITION エラーを返す shall（宣言しないschema種別はstatusを問わない）。"
       ]
     },
     "guaranteeScenarios": {
@@ -200,7 +205,7 @@
           "name": "SkillSchemaをMarkdownにレンダリングする",
           "category": "正常系",
           "viewpoint": "schema種別横断：SkillSchemaのDocumentが見出し・パラメータ表・呼び出し例まで正しく描画される",
-          "gherkin": "Scenario: SkillSchemaをMarkdownにレンダリングする\n  Given SkillSchemaのDocument\n  When renderする\n  Then 見出し・目的・パラメータ表・オペレーション選択・呼び出し例が全て出力に含まれる",
+          "gherkin": "Scenario: SkillSchemaをMarkdownにレンダリングする\n  Given SkillSchemaのDocument\n  When renderする\n  Then 見出し・目的・相談種別テーブル・実行手順・参照knowledgeが全て出力に含まれる",
           "covers": "schema種別: SkillSchema"
         },
         {

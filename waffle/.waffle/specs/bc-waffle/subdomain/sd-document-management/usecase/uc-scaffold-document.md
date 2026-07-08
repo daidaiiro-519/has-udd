@@ -8,6 +8,12 @@ schema から Document の骨格を機械生成し（create）、AI が生成し
 
 ---
 
+## 名前
+
+ScaffoldDocument
+
+---
+
 ## 主アクターと意図
 
 - **主アクター**: Orchestrator（HarnessAgent）
@@ -46,19 +52,19 @@ sequenceDiagram
 
 ## 受け入れ基準
 
-- When schemaRef と documentId が与えられたとき、engine は schema に適合する骨格を生成する shall（status=schema の enum 先頭）。
-- When fill で値が与えられたとき、engine は宣言済み値フィールドにのみ書き込む shall。
-- If 構造を変える値や const / discriminator が与えられたとき、engine は拒否し skipped に記録する shall。
-- If 分岐のある schema で discriminator が無いとき、engine は MISSING_DISCRIMINATOR を返し候補を案内する shall。
+- When schemaRef と documentId が与えられたとき、システムは schema に適合する骨格を生成する shall（status=schema の enum 先頭）。
+- When fill で値が与えられたとき、システムは宣言済み値フィールドにのみ書き込む shall。
+- If 構造を変える値や const / discriminator が与えられたとき、システムは拒否し skipped に記録する shall。
+- If 分岐のある schema で discriminator が無いとき、システムは MISSING_DISCRIMINATOR を返し候補を案内する shall。
 
 ---
 
 ## 操作保証
 
-- When 同じ documentId で create を複数回実行したとき、engine の生成する構造（schema由来の骨格の形）は常にべき等である shall。
-- While document.json が既に存在するとき、create を再実行しても、fill で書き込まれた既存の values は保持され、破壊されない shall（values 自体の再現性はengineの管轄外・呼び出し側の責務）。
-- When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。
-- When 対象のschemaRefを解決できないとき、engine は INVALID_SCHEMA_REF エラーを返す shall（schemaを特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。
+- When 同じ documentId で create を複数回実行したとき、システム の生成する構造（schema由来の骨格の形）は常にべき等である shall。
+- While document.json が既に存在するとき、create を再実行しても、fill で書き込まれた既存の values は保持され、破壊されない shall（values 自体の再現性はシステムの管轄外・呼び出し側の責務）。
+- When 対象パスが存在しないとき、システムは INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。
+- When 対象のschemaRefを解決できないとき、システムは INVALID_SCHEMA_REF エラーを返す shall（schemaを特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。
 
 ---
 
@@ -66,8 +72,7 @@ sequenceDiagram
 
 | コード | 条件 |
 |---|---|
-| `MISSING_DISCRIMINATOR` | 分岐のある schema で discriminator が未指定（候補 enum を案内） |
-| `SKIPPED` | 未知 path / const / discriminator への書き込み（書き込まず skipped に記録） |
+| `MISSING_DISCRIMINATOR` | 分岐のあるschemaでdiscriminatorが未指定（候補enumを案内） |
 
 ---
 
@@ -81,7 +86,7 @@ sequenceDiagram
 
 ```gherkin
 Scenario: 生成した骨格は自分の schema で valid
-  Given engine 種別の Document（discriminator 指定済み）
+  Given advisor 種別の Document（discriminator 指定済み）
   When create する
   Then 骨格は schema に適合し、status は schema の初期値である
 ```
@@ -125,17 +130,17 @@ Scenario: discriminator が無いと候補を案内する
   Then MISSING_DISCRIMINATOR エラーが候補つきで返る
 ```
 
-### createはengine_skillの骨格を生成する
+### createはadvisor_skillの骨格を生成する
 
 | 分類 | 観点 |
 |---|---|
-| 正常系 | 骨格生成：discriminator(skillKind=engine)からschema分岐に沿った骨格が組まれる |
+| 正常系 | 骨格生成：discriminator(skillKind=advisor)からschema分岐に沿った骨格が組まれる |
 
 ```gherkin
-Scenario: createはengine_skillの骨格を生成する
-  Given schemaRef, documentId, discriminator(skillKind=engine)
+Scenario: createはadvisor_skillの骨格を生成する
+  Given schemaRef, documentId, discriminator(skillKind=advisor)
   When createを実行する
-  Then documentType/schemaRef/skillKind/statusが正しく設定され、content配下にinterface/invocationSpecがある骨格が生成される
+  Then documentType/schemaRef/skillKind/statusが正しく設定され、content配下にresponseTypes/knowledgeRefsがある骨格が生成される
 ```
 
 ### createはx_source_targetに骨格を書き出す
@@ -164,17 +169,17 @@ Scenario: fillTemplateは値フィールドのpathとprompt_x_prompt_writeを持
   Then fillTemplateには値フィールドのpathとx-prompt-write由来のpromptを持つエントリが含まれる
 ```
 
-### customはengineと構成が異なる
+### customはadvisorと構成が異なる
 
 | 分類 | 観点 |
 |---|---|
-| 正常系 | discriminator分岐：skillKind=customはengineと異なるcontent構造(processingTarget)を持つ |
+| 正常系 | discriminator分岐：skillKind=customはadvisorと異なるcontent構造(processingTarget)を持つ |
 
 ```gherkin
-Scenario: customはengineと構成が異なる
+Scenario: customはadvisorと構成が異なる
   Given discriminator(skillKind=custom)
   When createを実行する
-  Then engineとは異なりcontent配下にprocessingTargetを持つ骨格が生成される
+  Then advisorとは異なりcontent配下にprocessingTargetを持つ骨格が生成される
 ```
 
 ---

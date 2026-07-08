@@ -6,7 +6,7 @@
   "status": "VALIDATED",
   "subdomainRef": "sd-docstring-linting",
   "tags": [
-    "context:waffle-engines"
+    "context:waffle"
   ],
   "content": {
     "title": {
@@ -17,6 +17,11 @@
       "blockType": "Summary",
       "title": "概要",
       "text": "ソースコードの docstring が規約どおりの構造か（必須セクションの有無・引数名と実シグネチャの整合）を、kind ごとに確立された既存 lint ツールを呼び出して判定する。自前の照合ロジックは持たない。"
+    },
+    "name": {
+      "blockType": "Name",
+      "title": "名前",
+      "name": "LintDocstring"
     },
     "actorIntent": {
       "blockType": "ActorIntent",
@@ -95,17 +100,17 @@
       "blockType": "AcceptanceCriteria",
       "title": "受け入れ基準",
       "items": [
-        "When kindがgoogleのとき、エンジンは対応する既存lintツール（pydoclint）を起動し、その出力を正規化して返す shall。",
-        "If kindがgoogle以外のとき、エンジンはUNSUPPORTED_KINDエラーを返す shall（対応するadapterが未実装のため。将来adapterを追加した際は、godoc/rustdocはdocstringの有無のみを判定しARGS_MISMATCH相当は判定しない設計とする）。",
-        "When 既存lintツールが「引数の記載漏れ・余分な記載」を報告したとき、エンジンはこれをcode=ARGS_MISMATCHとして正規化する shall。",
-        "When 要素のhasDocstringがfalseのとき、エンジンはcode=MISSING_DOC_COMMENTの違反として報告する shall。",
-        "When 公開関数が引数を持つのにArgsセクションを欠いているとき、エンジンはcode=MISSING_ARGS_SECTIONの違反として報告する shall。",
-        "When 公開関数が戻り値を持つのにReturnsセクションを欠いているとき、エンジンはcode=MISSING_RETURNS_SECTIONの違反として報告する shall。",
-        "When 公開関数が例外を送出するのにRaisesセクションを欠いているとき、エンジンはcode=MISSING_RAISES_SECTIONの違反として報告する shall。",
-        "While 非公開要素であるとき、エンジンはMISSING_ARGS_SECTION/MISSING_RETURNS_SECTION/MISSING_RAISES_SECTIONの判定対象から除外する shall。",
-        "While 全要素が適合しているとき、エンジンは空配列を返す（正常系）shall。",
-        "If 対象言語に対応するDocstringSchemaのkindが無い、またはkindに対応するadapterが未実装のとき、エンジンはUNSUPPORTED_KINDエラーを返す shall。",
-        "If kindに対応する既存lintツールが実行環境に存在しないとき、エンジンはTOOL_NOT_AVAILABLEエラーを返す shall。"
+        "When kindがgoogleのとき、システムは対応する既存lintツール（pydoclint）を起動し、その出力を正規化して返す shall。",
+        "If kindがgoogle以外のとき、システムはUNSUPPORTED_KINDエラーを返す shall（対応するadapterが未実装のため。将来adapterを追加した際は、godoc/rustdocはdocstringの有無のみを判定しARGS_MISMATCH相当は判定しない設計とする）。",
+        "When 既存lintツールが「引数の記載漏れ・余分な記載」を報告したとき、システムはこれをcode=ARGS_MISMATCHとして正規化する shall。",
+        "When 要素のhasDocstringがfalseのとき、システムはcode=MISSING_DOC_COMMENTの違反として報告する shall。",
+        "When 公開関数が引数を持つのにArgsセクションを欠いているとき、システムはcode=MISSING_ARGS_SECTIONの違反として報告する shall。",
+        "When 公開関数が戻り値を持つのにReturnsセクションを欠いているとき、システムはcode=MISSING_RETURNS_SECTIONの違反として報告する shall。",
+        "When 公開関数が例外を送出するのにRaisesセクションを欠いているとき、システムはcode=MISSING_RAISES_SECTIONの違反として報告する shall。",
+        "While 非公開要素であるとき、システムはMISSING_ARGS_SECTION/MISSING_RETURNS_SECTION/MISSING_RAISES_SECTIONの判定対象から除外する shall。",
+        "While 全要素が適合しているとき、システムは空配列を返す（正常系）shall。",
+        "If 対象言語に対応するDocstringSchemaのkindが無い、またはkindに対応するadapterが未実装のとき、システムはUNSUPPORTED_KINDエラーを返す shall。",
+        "If kindに対応する既存lintツールが実行環境に存在しないとき、システムはTOOL_NOT_AVAILABLEエラーを返す shall。"
       ]
     },
     "errors": {
@@ -196,7 +201,7 @@
       "blockType": "OperationGuarantees",
       "title": "操作保証",
       "items": [
-        "When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
+        "When 対象パスが存在しないとき、システムは INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
       ]
     },
     "guaranteeScenarios": {

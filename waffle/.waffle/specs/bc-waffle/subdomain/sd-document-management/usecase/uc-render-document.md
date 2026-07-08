@@ -8,6 +8,12 @@
 
 ---
 
+## 名前
+
+RenderDocument
+
+---
+
 ## 主アクターと意図
 
 - **主アクター**: Orchestrator（HarnessAgent）
@@ -49,27 +55,26 @@ sequenceDiagram
 
 ## 受け入れ基準
 
-- When 対象 Document が与えられたとき、engine は x-render に従い成果物を生成する shall。
-- When deploy が有効なとき、engine は canonical と deploy 先の両方へ書き込む shall。
-- When deploy 先が discriminator ごとの配列として宣言されているとき、engine は対象 Document の discriminator 値に対応する配列だけへ書き込む shall。
-- When schemaがx-render-target.pathVarsでcontentのドットパスを宣言しているとき、engineはそのcontent値をパステンプレートの変数として使う shall。
-- When pathVarsがdiscriminatorごとの宣言（kindごとの変数マップ）であるとき、engineは対象Documentのdiscriminator値に対応する変数マップだけを解決する shall。
-- When x-frontmatterがdiscriminatorごとの宣言（kindごとのフィールドマップ）であるとき、engineは対象Documentのdiscriminator値に対応するフィールドマップだけからfrontmatterを生成する shall。
-- When x-frontmatterが指すドットパスがDocumentの実データに存在しない、または値が空であるとき、engineはそのフィールドをfrontmatterから省略する shall。
-- If schemaRef が無いとき、engine は MISSING_SCHEMA_REF を返し描画しない shall。
+- When 対象 Document が与えられたとき、システムは x-render に従い成果物を生成する shall。
+- When deploy が有効なとき、システムは canonical と deploy 先の両方へ書き込む shall。
+- When deploy 先が discriminator ごとの配列として宣言されているとき、システムは対象 Document の discriminator 値に対応する配列だけへ書き込む shall。
+- When schemaがx-render-target.pathVarsでcontentのドットパスを宣言しているとき、システムはそのcontent値をパステンプレートの変数として使う shall。
+- When pathVarsがdiscriminatorごとの宣言（kindごとの変数マップ）であるとき、システムは対象Documentのdiscriminator値に対応する変数マップだけを解決する shall。
+- When x-frontmatterがdiscriminatorごとの宣言（kindごとのフィールドマップ）であるとき、システムは対象Documentのdiscriminator値に対応するフィールドマップだけからfrontmatterを生成する shall。
+- When x-frontmatterが指すドットパスがDocumentの実データに存在しない、または値が空であるとき、システムはそのフィールドをfrontmatterから省略する shall。
+- If schemaRef が無いとき、システムは MISSING_SCHEMA_REF を返し描画しない shall。
 
 ---
 
 ## 操作保証
 
-- When 同じ Document を複数回 render したとき、engine は常に同一の成果物を生成する shall（決定的：入力が同じなら出力も同じ）。
-- When x-render が RenderMetaSchema の各部品種別（paragraph/list/table/keyvalue/code/section/kvtable/sequence/statediagram/architecture/flowchart）を宣言したとき、engine はその種別ごとの整形規則に従って決定的に描画する shall。
-- When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。
-- When 対象のschemaRefを解決できないとき、engine は INVALID_SCHEMA_REF エラーを返す shall（schemaを特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。
-
----
-
-## エラー
+- When 同じ Document を複数回 render したとき、システムは常に同一の成果物を生成する shall（決定的：入力が同じなら出力も同じ）。
+- When x-render が RenderMetaSchema の各部品種別（paragraph/list/table/keyvalue/code/section/kvtable/sequence/statediagram/architecture/flowchart）を宣言したとき、システムはその種別ごとの整形規則に従って決定的に描画する shall。
+- When 対象パスが存在しないとき、システムは INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。
+- When 対象のschemaRefを解決できないとき、システムは INVALID_SCHEMA_REF エラーを返す shall（schemaを特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。
+- When ブロックのx-renderが宣言する部品が全て空データで描画結果が空になったとき、システムはそのブロックの見出しごと省略する shall（タイトルだけが残る空セクションを防ぐ）。
+- When ブロック定義がx-render-hiddenを宣言しているとき、システムはそのブロックを本文に一切描画しない shall（frontmatter等の値供給のみに使う非表示ブロックを表現できる）。
+- When schemaがrenderを状態遷移コマンドとして宣言しているのに、Documentのstatusがその前提を満たさないとき、システムは INVALID_TRANSITION エラーを返す shall（宣言しないschema種別はstatusを問わない）。
 
 ---
 
@@ -124,7 +129,7 @@ Scenario: deploy すると canonical と deploy 先の両方に書く
 Scenario: SkillSchemaをMarkdownにレンダリングする
   Given SkillSchemaのDocument
   When renderする
-  Then 見出し・目的・パラメータ表・オペレーション選択・呼び出し例が全て出力に含まれる
+  Then 見出し・目的・相談種別テーブル・実行手順・参照knowledgeが全て出力に含まれる
 ```
 
 ### frontmatterはx_frontmatterのドットパスを解決して生成する
@@ -311,4 +316,43 @@ Scenario: 解決できないschemaRefはINVALID_SCHEMA_REF
   Given 解決できないschemaRef
   When 本usecaseを実行する
   Then INVALID_SCHEMA_REFエラーが返る
+```
+
+### データが空の任意ブロックは見出しごと省略する
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | 省略規則: x-renderが部品を宣言していても対応データが全て空なら描画結果は空になり、ブロックの見出しごと出力から消える |
+
+```gherkin
+Scenario: データが空の任意ブロックは見出しごと省略する
+  Given x-renderに部品が宣言されたブロックを含むが値が全て空であるDocument
+  When render する
+  Then そのブロックの見出しを含むセクション全体が出力から省略される
+```
+
+### x_render_hiddenを宣言したブロックは本文に描画しない
+
+| 分類 | 観点 |
+|---|---|
+| 正常系 | 非表示ブロック: frontmatter等の値供給のみに使うブロックはx-render-hiddenで本文描画から除外できる |
+
+```gherkin
+Scenario: x-render-hiddenを宣言したブロックは本文に描画しない
+  Given x-render-hidden:trueを宣言したブロックを含むDocument
+  When render する
+  Then そのブロックの見出し・本文が出力に一切含まれない
+```
+
+### 未検証ではrenderできない
+
+| 分類 | 観点 |
+|---|---|
+| 異常系 | 状態遷移：schemaがrenderをVALIDATED起点の遷移として宣言する場合、VALIDATED前提が効く |
+
+```gherkin
+Scenario: 未検証ではrenderできない
+  Given schemaがrenderをVALIDATED起点の遷移として宣言しているのに、CREATED状態のDocument
+  When renderする
+  Then INVALID_TRANSITIONエラーが返り、成果物は書き出されない
 ```

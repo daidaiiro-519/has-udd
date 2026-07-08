@@ -6,7 +6,7 @@
   "status": "VALIDATED",
   "subdomainRef": "sd-reconciliation",
   "tags": [
-    "context:waffle-engines"
+    "context:waffle"
   ],
   "content": {
     "title": {
@@ -17,6 +17,11 @@
       "blockType": "Summary",
       "title": "概要",
       "text": "bounded-context が宣言する members(subdomain/usecase) と、ディスク上に実在する subdomain/usecase ドキュメントの参照整合性を検証する。加えて、各集約内部の値オブジェクトの使用整合性・Document集約とその実インスタンスとの整合性・usecase間の相互参照(subdomainRef/aggregateRef)の整合性も検証する。宣言と実態がずれている箇所（宙に浮いた参照・未宣言の実体・不整合な相互参照）を機械的に検出する。"
+    },
+    "name": {
+      "blockType": "Name",
+      "title": "名前",
+      "name": "CheckSpecIntegrity"
     },
     "actorIntent": {
       "blockType": "ActorIntent",
@@ -86,25 +91,25 @@
       "blockType": "AcceptanceCriteria",
       "title": "受け入れ基準",
       "items": [
-        "When bc.jsonが宣言するsubdomain名がディスク上に実在しないとき、エンジンはdeclared_subdomains_missing_on_diskにその名前を含める shall。",
-        "When ディスク上に実在するsubdomainがbc.jsonに未宣言のとき、エンジンはsubdomains_on_disk_not_declared_in_bcにその名前を含める shall。",
-        "When bc.jsonが宣言するusecaseがどのsubdomainのmembersにも属さないとき、エンジンはusecases_orphaned_no_subdomainにその名前を含める shall。",
-        "When いずれかのsubdomainのmembersが宣言するusecaseがbc.jsonに未宣言のとき、エンジンはusecases_in_subdomain_not_declared_in_bcにその名前を含める shall。",
-        "When subdomainが宣言するusecaseの実ファイルがディスクに無いとき、エンジンはusecase_files_missing_on_diskにその名前を含める shall。",
-        "When 実ファイルはあるがどのsubdomainのmembersにも宣言されていないusecaseがあるとき、エンジンはusecase_files_orphaned_on_diskにその名前を含める shall。",
-        "While 6方向全てで宣言と実態が一致しているとき、エンジンは全フィールドを空配列で返す shall。",
-        "If bc.json自体が存在しないとき、エンジンはINVALID_PATHエラーを返す shall。",
-        "When 集約が宣言するvalueObjectのうち、どのentity属性の型としても参照されていないものがあるとき、エンジンはそのvalueObject名をorphaned_value_objectsに含める shall。",
-        "When 実在するdocument.jsonが持つトップレベルフィールドが、Document集約のentity属性に宣言されていないとき、エンジンはそのフィールド名をundeclared_document_fieldsに含める shall。",
-        "When usecaseのsubdomainRefと参照先subdomainのmembers宣言が食い違うとき、エンジンはその組をsubdomain_ref_mismatchesに含める shall。",
-        "When usecaseのaggregateRefが指す集約が実在しないとき、エンジンはその組をmissing_aggregate_refsに含める shall。"
+        "When bc.jsonが宣言するsubdomain名がディスク上に実在しないとき、システムはdeclared_subdomains_missing_on_diskにその名前を含める shall。",
+        "When ディスク上に実在するsubdomainがbc.jsonに未宣言のとき、システムはsubdomains_on_disk_not_declared_in_bcにその名前を含める shall。",
+        "When bc.jsonが宣言するusecaseがどのsubdomainのmembersにも属さないとき、システムはusecases_orphaned_no_subdomainにその名前を含める shall。",
+        "When いずれかのsubdomainのmembersが宣言するusecaseがbc.jsonに未宣言のとき、システムはusecases_in_subdomain_not_declared_in_bcにその名前を含める shall。",
+        "When subdomainが宣言するusecaseの実ファイルがディスクに無いとき、システムはusecase_files_missing_on_diskにその名前を含める shall。",
+        "When 実ファイルはあるがどのsubdomainのmembersにも宣言されていないusecaseがあるとき、システムはusecase_files_orphaned_on_diskにその名前を含める shall。",
+        "While 6方向全てで宣言と実態が一致しているとき、システムは全フィールドを空配列で返す shall。",
+        "If bc.json自体が存在しないとき、システムはINVALID_PATHエラーを返す shall。",
+        "When 集約が宣言するvalueObjectのうち、どのentity属性の型としても参照されていないものがあるとき、システムはそのvalueObject名をorphaned_value_objectsに含める shall。",
+        "When 実在するdocument.jsonが持つトップレベルフィールドが、Document集約のentity属性に宣言されていないとき、システムはそのフィールド名をundeclared_document_fieldsに含める shall。",
+        "When usecaseのsubdomainRefと参照先subdomainのmembers宣言が食い違うとき、システムはその組をsubdomain_ref_mismatchesに含める shall。",
+        "When usecaseのaggregateRefが指す集約が実在しないとき、システムはその組をmissing_aggregate_refsに含める shall。"
       ]
     },
     "operationGuarantees": {
       "blockType": "OperationGuarantees",
       "title": "操作保証",
       "items": [
-        "When 対象のbc.jsonが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
+        "When 対象のbc.jsonが存在しないとき、システムは INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
       ]
     },
     "guaranteeScenarios": {

@@ -7,7 +7,7 @@
   "subdomainRef": "sd-validation",
   "aggregateRef": "agg-document",
   "tags": [
-    "context:waffle-engines"
+    "context:waffle"
   ],
   "content": {
     "title": {
@@ -18,6 +18,11 @@
       "blockType": "Summary",
       "title": "概要",
       "text": "Document の content が schema に適合するかを検証し、適合可否と違反詳細を返す（副作用なし）。"
+    },
+    "name": {
+      "blockType": "Name",
+      "title": "名前",
+      "name": "ValidateDocument"
     },
     "actorIntent": {
       "blockType": "ActorIntent",
@@ -81,10 +86,10 @@
       "blockType": "AcceptanceCriteria",
       "title": "受け入れ基準",
       "items": [
-        "When 適合する Document が与えられたとき、engine は VALIDATED 判定を返す shall。",
-        "When 不適合のとき、engine は違反詳細つきで失敗を返す shall。",
-        "If schemaRef が無いとき、engine は MISSING_SCHEMA_REF を返す shall。",
-        "When 適合し状態遷移も可能なとき、engine は判定したstatusを実際にDocumentへ書き込む shall。"
+        "When 適合する Document が与えられたとき、システムは VALIDATED 判定を返す shall。",
+        "When 不適合のとき、システムは違反詳細つきで失敗を返す shall。",
+        "If schemaRef が無いとき、システムは MISSING_SCHEMA_REF を返す shall。",
+        "When 適合し状態遷移も可能なとき、システムは判定したstatusを実際にDocumentへ書き込む shall。"
       ]
     },
     "errors": {
@@ -152,8 +157,8 @@
       "blockType": "OperationGuarantees",
       "title": "操作保証",
       "items": [
-        "When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。",
-        "When 対象のschemaRefを解決できないとき、engine は INVALID_SCHEMA_REF エラーを返す shall（schemaを特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
+        "When 対象パスが存在しないとき、システムは INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。",
+        "When 対象のschemaRefを解決できないとき、システムは INVALID_SCHEMA_REF エラーを返す shall（schemaを特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
       ]
     },
     "guaranteeScenarios": {

@@ -6,7 +6,7 @@
   "status": "VALIDATED",
   "subdomainRef": "sd-source-code",
   "tags": [
-    "context:waffle-engines"
+    "context:waffle"
   ],
   "content": {
     "title": {
@@ -17,6 +17,11 @@
       "blockType": "Summary",
       "title": "概要",
       "text": "AI がソースコード本体を直接読まずに、DocstringSchema の kind に従って docstring を構造化抽出したインデックスビューを取得する。"
+    },
+    "name": {
+      "blockType": "Name",
+      "title": "名前",
+      "name": "ScanSourceCode"
     },
     "actorIntent": {
       "blockType": "ActorIntent",
@@ -78,13 +83,13 @@
       "blockType": "AcceptanceCriteria",
       "title": "受け入れ基準",
       "items": [
-        "When 対象パスと kind が与えられたとき、エンジンは各公開要素を {path, kind, elementKind, name, hasDocstring, signatureParams, summary, body, args, returns, raises, attributes} の構造で返す shall。",
-        "When 要素が function/method であるとき、エンジンは実シグネチャの引数名を signatureParams に含める shall（docstring の記載有無によらない）。",
-        "When 要素が module/class であるとき、エンジンは signatureParams を空配列で返す shall。",
-        "When 要素が class であるとき、エンジンは公開属性の説明（Attributes 相当のセクション）を attributes に含める shall。class 以外は attributes を空配列で返す shall。",
-        "When 要素に docstring が無いとき、エンジンは summary/body/args/returns/raises/attributes を空値（空文字・空配列）で返し、走査全体は失敗させない shall。",
-        "While 対象言語に対応する DocstringSchema の kind が無いとき、エンジンは UNSUPPORTED_KIND エラーを返す shall。",
-        "When ソースコードの本体（docstring 以外の行）を返す必要がないとき、エンジンは本体を読み込んだ上でも構造化データ以外を出力に含めない shall。"
+        "When 対象パスと kind が与えられたとき、システムは各公開要素を {path, kind, elementKind, name, hasDocstring, signatureParams, summary, body, args, returns, raises, attributes} の構造で返す shall。",
+        "When 要素が function/method であるとき、システムは実シグネチャの引数名を signatureParams に含める shall（docstring の記載有無によらない）。",
+        "When 要素が module/class であるとき、システムは signatureParams を空配列で返す shall。",
+        "When 要素が class であるとき、システムは公開属性の説明（Attributes 相当のセクション）を attributes に含める shall。class 以外は attributes を空配列で返す shall。",
+        "When 要素に docstring が無いとき、システムは summary/body/args/returns/raises/attributes を空値（空文字・空配列）で返し、走査全体は失敗させない shall。",
+        "While 対象言語に対応する DocstringSchema の kind が無いとき、システムは UNSUPPORTED_KIND エラーを返す shall。",
+        "When ソースコードの本体（docstring 以外の行）を返す必要がないとき、システムは本体を読み込んだ上でも構造化データ以外を出力に含めない shall。"
       ]
     },
     "errors": {
@@ -116,7 +121,7 @@
         {
           "name": "docstring が無い要素も走査全体を失敗させない",
           "category": "正常系",
-          "viewpoint": "頑健性：一部の docstring 欠如でエンジン全体を失敗させない",
+          "viewpoint": "頑健性：一部の docstring 欠如で走査全体を失敗させない",
           "gherkin": "Scenario: docstring が無い要素も走査全体を失敗させない\n  Given docstring を持たない公開関数を含む対象コードベース\n  When 対象パスを走査する\n  Then 走査は成功し、docstring が無い要素は summary 等が空の値で返る",
           "covers": "受け入れ基準: docstring 欠如で走査全体を失敗させない"
         },
@@ -133,7 +138,7 @@
       "blockType": "OperationGuarantees",
       "title": "操作保証",
       "items": [
-        "When 対象パスが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
+        "When 対象パスが存在しないとき、システムは INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
       ]
     },
     "guaranteeScenarios": {

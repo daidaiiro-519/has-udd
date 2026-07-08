@@ -5,7 +5,7 @@
   "specKind": "subdomain",
   "status": "VALIDATED",
   "tags": [
-    "context:waffle-engines"
+    "context:waffle"
   ],
   "content": {
     "title": {
@@ -15,13 +15,13 @@
     "summary": {
       "blockType": "Summary",
       "title": "概要",
-      "text": "ソースコードから、AI に生ファイルを読ませず、docstring を DocstringSchema の kind の構造宣言に従って機械的に抽出したインデックスビューを提供する業務領域。sd-document-engine が Document(document.json) に対して適用する Harness 原則（AI に構造を推論させず engine が決定的に処理する）を、対象をソースコードに広げて適用したもの。"
+      "text": "ソースコードから、AI に生ファイルを読ませず、docstring を DocstringSchema の kind の構造宣言に従って機械的に抽出したインデックスビューを提供する業務領域。sd-document-management が Document(document.json) に対して適用する Harness 原則（AI に構造を推論させず システムが決定的に処理する）を、対象をソースコードに広げて適用したもの。"
     },
     "category": {
       "blockType": "SubdomainCategory",
       "title": "カテゴリー",
       "classification": "core",
-      "rationale": "docstring を kind ごとの構造宣言（summary/body/args/returns/raises/attributes）に機械的に分解するロジックは既製の静的解析ツールでは代替できない、waffle 独自の差別化。sd-document-engine と同じ差別化原理（AI 0 で構造アクセス）をソースコードに適用したもの。"
+      "rationale": "docstring を kind ごとの構造宣言（summary/body/args/returns/raises/attributes）に機械的に分解するロジックは既製の静的解析ツールでは代替できない、waffle 独自の差別化。sd-document-management と同じ差別化原理（AI 0 で構造アクセス）をソースコードに適用したもの。"
     },
     "members": {
       "blockType": "SubdomainMembers",

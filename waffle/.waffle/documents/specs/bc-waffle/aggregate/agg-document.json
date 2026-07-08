@@ -5,7 +5,7 @@
   "specKind": "aggregate",
   "status": "VALIDATED",
   "tags": [
-    "context:waffle-engines"
+    "context:waffle"
   ],
   "content": {
     "title": {
@@ -15,7 +15,7 @@
     "summary": {
       "blockType": "Summary",
       "title": "概要",
-      "text": "構造化された成果物（Document）の一貫性とライフサイクルを表す集約。documentType により2系統のライフサイクルを使い分ける: Spec家族系（DomainSpecSchema/PresentationSpecSchema）は生成→検証→描画→置換の「処理パイプライン」（lifecycle）を、CodingSchema/SkillSchema 系（Coding/Skill）は起草→運用中→廃止の「成熟度」（maturityLifecycle）を持つ。"
+      "text": "Document(document.json)の一貫性とライフサイクルを表す集約。Spec家族系（DomainSpecSchema/PresentationSpecSchema）は生成→検証→描画→置換の「処理パイプライン」（lifecycle）を持つ。CodingSchema/SkillSchema系はDRAFT/ACTIVE/DEPRECATEDという分類ラベルを持つが、遷移を強制するcommand・guardは存在しない。"
     },
     "aggregateRoot": {
       "blockType": "AggregateRoot",
@@ -135,7 +135,7 @@
         {
           "name": "Status",
           "represents": "ライフサイクル状態",
-          "behavior": "Spec家族系（DomainSpecSchema/PresentationSpecSchema）: enum CREATED/VALIDATED/RENDERED/SUPERSEDED（lifecycle）。CodingSchema/SkillSchema/KnowledgeSchema/AgentSchema 系: enum DRAFT/ACTIVE/DEPRECATED（maturityLifecycle）。documentType ごとにどちらか一方のみを持つ。値が等しければ等価。遷移は不変条件で守る。"
+          "behavior": "Spec家族系（DomainSpecSchema/PresentationSpecSchema）: enum CREATED/VALIDATED/RENDERED/SUPERSEDED（lifecycle・遷移はguardで守る）。CodingSchema/SkillSchema/KnowledgeSchema/AgentSchema 系: enum DRAFT/ACTIVE/DEPRECATED（分類ラベル・遷移を強制するcommand・guardは無い）。documentType ごとにどちらか一方のみを持つ。値が等しければ等価。"
         }
       ]
     },
@@ -342,59 +342,6 @@
               "meaning": "後継の識別子"
             }
           ]
-        },
-        {
-          "name": "DocumentActivated",
-          "raisedBy": "activate 成功時",
-          "payload": [
-            {
-              "name": "documentId",
-              "meaning": "対象の識別子"
-            }
-          ]
-        },
-        {
-          "name": "DocumentDeprecated",
-          "raisedBy": "deprecate 成功時",
-          "payload": [
-            {
-              "name": "documentId",
-              "meaning": "対象の識別子"
-            },
-            {
-              "name": "successorId",
-              "meaning": "後継の識別子（あれば）"
-            }
-          ]
-        }
-      ]
-    },
-    "maturityLifecycle": {
-      "blockType": "MaturityLifecycle",
-      "title": "成熟度ライフサイクル",
-      "states": [
-        "DRAFT",
-        "ACTIVE",
-        "DEPRECATED"
-      ],
-      "transitions": [
-        {
-          "from": "[*]",
-          "to": "DRAFT",
-          "command": "create",
-          "condition": ""
-        },
-        {
-          "from": "DRAFT",
-          "to": "ACTIVE",
-          "command": "activate",
-          "condition": "利用可能な状態になった"
-        },
-        {
-          "from": "ACTIVE",
-          "to": "DEPRECATED",
-          "command": "deprecate",
-          "condition": ""
         }
       ]
     },

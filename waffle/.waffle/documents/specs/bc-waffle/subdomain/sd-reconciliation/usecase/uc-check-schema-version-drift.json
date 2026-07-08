@@ -7,7 +7,7 @@
   "subdomainRef": "sd-reconciliation",
   "aggregateRef": "agg-schema",
   "tags": [
-    "context:waffle-engines"
+    "context:waffle"
   ],
   "content": {
     "title": {
@@ -18,6 +18,11 @@
       "blockType": "Summary",
       "title": "概要",
       "text": "Document集約の実インスタンス群が持つschemaRefを、実在するSchemaの版集合と突き合わせ、指す先が存在しない参照・最新版でない参照を機械的に検出する。加えて、参照先Schemaが現在宣言する値フィールド（fillTemplateのpath）にDocumentの実インスタンスが追従できているかも確認する。Schemaが進化した際に既存Documentが気づかれず陳腐化するリスクに対する第4のドリフト検知。"
+    },
+    "name": {
+      "blockType": "Name",
+      "title": "名前",
+      "name": "CheckSchemaVersionDrift"
     },
     "actorIntent": {
       "blockType": "ActorIntent",
@@ -83,18 +88,18 @@
       "blockType": "AcceptanceCriteria",
       "title": "受け入れ基準",
       "items": [
-        "When Documentのschema参照が指す版が実在しないとき、エンジンはその組をbroken_referencesに含める shall。",
-        "When Documentのschema参照は実在するが、同名Schemaの最新版でないとき、エンジンはその組（参照先の最新schemaRef付き）をnewer_version_availableに含める shall。",
-        "When 参照先Schemaが宣言する値フィールドのpathを、Documentの実データが持たないとき、エンジンはその組をmissing_declared_fieldsに含める shall。",
-        "While 全DocumentのSchema参照が実在しかつ最新であり、宣言済みフィールドにも追従しているとき、エンジンはbroken_references・newer_version_available・missing_declared_fields全てを空配列で返す shall。",
-        "If 対象のdocuments_rootが存在しないとき、エンジンはINVALID_PATHエラーを返す shall。"
+        "When Documentのschema参照が指す版が実在しないとき、システムはその組をbroken_referencesに含める shall。",
+        "When Documentのschema参照は実在するが、同名Schemaの最新版でないとき、システムはその組（参照先の最新schemaRef付き）をnewer_version_availableに含める shall。",
+        "When 参照先Schemaが宣言する値フィールドのpathを、Documentの実データが持たないとき、システムはその組をmissing_declared_fieldsに含める shall。",
+        "While 全DocumentのSchema参照が実在しかつ最新であり、宣言済みフィールドにも追従しているとき、システムはbroken_references・newer_version_available・missing_declared_fields全てを空配列で返す shall。",
+        "If 対象のdocuments_rootが存在しないとき、システムはINVALID_PATHエラーを返す shall。"
       ]
     },
     "operationGuarantees": {
       "blockType": "OperationGuarantees",
       "title": "操作保証",
       "items": [
-        "When 対象のdocuments_rootが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
+        "When 対象のdocuments_rootが存在しないとき、システムは INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
       ]
     },
     "guaranteeScenarios": {

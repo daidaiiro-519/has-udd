@@ -5,7 +5,7 @@
   "specKind": "subdomain",
   "status": "VALIDATED",
   "tags": [
-    "context:waffle-engines"
+    "context:waffle"
   ],
   "content": {
     "title": {

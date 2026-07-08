@@ -93,7 +93,7 @@
   "$defs": {
     "OrchestratorContent": {
       "type": "object",
-      "required": ["title", "scope", "operatingRules"],
+      "required": ["title", "scope", "operatingRules", "subOrchestratorRefs"],
       "additionalProperties": false,
       "properties": {
         "title": { "$ref": "#/$defs/TitleBlock" },
@@ -164,10 +164,13 @@
       "x-prompt-query": "このscope配下で作業する際に必ず守るべき運用ルールを持ちます。CLAUDE.md/AGENTS.mdの本文として最初に読まれる指示です。",
       "x-render": [
         {
-          "as": "section",
+          "as": "table",
           "from": "items",
-          "titleFrom": "title",
-          "each": [{ "as": "paragraph", "from": "text" }]
+          "columns": [
+            { "field": "rule", "header": "ルール" },
+            { "field": "why", "header": "なぜ" },
+            { "field": "howToApply", "header": "適用方法" }
+          ]
         }
       ],
       "properties": {
@@ -175,13 +178,14 @@
         "title": { "type": "string", "const": "運用ルール" },
         "items": {
           "type": "array",
-          "x-prompt-write": "必ず守るべき運用ルールを列挙してください。各ルールは検証可能な具体的指示にすること（例:「コミット前にpytestを実行する」であって「テストしてください」ではない）。Claudeがコードから推測できることは書かない。複数ステップにわたる手順はここに書かず、専用のSkillとして切り出すことを検討する。各ルールにはタイトルと、内容＋なぜ必要か（根拠）を書く。",
+          "x-prompt-write": "必ず守るべき運用ルールを列挙してください。各ルールは検証可能な具体的指示にすること（例:「コミット前にpytestを実行する」であって「テストしてください」ではない）。Claudeがコードから推測できることは書かない。複数ステップにわたる手順はここに書かず、専用のSkillとして切り出すことを検討する。ルール本文・根拠・適用方法を混在させず、それぞれ独立したフィールドに書く（人間が同じ順序で読めるように・AIが部分参照しやすいように）。",
           "items": {
             "type": "object",
-            "required": ["title", "text"],
+            "required": ["rule", "why", "howToApply"],
             "properties": {
-              "title": { "type": "string", "x-prompt-write": "ルールの見出し。" },
-              "text": { "type": "string", "x-prompt-write": "検証可能な具体的指示＋根拠。「〜してください」より「〜する」「〜を実行する」という明確な指示文にする。" }
+              "rule": { "type": "string", "x-prompt-write": "何をすべきかの一文。「〜してください」より「〜する」という明確な指示文にする。" },
+              "why": { "type": "string", "x-prompt-write": "なぜこのルールが必要か（根拠）。" },
+              "howToApply": { "type": "string", "x-prompt-write": "いつ・どう適用するか（具体的な手順・コマンド・対象範囲）。" }
             }
           }
         }
@@ -219,7 +223,7 @@
       "x-render-order": 4,
       "x-render-level": 2,
       "x-prompt-query": "このOrchestratorの管轄下にある、より狭いscopeを持つ子Orchestratorへの参照を持ちます。ツールがルートしか自動発見しないため、対象scopeで作業する際は子Orchestratorのcontentを先に読むべきことを示します。子を持たないOrchestratorでは空配列。",
-      "x-render": [{ "as": "table", "heading": "以下のscope配下で作業する場合は、必ず対応するOrchestrator documentのcontentを先に読むこと", "from": "items", "columns": [{ "field": "scope", "header": "対象ディレクトリ" }, { "field": "documentId", "header": "参照Orchestrator" }, { "field": "note", "header": "備考" }] }],
+      "x-render": [{ "as": "table", "heading": "以下のscope配下で作業する場合は、必ず対応するOrchestrator documentのcontentを先に読むこと", "from": "items", "emptyText": "委譲先なし（このOrchestratorの管轄範囲に、より狭いscopeを持つ子Orchestratorは存在しない）", "columns": [{ "field": "scope", "header": "対象ディレクトリ" }, { "field": "documentId", "header": "参照Orchestrator" }, { "field": "note", "header": "備考" }] }],
       "properties": {
         "blockType": { "type": "string", "const": "SubOrchestratorRefs" },
         "title": { "type": "string", "const": "委譲先" },

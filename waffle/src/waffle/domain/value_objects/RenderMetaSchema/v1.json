@@ -16,7 +16,11 @@
         },
         "from": {
           "type": "string",
-          "description": "描画する content フィールドのキー。section の each 内では item のフィールドを指す。from 先が空(None/空配列)なら部品ごと（heading 含め）省略する"
+          "description": "描画する content フィールドのキー。section の each 内では item のフィールドを指す。from 先が空(None/空配列)の場合、emptyText が無ければ部品ごと（heading 含め）省略する。emptyText があれば heading は残し、emptyText を本文として描画する"
+        },
+        "emptyText": {
+          "type": "string",
+          "description": "from 先が空(None/空配列)のときに、部品を省略する代わりに表示する文言（例:「委譲先なし」）。値が実際にあり得るが「無い」ことを明示すべき部品（委譲先一覧等）に使う。省略時は従来通り部品ごと省略する"
         },
         "text": {
           "type": "string",

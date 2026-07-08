@@ -1,21 +1,21 @@
 {
-  "documentId": "bc-waffle-engines",
+  "documentId": "bc-waffle",
   "documentType": "DomainSpec",
   "schemaRef": "DomainSpecSchema/v2",
   "specKind": "bounded-context",
   "status": "VALIDATED",
   "tags": [
-    "context:waffle-engines"
+    "context:waffle"
   ],
   "content": {
     "title": {
       "blockType": "Title",
-      "title": "bc-waffle-engines"
+      "title": "bc-waffle"
     },
     "summary": {
       "blockType": "Summary",
       "title": "概要",
-      "text": "waffle のコアエンジン群が属する文脈。document.json を唯一の正とし、AI が構造を推論せず engine が機械的に読み書き・生成・描画する（Harness 原則）。"
+      "text": "waffle の中核機能群が属する文脈。document.json を唯一の正とし、AI が構造を推論せず システムが機械的に読み書き・生成・描画する（Harness 原則）。"
     },
     "ubiquitousLanguage": {
       "blockType": "UbiquitousLanguage",
@@ -31,7 +31,7 @@
         },
         {
           "term": "Harness原則",
-          "definition": "AI はファイルを直接読まず値だけを埋め、engine が一切の構造アクセス・生成を担う原則。"
+          "definition": "AI はファイルを直接読まず値だけを埋め、システムが一切の構造アクセス・生成を担う原則。"
         },
         {
           "term": "意味単位",
@@ -65,7 +65,7 @@
       "items": [
         {
           "kind": "subdomain",
-          "members": "sd-document-engine / sd-validation / sd-source-code / sd-docstring-linting / sd-reconciliation"
+          "members": "sd-document-management / sd-validation / sd-source-code / sd-docstring-linting / sd-reconciliation"
         },
         {
           "kind": "aggregate",

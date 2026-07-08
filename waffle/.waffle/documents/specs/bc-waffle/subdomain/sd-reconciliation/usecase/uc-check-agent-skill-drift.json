@@ -14,6 +14,11 @@
       "title": "概要",
       "text": "Agent(subagent)集約の実インスタンスがskillPreloadsで参照するSkillが、実在するか・Claude Codeの制約上プリロード可能か（disable-model-invocation:trueでないか）を機械的に検証する。Waffleのschema単体からは検出できないSubagent文書↔Skill文書間の参照整合性のドリフト。"
     },
+    "name": {
+      "blockType": "Name",
+      "title": "名前",
+      "name": "CheckAgentSkillDrift"
+    },
     "actorIntent": {
       "blockType": "ActorIntent",
       "title": "主アクターと意図",
@@ -84,10 +89,10 @@
       "blockType": "AcceptanceCriteria",
       "title": "受け入れ基準",
       "items": [
-        "When subagentのskillPreloads.itemsが参照するskillIdに対応するSkill documentが実在しないとき、エンジンはその組をmissing_skillsに含める shall。",
-        "When 参照先Skill documentのcontent.invocationMode.manualOnlyがtrueであるとき、エンジンはその組をunpreloadable_skillsに含める shall（Claude Code公式仕様上、disable-model-invocation:trueのSkillはpreloadできないため）。",
-        "While 全subagentのskillPreloads参照が実在しかつプリロード可能であるとき、エンジンはmissing_skills・unpreloadable_skills両方を空配列で返す shall。",
-        "If 対象のdocuments_rootが存在しないとき、エンジンはINVALID_PATHエラーを返す shall。"
+        "When subagentのskillPreloads.itemsが参照するskillIdに対応するSkill documentが実在しないとき、システムはその組をmissing_skillsに含める shall。",
+        "When 参照先Skill documentのcontent.invocationMode.manualOnlyがtrueであるとき、システムはその組をunpreloadable_skillsに含める shall（Claude Code公式仕様上、disable-model-invocation:trueのSkillはpreloadできないため）。",
+        "While 全subagentのskillPreloads参照が実在しかつプリロード可能であるとき、システムはmissing_skills・unpreloadable_skills両方を空配列で返す shall。",
+        "If 対象のdocuments_rootが存在しないとき、システムはINVALID_PATHエラーを返す shall。"
       ]
     },
     "errors": {
@@ -139,7 +144,7 @@
       "blockType": "OperationGuarantees",
       "title": "操作保証",
       "items": [
-        "When 対象のdocuments_rootが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
+        "When 対象のdocuments_rootが存在しないとき、システムは INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
       ]
     },
     "guaranteeScenarios": {

@@ -5,7 +5,7 @@
   "specKind": "aggregate",
   "status": "VALIDATED",
   "tags": [
-    "context:waffle-engines"
+    "context:waffle"
   ],
   "content": {
     "title": {
@@ -67,7 +67,7 @@
         },
         {
           "name": "KindProfile",
-          "represents": "kind（specKind/codingKind/skillKind）1つに対応する、必須 content ブロック集合とその形状",
+          "represents": "kind（specKind/codingKind/skillKind/agentKind）1つに対応する、必須 content ブロック集合とその形状。各kindの目的: specKind(bounded-context=同じ言葉が通る境界／subdomain=業務領域の区切り／aggregate=不変条件を持つ実体／usecase=1つの業務操作)、codingKind(tech-stack=技術選択／architecture=技術方式・配置・依存方向／coding-standard=命名・スタイル規約／test-standard=テスト方針)、skillKind(advisor=バックボーンknowledge参照+判断力提供／custom=ユーザー作成のドメイン手順)、agentKind(orchestrator=engine認識を持つ唯一の主体／subagent=Persona・skillRefsを持つ職種)。各具体的なフィールド構成はschemaファイル自体を正とし、ここでは重複させない。各ブロックが持つ x-render 属性は、RenderMetaSchema（ネストした値オブジェクトの型）が形を規定する。",
           "behavior": "不変。kind 名＋必須ブロック集合の組で識別（同じ値なら同じものとして扱う）。Schema の版が変わらない限り不変（新版の発行・移行は現状スコープ外。既存版内でその場変更はしない）。各ブロックが持つ x-render 属性は、RenderMetaSchema（ネストした値オブジェクトの型）が形を規定する。"
         }
       ]

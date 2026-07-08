@@ -6,7 +6,7 @@
   "status": "VALIDATED",
   "subdomainRef": "sd-reconciliation",
   "tags": [
-    "context:waffle-engines"
+    "context:waffle"
   ],
   "content": {
     "title": {
@@ -17,6 +17,11 @@
       "blockType": "Summary",
       "title": "概要",
       "text": "spec の TestScenarios（acceptanceScenarios/guaranteeScenarios/invariantScenarios/domainServiceScenarios）が宣言するシナリオ名と、対応するテストファイルの test_* 関数名を突き合わせ、未実装のシナリオ・宣言に対応しない孤立テストを機械的に検出する。"
+    },
+    "name": {
+      "blockType": "Name",
+      "title": "名前",
+      "name": "CheckScenarioDrift"
     },
     "actorIntent": {
       "blockType": "ActorIntent",
@@ -83,13 +88,13 @@
       "blockType": "AcceptanceCriteria",
       "title": "受け入れ基準",
       "items": [
-        "When specが宣言するシナリオに対応するテスト関数がテストファイルに無いとき、エンジンはそのシナリオ名（sanitize後）をmissing_in_testsに含める shall。",
-        "When テストファイルの関数が、どのシナリオ宣言にも対応しないとき、エンジンはその関数名をorphaned_in_testsに含める shall。",
-        "When シナリオ名（sanitize後）とテスト関数名が一致するとき、エンジンはその名前をmatchedに含める shall。",
-        "When 名前は一致するが、テスト関数のdocstringが対応するシナリオのgherkin本文を含んでいないとき、エンジンはそのシナリオ名をgherkin_mismatchesに含める shall。",
-        "While 全シナリオに対応するテストが存在し、孤立テストもgherkin本文の不一致も無いとき、エンジンはmissing_in_tests・orphaned_in_tests・gherkin_mismatches全てを空配列で返す shall。",
-        "If 対象のspec.jsonまたはテストファイルが存在しないとき、エンジンはINVALID_PATHエラーを返す shall。",
-        "If テストファイルが構文解析できないとき、エンジンはINVALID_SOURCEエラーを返す shall。"
+        "When specが宣言するシナリオに対応するテスト関数がテストファイルに無いとき、システムはそのシナリオ名（sanitize後）をmissing_in_testsに含める shall。",
+        "When テストファイルの関数が、どのシナリオ宣言にも対応しないとき、システムはその関数名をorphaned_in_testsに含める shall。",
+        "When シナリオ名（sanitize後）とテスト関数名が一致するとき、システムはその名前をmatchedに含める shall。",
+        "When 名前は一致するが、テスト関数のdocstringが対応するシナリオのgherkin本文を含んでいないとき、システムはそのシナリオ名をgherkin_mismatchesに含める shall。",
+        "While 全シナリオに対応するテストが存在し、孤立テストもgherkin本文の不一致も無いとき、システムはmissing_in_tests・orphaned_in_tests・gherkin_mismatches全てを空配列で返す shall。",
+        "If 対象のspec.jsonまたはテストファイルが存在しないとき、システムはINVALID_PATHエラーを返す shall。",
+        "If テストファイルが構文解析できないとき、システムはINVALID_SOURCEエラーを返す shall。"
       ]
     },
     "errors": {
@@ -110,7 +115,7 @@
       "blockType": "OperationGuarantees",
       "title": "操作保証",
       "items": [
-        "When 対象のspec.jsonまたはテストファイルが存在しないとき、engine は INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
+        "When 対象のspec.jsonまたはテストファイルが存在しないとき、システムは INVALID_PATH エラーを返す shall（対象を特定し取得する解決プロセス自体の契約であり、複数のusecaseに共通する）。"
       ]
     },
     "guaranteeScenarios": {

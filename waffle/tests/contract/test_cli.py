@@ -23,17 +23,17 @@ def teardown_function():
 def test_queryはブロックを取得しvalueをJSONで返す():
     """
     Given waffle CLI
-    When query --operation get_block --path ... --blockKey interface を実行する
-    Then 終了コードは0で、出力JSONのvalue.blockTypeはInterface
+    When query --operation get_block --path ... --blockKey responseTypes を実行する
+    Then 終了コードは0で、出力JSONのvalue.blockTypeはResponseTypes
     """
     result = _runner.invoke(app, [
         "query", "--operation", "get_block",
-        "--path", ".waffle/documents/skills/harness-query-engine.json",
-        "--blockKey", "interface",
+        "--path", ".waffle/documents/skills/tech-lead-advisor.json",
+        "--blockKey", "responseTypes",
     ])
     assert result.exit_code == 0, result.output
     data = json.loads(result.output)
-    assert data["value"]["blockType"] == "Interface"
+    assert data["value"]["blockType"] == "ResponseTypes"
 
 
 def test_queryのエラーはerror_messageと非ゼロ終了で返す():
@@ -44,7 +44,7 @@ def test_queryのエラーはerror_messageと非ゼロ終了で返す():
     """
     result = _runner.invoke(app, [
         "query", "--operation", "bogus",
-        "--path", ".waffle/documents/skills/harness-query-engine.json",
+        "--path", ".waffle/documents/skills/tech-lead-advisor.json",
     ])
     assert result.exit_code == 1, result.output
     data = json.loads(result.output)
@@ -58,7 +58,7 @@ def test_render_no_deployはmdフォーマットを返す():
     Then 終了コードは0で、出力JSONのformatはmd
     """
     result = _runner.invoke(app, [
-        "render", "--path", ".waffle/documents/skills/harness-query-engine.json", "--no-deploy",
+        "render", "--path", ".waffle/documents/skills/tech-lead-advisor.json", "--no-deploy",
     ])
     assert result.exit_code == 0, result.output
     data = json.loads(result.output)
@@ -72,7 +72,7 @@ def test_validateは適合でstatus判定を返す():
     Then 終了コードは0で、出力JSONのstatusはDRAFT
     """
     result = _runner.invoke(app, [
-        "validate", "--path", ".waffle/documents/skills/harness-query-engine.json",
+        "validate", "--path", ".waffle/documents/skills/tech-lead-advisor.json",
     ])
     assert result.exit_code == 0, result.output
     data = json.loads(result.output)
@@ -98,12 +98,12 @@ def test_scaffold_createは骨格を返す():
 def test_check_spec_integrityは10フィールドの差分結果を返す():
     """
     Given waffle CLI
-    When check-spec-integrity --path bc-waffle-engines.json を実行する
+    When check-spec-integrity --path bc-waffle.json を実行する
     Then 終了コードは0で、出力JSONは10フィールド全て空配列（自己整合済み）
     """
     result = _runner.invoke(app, [
         "check-spec-integrity",
-        "--path", ".waffle/documents/specs/bc-waffle-engines/bc-waffle-engines.json",
+        "--path", ".waffle/documents/specs/bc-waffle/bc-waffle.json",
     ])
     assert result.exit_code == 0, result.output
     data = json.loads(result.output)
@@ -153,7 +153,7 @@ def test_check_scenario_driftは4フィールドの差分結果を返す():
     """
     result = _runner.invoke(app, [
         "check-scenario-drift",
-        "--specPath", ".waffle/documents/specs/bc-waffle-engines/subdomain/sd-reconciliation/usecase/uc-check-spec-integrity.json",
+        "--specPath", ".waffle/documents/specs/bc-waffle/subdomain/sd-reconciliation/usecase/uc-check-spec-integrity.json",
         "--testPath", "tests/integration/test_uc_check_spec_integrity.py",
     ])
     assert result.exit_code == 0, result.output

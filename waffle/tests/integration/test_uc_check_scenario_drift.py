@@ -26,7 +26,7 @@ def test_存在しないテストファイルはINVALID_PATH():
     Then INVALID_PATHエラーが返る
     """
     result = _engine().run(
-        ".waffle/documents/specs/bc-waffle-engines/subdomain/sd-reconciliation/usecase/uc-check-scenario-drift.json",
+        ".waffle/documents/specs/bc-waffle/subdomain/sd-reconciliation/usecase/uc-check-scenario-drift.json",
         "does/not/exist.py",
     )
     assert isinstance(result, Err), result

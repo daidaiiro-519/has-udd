@@ -1,6 +1,6 @@
 """uc-render-document のguaranteeScenarios(operationGuaranteesと対)に対応する統合テスト。
 
-part_rendererの15件の整形保証はsd-document-engineのdomainServiceScenarios(domain層)へ
+part_rendererの15件の整形保証はsd-document-managementのdomainServiceScenarios(domain層)へ
 再分類済み。ここはrender_engine自体が呼び出し元に約束する保証(決定性・配線・リポジトリ解決契約)
 のみを実engine+実adapterで検証する。
 """
@@ -45,17 +45,17 @@ def test_解決できないschemaRefはINVALID_SCHEMA_REF():
 
 def test_x_render宣言どおりに決定的に描画する():
     """
-    Given interfaceブロック(x-render宣言=table)を持つDocument
+    Given responseTypesブロック(x-render宣言=table)を持つDocument
     When renderする
     Then schemaのx-render宣言どおりに整形されたMarkdownテーブルが出力に含まれる
 
     (domainテストはpart_renderer.render_partsを直接呼ぶため、render engineが実際に
     schemaからx-render宣言を読み取り整形部品へ渡す配線そのものはここでしか検証されない)
     """
-    result = _engine().run(".waffle/documents/skills/harness-query-engine.json", deploy=False)
+    result = _engine().run(".waffle/documents/skills/tech-lead-advisor.json", deploy=False)
     assert isinstance(result, Ok), result
-    assert "| name | type | 必須 | 説明 | 例 |" in result.value["content"]
-    assert "| operation | string | ✓" in result.value["content"]
+    assert "| 相談種別 | 判定条件 | テンプレート |" in result.value["content"]
+    assert "| 配置・判断相談 |" in result.value["content"]
 
 
 def test_同じDocumentを2回renderしても同一の成果物になる():
@@ -64,8 +64,8 @@ def test_同じDocumentを2回renderしても同一の成果物になる():
     When 同じDocumentを2回renderする
     Then 1回目と2回目の成果物は同一である
     """
-    first = _engine().run(".waffle/documents/skills/harness-query-engine.json", deploy=False)
-    second = _engine().run(".waffle/documents/skills/harness-query-engine.json", deploy=False)
+    first = _engine().run(".waffle/documents/skills/tech-lead-advisor.json", deploy=False)
+    second = _engine().run(".waffle/documents/skills/tech-lead-advisor.json", deploy=False)
     assert isinstance(first, Ok), first
     assert isinstance(second, Ok), second
     assert first.value["content"] == second.value["content"]

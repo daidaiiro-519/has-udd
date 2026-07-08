@@ -10,7 +10,7 @@ from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
 from waffle.application.usecases.query_engine import QueryEngine
 from waffle.shared.result import Err
 
-_TARGET = ".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase/uc-query-document.json"
+_TARGET = ".waffle/documents/specs/bc-waffle/subdomain/sd-document-management/usecase/uc-query-document.json"
 
 
 def _engine() -> QueryEngine:

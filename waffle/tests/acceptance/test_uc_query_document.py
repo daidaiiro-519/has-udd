@@ -4,7 +4,7 @@ from waffle.adapters.outbound.schema_repo import PackageSchemaRepository
 from waffle.application.usecases.query_engine import QueryEngine
 from waffle.shared.result import Err, Ok
 
-_TARGET = ".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase/uc-query-document.json"
+_TARGET = ".waffle/documents/specs/bc-waffle/subdomain/sd-document-management/usecase/uc-query-document.json"
 
 
 def _engine() -> QueryEngine:
@@ -13,7 +13,7 @@ def _engine() -> QueryEngine:
 
 def test_ブロックを丸ごと取得する():
     """
-    Given query engine と対象 Document
+    Given query システム と対象 Document
     When operation get_block を blockKey interface で実行する
     Then value は対象ブロックであり、prompt に読み方の指針が付く
     """
@@ -24,7 +24,7 @@ def test_ブロックを丸ごと取得する():
 
 def test_条件に一致する配列要素だけを絞り込む():
     """
-    Given query engine と対象 Document
+    Given query システム と対象 Document
     When operation filter_items で required=true を指定する
     Then value には required な要素だけが含まれる
     """
@@ -95,7 +95,7 @@ def test_不正な正規表現はエラーを返す():
 
 def test_scanは生テキストを返す():
     """
-    Given query engine と対象 Document
+    Given query システム と対象 Document
     When operation scan を実行する
     Then value は生テキストであり、prompt は null である
     """
@@ -107,7 +107,7 @@ def test_scanは生テキストを返す():
 
 def test_get_metaはメタ情報を返す():
     """
-    Given query engine と対象 Document
+    Given query システム と対象 Document
     When operation get_meta を実行する
     Then value にはdocumentId等のメタフィールドのみが含まれる
     """
@@ -118,7 +118,7 @@ def test_get_metaはメタ情報を返す():
 
 def test_index_scanはblockTypeとpromptをschemaから動的算出する():
     """
-    Given query engine と対象 Document
+    Given query システム と対象 Document
     When operation index_scan を実行する
     Then 各blockのblockTypeとx-prompt-query由来のpromptが返る
     """
@@ -130,22 +130,22 @@ def test_index_scanはblockTypeとpromptをschemaから動的算出する():
 
 def test_index_scan_dirはディレクトリ横断でindexとtagsを集約する():
     """
-    Given query engine と対象ディレクトリ
+    Given query システム と対象ディレクトリ
     When operation index_scan_dir を実行する
     Then ディレクトリ配下の各Documentのindexとtagsがまとめて返る
     """
     result = _engine().run(
-        "index_scan_dir", ".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase",
+        "index_scan_dir", ".waffle/documents/specs/bc-waffle/subdomain/sd-document-management/usecase",
     )
     assert isinstance(result, Ok), result
     entry = next(v for k, v in result.value["value"].items() if "uc-query-document.json" in k)
-    assert "context:waffle-engines" in entry["tags"]
+    assert "context:waffle" in entry["tags"]
     assert entry["blocks"]["mainFlow"]["prompt"]
 
 
 def test_get_fieldはblockの1フィールドを返す():
     """
-    Given query engine と対象 Document
+    Given query システム と対象 Document
     When operation get_field を blockKey, field で実行する
     Then value は指定フィールドの値である
     """
@@ -156,7 +156,7 @@ def test_get_fieldはblockの1フィールドを返す():
 
 def test_get_by_idは単一オブジェクトを返す():
     """
-    Given query engine と対象 Document
+    Given query システム と対象 Document
     When operation get_by_id を idField, idValue で実行する
     Then 一致した単一の要素がvalueとして返る（配列ではない）
     """
@@ -170,7 +170,7 @@ def test_get_by_idは単一オブジェクトを返す():
 
 def test_find_allは全階層を再帰収集する():
     """
-    Given query engine と対象 Document
+    Given query システム と対象 Document
     When operation find_all を fieldName で実行する
     Then 全階層に出現するfieldNameの値がvalueとして返る
     """

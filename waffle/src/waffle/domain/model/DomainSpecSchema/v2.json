@@ -329,9 +329,6 @@
         "lifecycle": {
           "$ref": "#/$defs/LifecycleBlock"
         },
-        "maturityLifecycle": {
-          "$ref": "#/$defs/MaturityLifecycleBlock"
-        },
         "commands": {
           "$ref": "#/$defs/CommandsBlock"
         },
@@ -348,6 +345,7 @@
       "required": [
         "title",
         "summary",
+        "name",
         "actorIntent",
         "mainFlow",
         "postconditions",
@@ -361,6 +359,9 @@
         },
         "summary": {
           "$ref": "#/$defs/SummaryBlock"
+        },
+        "name": {
+          "$ref": "#/$defs/NameBlock"
         },
         "actorIntent": {
           "$ref": "#/$defs/ActorIntentBlock"
@@ -412,6 +413,37 @@
         "title": {
           "type": "string",
           "x-prompt-write": "documentId をそのまま設定してください。"
+        }
+      }
+    },
+    "NameBlock": {
+      "type": "object",
+      "required": [
+        "blockType",
+        "title",
+        "name"
+      ],
+      "x-render-order": 2,
+      "x-render-level": 2,
+      "x-prompt-query": "このusecase自身の名前を持ちます。",
+      "x-render": [
+        {
+          "as": "paragraph",
+          "from": "name"
+        }
+      ],
+      "properties": {
+        "blockType": {
+          "type": "string",
+          "const": "Name"
+        },
+        "title": {
+          "type": "string",
+          "const": "名前"
+        },
+        "name": {
+          "type": "string",
+          "x-prompt-write": "このusecaseの名前をそのまま書く。"
         }
       }
     },
@@ -2167,94 +2199,6 @@
               "covers": {
                 "type": "string",
                 "x-prompt-write": "対応するdomainServicesの項目への参照。"
-              }
-            }
-          }
-        }
-      }
-    },
-    "MaturityLifecycleBlock": {
-      "type": "object",
-      "required": [
-        "blockType",
-        "title",
-        "states",
-        "transitions"
-      ],
-      "x-render-order": 6,
-      "x-render-level": 2,
-      "x-prompt-query": "CodingSchema/SkillSchema系の成熟度状態と遷移表(from→to＋契機コマンド)を持ちます。遷移は guard が読んで enforce します。",
-      "x-render": [
-        {
-          "as": "statediagram",
-          "from": "transitions"
-        },
-        {
-          "as": "table",
-          "heading": "遷移",
-          "from": "transitions",
-          "columns": [
-            {
-              "field": "from",
-              "header": "from"
-            },
-            {
-              "field": "to",
-              "header": "to"
-            },
-            {
-              "field": "command",
-              "header": "command"
-            },
-            {
-              "field": "condition",
-              "header": "条件"
-            }
-          ]
-        }
-      ],
-      "properties": {
-        "blockType": {
-          "type": "string",
-          "const": "MaturityLifecycle"
-        },
-        "title": {
-          "type": "string",
-          "const": "成熟度ライフサイクル"
-        },
-        "states": {
-          "type": "array",
-          "x-prompt-write": "取りうる状態を列挙。例: PLACED, PAID, SHIPPED。状態を持たない集約なら空。",
-          "items": {
-            "type": "string"
-          }
-        },
-        "transitions": {
-          "type": "array",
-          "x-prompt-write": "状態遷移を列挙（from→to＋契機 command）。",
-          "items": {
-            "type": "object",
-            "required": [
-              "from",
-              "to",
-              "command"
-            ],
-            "properties": {
-              "from": {
-                "type": "string",
-                "x-prompt-write": "遷移元の状態。"
-              },
-              "to": {
-                "type": "string",
-                "x-prompt-write": "遷移先の状態。"
-              },
-              "command": {
-                "type": "string",
-                "x-prompt-write": "遷移を起こすコマンド。"
-              },
-              "condition": {
-                "type": "string",
-                "x-prompt-write": "遷移の追加条件があれば。無ければ空。"
               }
             }
           }

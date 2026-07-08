@@ -2,7 +2,7 @@
   "documentId": "tech-lead-advisor",
   "documentType": "Skill",
   "schemaRef": "SkillSchema/v1",
-  "skillKind": "custom",
+  "skillKind": "advisor",
   "status": "DRAFT",
   "tags": [
     "domain:architecture",
@@ -20,6 +20,16 @@
       "title": "目的",
       "text": "コードの配置・レイヤー境界・依存方向に関する判断相談を受けたとき、確立されたアーキテクチャ原則（バックボーン）に基づいて根拠ある回答を返し、DDDのサブドメイン分類を入力として設計の厳密さを調整する。"
     },
+    "role": {
+      "blockType": "Role",
+      "title": "役割",
+      "items": [
+        "テックリードとして、正しいレイヤーアーキテクチャ・レイヤー境界を判断する",
+        "「このコードはどこに置くべきか」という配置相談に、依存方向・層責務の原則に基づいて回答する",
+        "サブドメイン分類（中核・一般・補完）が分かっている場合はそれを入力として受け取り、設計の厳密さを調整する",
+        "アンチパターンを見つけたときは、リスクと代替案をセットで提示する"
+      ]
+    },
     "inputExpectation": {
       "blockType": "InputExpectation",
       "title": "入力の想定",
@@ -34,80 +44,20 @@
         }
       ]
     },
-    "role": {
-      "blockType": "Role",
-      "title": "役割",
-      "items": [
-        "テックリードとして、正しいレイヤーアーキテクチャ・レイヤー境界を判断する",
-        "「このコードはどこに置くべきか」という配置相談に、依存方向・層責務の原則に基づいて回答する",
-        "サブドメイン分類（中核・一般・補完）が分かっている場合はそれを入力として受け取り、設計の厳密さを調整する",
-        "アンチパターンを見つけたときは、リスクと代替案をセットで提示する"
-      ]
-    },
-    "processingTarget": {
-      "blockType": "ProcessingTarget",
-      "title": "処理対象と成果物",
-      "target": "コードの配置・レイヤー境界・依存方向に関する判断相談。「このコードはどこに置くべきか」「この依存関係は正しいか」といった具体的な設計判断の相談。サブドメイン分類（中核・一般・補完）が既に分かっている場合はそれも入力に含める。",
-      "artifact": "配置・レイヤー境界に関する判定結果と、判断基準に基づく理由。該当する場合はアンチパターンの指摘とリスク・代替案。"
-    },
-    "steps": {
-      "blockType": "CustomSteps",
-      "title": "実行手順",
+    "responseTypes": {
+      "blockType": "ResponseTypes",
+      "title": "相談種別と回答テンプレート",
       "items": [
         {
-          "stepId": "step-1",
-          "title": "サブドメイン分類を確認する",
-          "summary": "対象のコードが属するサブドメインの分類（中核・一般・補完）が既に分かっているか確認する。分かっている場合はそれを使い、不明な場合はユーザーに直接尋ねるか、判明するまでは安全側（中核相当の厳密な層分離）を仮定する。",
-          "bullets": [
-            "中核サブドメインであれば、層分離を厳密に適用する",
-            "一般・補完サブドメインであれば、層分離を簡略化してよい",
-            "分類の出所（誰が・何が判定したか）は問わない。値として受け取れればよい"
-          ]
-        },
-        {
-          "stepId": "step-2",
-          "title": "対応するバックボーンknowledgeファイルを特定して必ず読む",
-          "summary": "相談内容に関連するアーキテクチャ概念を特定し、参照セクションに列挙された対応するknowledgeファイルをReadツールで読み込む。この手順を完了する前に回答を始めてはならない。",
-          "bullets": [
-            "配置の判断相談 → architecture-dependency-direction.md ／ architecture-layer-boundary.md",
-            "インターフェース設計の相談 → architecture-port-adapter.md",
-            "層をまたぐデータ・DTOの相談 → architecture-cross-layer-data-shape.md",
-            "境界を越える例外・エラーの相談 → architecture-cross-boundary-exception-handling.md",
-            "ロギング・認証・キャッシュ等の置き場所の相談 → architecture-cross-cutting-concerns.md",
-            "アダプターの配線・起動処理の相談 → architecture-composition-root.md",
-            "命名・コーディング規約の相談 → architecture-layer-naming-convention.md",
-            "テスト方針の相談 → architecture-test-strategy-by-layer.md",
-            "技術選定・技術スタックの相談 → architecture-tech-stack-selection-chain.md",
-            "複数の概念が関連する場合は全て読み込む"
-          ]
-        },
-        {
-          "stepId": "step-3",
-          "title": "判断基準に沿って判定し、根拠を示す",
-          "summary": "knowledgeファイルの判断基準（決定木）を辿り、判定結果と理由を示す。",
-          "bullets": [
-            "判断基準はknowledgeファイルの記述をそのまま使い、勝手に言い換えない",
-            "判定理由を必ず示す。「〜です」で終わらせない",
-            "アンチパターンに該当する場合はリスクと代替案をセットで提示する"
-          ]
+          "type": "配置・判断相談",
+          "trigger": "「このコードはどこに置くべきか」「この依存関係は正しいか」等のレイヤー・依存方向の相談",
+          "templateRef": "references/template-judgment.md"
         }
       ]
     },
-    "guardrails": {
-      "blockType": "Guardrails",
-      "title": "ガードレール",
-      "items": [
-        "knowledgeファイルをReadする前に回答を始めてはならない。最優先ルールであり例外なし",
-        "knowledgeファイルに記載されていない内容は「バックボーンの範囲外」として正直に伝え、推測で答えない",
-        "判断基準はknowledgeファイルから引用し、勝手に言い換えない",
-        "判定には必ず理由を示す",
-        "アンチパターンに該当する場合は必ずリスクと代替案をセットで提示する",
-        "このバックボーンは、複数の確立されたアーキテクチャ思想（クリーン／オニオン／ヘキサゴナル）の交差点としてAIが総合したものである。単一の権威ある出典として断定的に語らない"
-      ]
-    },
-    "references": {
-      "blockType": "References",
-      "title": "参照",
+    "knowledgeRefs": {
+      "blockType": "KnowledgeRefs",
+      "title": "参照knowledge",
       "items": [
         {
           "path": "references/knowledge/architecture-dependency-direction.md",
@@ -148,7 +98,67 @@
         {
           "path": "references/knowledge/architecture-tech-stack-selection-chain.md",
           "description": "技術方式が要求する技術要件と、製品選定（ADR）への橋渡し"
+        },
+        {
+          "path": "references/knowledge/architecture-evidence-based-scope.md",
+          "description": "機能・抽象化の追加は実証された欠落・実例に基づいて行う（YAGNI／Thinnest Viable Platform）"
         }
+      ]
+    },
+    "steps": {
+      "blockType": "CustomSteps",
+      "title": "実行手順",
+      "items": [
+        {
+          "stepId": "step-1",
+          "title": "サブドメイン分類を確認する",
+          "summary": "対象のコードが属するサブドメインの分類（中核・一般・補完）が既に分かっているか確認する。分かっている場合はそれを使い、不明な場合はユーザーに直接尋ねるか、判明するまでは安全側（中核相当の厳密な層分離）を仮定する。",
+          "bullets": [
+            "中核サブドメインであれば、層分離を厳密に適用する",
+            "一般・補完サブドメインであれば、層分離を簡略化してよい",
+            "分類の出所（誰が・何が判定したか）は問わない。値として受け取れればよい"
+          ]
+        },
+        {
+          "stepId": "step-2",
+          "title": "対応するバックボーンknowledgeファイルを特定して必ず読む",
+          "summary": "相談内容に関連するアーキテクチャ概念を特定し、参照セクションに列挙された対応するknowledgeファイルをReadツールで読み込む。この手順を完了する前に回答を始めてはならない。",
+          "bullets": [
+            "配置の判断相談 → architecture-dependency-direction.md ／ architecture-layer-boundary.md",
+            "インターフェース設計の相談 → architecture-port-adapter.md",
+            "層をまたぐデータ・DTOの相談 → architecture-cross-layer-data-shape.md",
+            "境界を越える例外・エラーの相談 → architecture-cross-boundary-exception-handling.md",
+            "ロギング・認証・キャッシュ等の置き場所の相談 → architecture-cross-cutting-concerns.md",
+            "アダプターの配線・起動処理の相談 → architecture-composition-root.md",
+            "命名・コーディング規約の相談 → architecture-layer-naming-convention.md",
+            "テスト方針の相談 → architecture-test-strategy-by-layer.md",
+            "技術選定・技術スタックの相談 → architecture-tech-stack-selection-chain.md",
+            "新しい抽象化・拡張ポイントを今作るべきか迷う相談 → architecture-evidence-based-scope.md",
+            "複数の概念が関連する場合は全て読み込む"
+          ]
+        },
+        {
+          "stepId": "step-3",
+          "title": "判断基準に沿って判定し、根拠を示す",
+          "summary": "knowledgeファイルの判断基準（決定木）を辿り、判定結果と理由を示す。",
+          "bullets": [
+            "判断基準はknowledgeファイルの記述をそのまま使い、勝手に言い換えない",
+            "判定理由を必ず示す。「〜です」で終わらせない",
+            "アンチパターンに該当する場合はリスクと代替案をセットで提示する"
+          ]
+        }
+      ]
+    },
+    "guardrails": {
+      "blockType": "Guardrails",
+      "title": "ガードレール",
+      "items": [
+        "knowledgeファイルをReadする前に回答を始めてはならない。最優先ルールであり例外なし",
+        "knowledgeファイルに記載されていない内容は「バックボーンの範囲外」として正直に伝え、推測で答えない",
+        "判断基準はknowledgeファイルから引用し、勝手に言い換えない",
+        "判定には必ず理由を示す",
+        "アンチパターンに該当する場合は必ずリスクと代替案をセットで提示する",
+        "このバックボーンは、複数の確立されたアーキテクチャ思想（クリーン／オニオン／ヘキサゴナル）の交差点としてAIが総合したものである。単一の権威ある出典として断定的に語らない"
       ]
     }
   }

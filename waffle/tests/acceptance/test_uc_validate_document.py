@@ -12,26 +12,25 @@ from waffle.application.usecases.validate_engine import ValidateEngine
 from waffle.shared.result import Err, Ok
 
 _DOGFOOD_DOCUMENTS = [
-    (".waffle/documents/skills/harness-query-engine.json", "DRAFT"),
-    (".waffle/documents/skills/harness-render-engine.json", "DRAFT"),
+    (".waffle/documents/skills/tech-lead-advisor.json", "DRAFT"),
     (".waffle/documents/coding/tech-stack-python-hexagonal.json", "ACTIVE"),
     (".waffle/documents/coding/architecture-python-hexagonal.json", "ACTIVE"),
     (".waffle/documents/coding/coding-standard-python-hexagonal.json", "ACTIVE"),
     (".waffle/documents/coding/test-standard-python-hexagonal.json", "ACTIVE"),
-    (".waffle/documents/specs/bc-waffle-engines/bc-waffle-engines.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/sd-document-engine.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-validation/sd-validation.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-reconciliation/sd-reconciliation.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-source-code/sd-source-code.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-docstring-linting/sd-docstring-linting.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/aggregate/agg-document.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/aggregate/agg-schema.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase/uc-query-document.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase/uc-render-document.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-validation/usecase/uc-validate-document.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-document-engine/usecase/uc-scaffold-document.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-source-code/usecase/uc-scan-source-code.json", "VALIDATED"),
-    (".waffle/documents/specs/bc-waffle-engines/subdomain/sd-docstring-linting/usecase/uc-lint-docstring.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle/bc-waffle.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle/subdomain/sd-document-management/sd-document-management.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle/subdomain/sd-validation/sd-validation.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle/subdomain/sd-reconciliation/sd-reconciliation.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle/subdomain/sd-source-code/sd-source-code.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle/subdomain/sd-docstring-linting/sd-docstring-linting.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle/aggregate/agg-document.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle/aggregate/agg-schema.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle/subdomain/sd-document-management/usecase/uc-query-document.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle/subdomain/sd-document-management/usecase/uc-render-document.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle/subdomain/sd-validation/usecase/uc-validate-document.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle/subdomain/sd-document-management/usecase/uc-scaffold-document.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle/subdomain/sd-source-code/usecase/uc-scan-source-code.json", "VALIDATED"),
+    (".waffle/documents/specs/bc-waffle/subdomain/sd-docstring-linting/usecase/uc-lint-docstring.json", "VALIDATED"),
 ]
 
 
@@ -45,7 +44,7 @@ def test_適合する_Document_は_VALIDATED_判定になる():
     When validate する
     Then VALIDATED 判定が返る
     """
-    result = _engine().run(".waffle/documents/skills/harness-query-engine.json")
+    result = _engine().run(".waffle/documents/skills/tech-lead-advisor.json")
     assert isinstance(result, Ok), result
 
 
@@ -55,7 +54,7 @@ def test_不適合は違反詳細つきで失敗する():
     When validate する
     Then 違反詳細つきで失敗する
     """
-    valid = json.loads(Path(".waffle/documents/skills/harness-query-engine.json").read_text())
+    valid = json.loads(Path(".waffle/documents/skills/tech-lead-advisor.json").read_text())
     invalid = dict(valid)
     invalid.pop("documentId")
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
@@ -106,10 +105,10 @@ def test_適合判定は実際にstatusをdocumentへ書き込む(tmp_path):
     When validateする
     Then 判定結果のstatusが実際にdocument.jsonへ書き込まれる（再読込しても反映されている）
     """
-    source = Path(".waffle/documents/specs/bc-waffle-engines/bc-waffle-engines.json")
+    source = Path(".waffle/documents/specs/bc-waffle/bc-waffle.json")
     doc = json.loads(source.read_text(encoding="utf-8"))
     doc["status"] = "CREATED"
-    copy_path = tmp_path / "bc-waffle-engines.json"
+    copy_path = tmp_path / "bc-waffle.json"
     copy_path.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
 
     result = _engine().run(str(copy_path))
@@ -127,7 +126,7 @@ def test_SUPERSEDEDは終端でありvalidateを受け付けない():
     Then INVALID_TRANSITIONエラーが返る
     """
     document = json.loads(
-        Path(".waffle/documents/specs/bc-waffle-engines/aggregate/agg-document.json").read_text()
+        Path(".waffle/documents/specs/bc-waffle/aggregate/agg-document.json").read_text()
     )
     document["status"] = "SUPERSEDED"
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:

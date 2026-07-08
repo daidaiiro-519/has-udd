@@ -21,14 +21,14 @@ def test_query_documentはブロックを取得する():
     """
     Given waffle MCPサーバ
     When query_documentツールをoperation=get_blockで呼ぶ
-    Then MCP出力のvalue.blockTypeはInterface
+    Then MCP出力のvalue.blockTypeはResponseTypes
     """
     out = asyncio.run(_call("query_document", {
         "operation": "get_block",
-        "path": ".waffle/documents/skills/harness-query-engine.json",
-        "blockKey": "interface",
+        "path": ".waffle/documents/skills/tech-lead-advisor.json",
+        "blockKey": "responseTypes",
     }))
-    assert out["value"]["blockType"] == "Interface"
+    assert out["value"]["blockType"] == "ResponseTypes"
 
 
 def test_query_documentのエラーはerror_messageを返す():
@@ -39,7 +39,7 @@ def test_query_documentのエラーはerror_messageを返す():
     """
     out = asyncio.run(_call("query_document", {
         "operation": "bogus",
-        "path": ".waffle/documents/skills/harness-query-engine.json",
+        "path": ".waffle/documents/skills/tech-lead-advisor.json",
     }))
     assert out["error"] == "INVALID_OPERATION"
 
@@ -51,7 +51,7 @@ def test_validate_documentは適合でstatus判定を返す():
     Then MCP出力のstatusはDRAFT
     """
     out = asyncio.run(_call("validate_document", {
-        "path": ".waffle/documents/skills/harness-query-engine.json",
+        "path": ".waffle/documents/skills/tech-lead-advisor.json",
     }))
     assert out["status"] == "DRAFT"
 
@@ -63,7 +63,7 @@ def test_render_documentはmdフォーマットを返す():
     Then MCP出力のformatはmd
     """
     out = asyncio.run(_call("render_document", {
-        "path": ".waffle/documents/skills/harness-query-engine.json",
+        "path": ".waffle/documents/skills/tech-lead-advisor.json",
         "deploy": False,
     }))
     assert out["format"] == "md"
@@ -72,11 +72,11 @@ def test_render_documentはmdフォーマットを返す():
 def test_check_spec_integrityは10フィールドの差分結果を返す():
     """
     Given waffle MCPサーバ
-    When check_spec_integrityツールをbc-waffle-engines.jsonで呼ぶ
+    When check_spec_integrityツールをbc-waffle.jsonで呼ぶ
     Then MCP出力は10フィールド全て空配列（自己整合済み）
     """
     out = asyncio.run(_call("check_spec_integrity", {
-        "path": ".waffle/documents/specs/bc-waffle-engines/bc-waffle-engines.json",
+        "path": ".waffle/documents/specs/bc-waffle/bc-waffle.json",
     }))
     assert out == {
         "declared_subdomains_missing_on_disk": [],
@@ -119,7 +119,7 @@ def test_check_scenario_driftは4フィールドの差分結果を返す():
     Then MCP出力は4フィールドを持つ
     """
     out = asyncio.run(_call("check_scenario_drift", {
-        "specPath": ".waffle/documents/specs/bc-waffle-engines/subdomain/sd-reconciliation/usecase/uc-check-spec-integrity.json",
+        "specPath": ".waffle/documents/specs/bc-waffle/subdomain/sd-reconciliation/usecase/uc-check-spec-integrity.json",
         "testPath": "tests/integration/test_uc_check_spec_integrity.py",
     }))
     assert set(out.keys()) == {"missing_in_tests", "orphaned_in_tests", "matched", "gherkin_mismatches"}

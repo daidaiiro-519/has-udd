@@ -1,0 +1,118 @@
+{
+  "documentId": "test-standard-waffle",
+  "documentType": "Coding",
+  "schemaRef": "CodingSchema/v2",
+  "codingKind": "test-standard",
+  "stack": "waffle",
+  "status": "DRAFT",
+  "content": {
+    "title": {
+      "blockType": "Title",
+      "title": "test-standard-waffle"
+    },
+    "testStrategy": {
+      "blockType": "TestStrategy",
+      "title": "テスト方針",
+      "pyramid": "test-standard-python-hexagonalを前提とし、それに追加でWaffle固有のspec↔テスト対応規約を上乗せする",
+      "rationale": "Waffleはspec(DomainSpecSchema)のTestScenariosを実行可能テストへ機械的に束ねるUDD(Usage-Driven Development)ループを持つ。この対応関係はWaffle固有の仕組みであり、汎用のPython×Hexagonal規約(test-standard-python-hexagonal)には含めない"
+    },
+    "testPlan": {
+      "blockType": "TestPlan",
+      "title": "テスト計画",
+      "items": []
+    },
+    "testTypes": {
+      "blockType": "TestTypes",
+      "title": "テストタイプ",
+      "items": [
+        {
+          "testType": "acceptance",
+          "tool": "pytest（AIがspecのTestScenariosを見て執筆）",
+          "target": "usecase"
+        }
+      ]
+    },
+    "framework": {
+      "blockType": "TestFramework",
+      "title": "フレームワーク",
+      "unit": "pytest",
+      "acceptance": "pytest"
+    },
+    "scenarioBinding": {
+      "blockType": "ScenarioBinding",
+      "title": "シナリオの束ね方",
+      "items": [
+        {
+          "item": "対応関係",
+          "rule": "1 spec（DomainSpecSchemaのusecase）＝1 ネイティブテストファイル（AI執筆）"
+        },
+        {
+          "item": "ネイティブテストの配置",
+          "rule": "tests/acceptance/test_{documentId}.py（documentIdはspecのdocumentIdをそのままsnake_case化）"
+        },
+        {
+          "item": "ドリフト検知",
+          "rule": "シナリオ名⇔テスト関数名の名前突き合わせで機械検出（check-scenario-drift）。未実装/孤立を検出し、中身の妥当性はAIが評価する"
+        },
+        {
+          "item": "シナリオブロック種別とテスト配置層の対応",
+          "rule": "invariantScenarios(aggregate)→domain/unit、domainServiceScenarios(subdomain)→domain/unit、guaranteeScenarios(usecase・operationGuaranteesと対)→integration、acceptanceScenarios(usecase)→acceptance。コードの性質(純粋かport必須か)をケースバイケースで判定してはならない（ドリフト検知を非決定的にするため）"
+        },
+        {
+          "item": "シナリオ文言の追従",
+          "rule": "specのGuaranteeScenarios/AcceptanceScenarios/InvariantScenarios/DomainServiceScenariosに対応するテスト関数は、対応するgherkinのGiven/When/Thenをdocstringに転記する（関数名の一致だけでは、シナリオ文言の事後編集に対する追従を検知できないため）"
+        }
+      ]
+    },
+    "placementByTarget": {
+      "blockType": "PlacementByTarget",
+      "title": "テスト対象別の配置",
+      "items": [
+        {
+          "target": "domain",
+          "testKind": "unit",
+          "path": "tests/unit/domain/"
+        },
+        {
+          "target": "application",
+          "testKind": "unit（port はテストダブル）",
+          "path": "tests/unit/application/"
+        },
+        {
+          "target": "adapters",
+          "testKind": "integration",
+          "path": "tests/integration/"
+        },
+        {
+          "target": "usecase",
+          "testKind": "acceptance（ネイティブ）",
+          "path": "tests/acceptance/"
+        },
+        {
+          "target": "CLI / MCP の公開インターフェース",
+          "testKind": "contract",
+          "path": "tests/contract/"
+        }
+      ]
+    },
+    "rules": {
+      "blockType": "TestRules",
+      "title": "決定ルール",
+      "items": [
+        {
+          "level": "必須",
+          "rule": "テストファイル名は test_{対応するspecのdocumentIdをsnake_case化したもの}.py で統一する（domain/application/adapters(integration)/acceptanceの全層に適用。実装モジュール名を由来にした命名は禁止）"
+        },
+        {
+          "level": "必須",
+          "rule": "DomainSpecSchemaのシナリオブロック種別とテスト配置層は機械的に対応する（scenarioBinding参照）"
+        },
+        {
+          "level": "禁止",
+          "rule": "spec側(DomainSpecSchema等)のブロック名・シナリオの記述に、アーキテクチャ/テスト層の用語（unit/integration/adapter/render_engine等の内部コンポーネント名）を持ち込む。specは常にDDD/業務語彙のみで書く"
+        }
+      ]
+    }
+  },
+  "tags": []
+}

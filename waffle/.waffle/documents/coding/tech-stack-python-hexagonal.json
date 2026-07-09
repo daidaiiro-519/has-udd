@@ -5,9 +5,14 @@
   "codingKind": "tech-stack",
   "stack": "python-hexagonal",
   "status": "ACTIVE",
-  "tags": ["tier:backend"],
+  "tags": [
+    "tier:backend"
+  ],
   "content": {
-    "title": { "blockType": "Title", "title": "tech-stack-python-hexagonal" },
+    "title": {
+      "blockType": "Title",
+      "title": "tech-stack-python-hexagonal"
+    },
     "identity": {
       "blockType": "Identity",
       "title": "スタック概要",
@@ -25,14 +30,23 @@
       "blockType": "Framework",
       "title": "フレームワーク",
       "name": "",
-      "note": "なし（Web フレームワークは使用しない。外部公開は「公開インターフェース」を参照）"
+      "note": "なし（Web フレームワークは使用しない。外部公開は「公開インターフェース」を参照）",
+      "rationale": ""
     },
     "interface": {
       "blockType": "Interface",
       "title": "公開インターフェース",
       "items": [
-        { "style": "CLI", "implementation": "typer" },
-        { "style": "MCP", "implementation": "fastmcp" }
+        {
+          "style": "CLI",
+          "implementation": "typer",
+          "rationale": "型ヒントから引数解析を自動生成でき、Pythonの型注釈という既存資産をそのままCLI定義に転用できるため"
+        },
+        {
+          "style": "MCP",
+          "implementation": "fastmcp",
+          "rationale": "MCPサーバーの定型的な配線（tool登録・スキーマ変換）を薄く済ませられ、CLIと同じユースケース層をそのまま再利用できるため"
+        }
       ]
     },
     "middleware": {
@@ -45,23 +59,45 @@
       "blockType": "Libraries",
       "title": "ライブラリ",
       "items": [
-        { "category": "validation", "capability": "schema-validation", "implementation": "jsonschema", "version": "^4" },
-        { "category": "observability", "capability": "logging", "implementation": "標準 logging", "version": "" }
+        {
+          "category": "validation",
+          "capability": "schema-validation",
+          "implementation": "jsonschema",
+          "version": "^4",
+          "rationale": "document.json自体がJSON Schemaで検証される設計であり、Python標準的なJSON Schema実装として広く使われているため"
+        },
+        {
+          "category": "observability",
+          "capability": "logging",
+          "implementation": "標準 logging",
+          "version": "",
+          "rationale": "ローカルCLI/MCPプロセスであり、外部ロギング基盤との連携要件が無いため、標準ライブラリで十分"
+        }
       ]
     },
     "tooling": {
       "blockType": "Tooling",
       "title": "開発ツール",
       "packageManager": "uv（.venv / uv.lock 固定）",
-      "lintFormat": "ruff（任意）"
+      "lintFormat": "ruff（任意）",
+      "rationale": "uvは依存解決とロックファイル管理が高速で、.venv管理も一体化しており、追加のツール(pip/virtualenv/poetry等)を組み合わせる必要がないため"
     },
     "policy": {
       "blockType": "Policy",
       "title": "依存方針",
       "items": [
-        { "level": "必須", "rule": "依存追加は「既存の用途で代替不可か」を確認してから" },
-        { "level": "禁止", "rule": "一覧に無いライブラリを反射的に import する" },
-        { "level": "推奨", "rule": "バージョンは範囲指定し uv.lock で固定する" }
+        {
+          "level": "必須",
+          "rule": "依存追加は「既存の用途で代替不可か」を確認してから"
+        },
+        {
+          "level": "禁止",
+          "rule": "一覧に無いライブラリを反射的に import する"
+        },
+        {
+          "level": "推奨",
+          "rule": "バージョンは範囲指定し uv.lock で固定する"
+        }
       ]
     }
   }

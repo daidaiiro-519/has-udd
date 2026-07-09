@@ -4,7 +4,7 @@
 
 ## スタック概要
 
-- **ティア**: backend
+- **対象領域（ティア: backend=サーバー側 / frontend=画面側 / platform=基盤側）**: backend
 - **スタック名**: python-hexagonal
 
 ---
@@ -25,10 +25,21 @@
 
 ## 公開インターフェース
 
-| 様式 | 実装 |
-|---|---|
-| CLI | typer |
-| MCP | fastmcp |
+### CLI
+
+- **実装**: typer
+
+#### 選定理由
+
+型ヒントから引数解析を自動生成でき、Pythonの型注釈という既存資産をそのままCLI定義に転用できるため
+
+### MCP
+
+- **実装**: fastmcp
+
+#### 選定理由
+
+MCPサーバーの定型的な配線（tool登録・スキーマ変換）を薄く済ませられ、CLIと同じユースケース層をそのまま再利用できるため
 
 ---
 
@@ -40,10 +51,24 @@
 
 ## ライブラリ
 
-| 分類 | 用途 | 実装 | バージョン |
-|---|---|---|---|
-| validation | schema-validation | jsonschema | ^4 |
-| observability | logging | 標準 logging |  |
+### jsonschema
+
+- **分類**: validation
+- **用途**: schema-validation
+- **バージョン**: ^4
+
+#### 選定理由
+
+document.json自体がJSON Schemaで検証される設計であり、Python標準的なJSON Schema実装として広く使われているため
+
+### 標準 logging
+
+- **分類**: observability
+- **用途**: logging
+
+#### 選定理由
+
+ローカルCLI/MCPプロセスであり、外部ロギング基盤との連携要件が無いため、標準ライブラリで十分
 
 ---
 
@@ -51,6 +76,7 @@
 
 - **パッケージ管理**: uv（.venv / uv.lock 固定）
 - **lint / format**: ruff（任意）
+- **選定理由**: uvは依存解決とロックファイル管理が高速で、.venv管理も一体化しており、追加のツール(pip/virtualenv/poetry等)を組み合わせる必要がないため
 
 ---
 

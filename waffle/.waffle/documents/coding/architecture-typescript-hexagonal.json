@@ -1,0 +1,169 @@
+{
+  "documentId": "architecture-typescript-hexagonal",
+  "documentType": "Coding",
+  "schemaRef": "CodingSchema/v2",
+  "codingKind": "architecture",
+  "stack": "typescript-hexagonal",
+  "status": "DRAFT",
+  "content": {
+    "title": {
+      "blockType": "Title",
+      "title": "architecture-typescript-hexagonal"
+    },
+    "layers": {
+      "blockType": "Layers",
+      "title": "レイヤーと依存方向",
+      "style": "ポートとアダプター（ヘキサゴナル）",
+      "items": [
+        {
+          "layer": "domain",
+          "responsibility": "業務ロジック・不変条件",
+          "mayDependOn": []
+        },
+        {
+          "layer": "application",
+          "responsibility": "usecaseの編成・ポート呼び出し",
+          "mayDependOn": [
+            "domain"
+          ]
+        },
+        {
+          "layer": "ports",
+          "responsibility": "domain/applicationが外部に要求するインターフェース定義",
+          "mayDependOn": [
+            "domain"
+          ]
+        },
+        {
+          "layer": "inbound adapter",
+          "responsibility": "外部プロトコルの受け口（usecaseを呼ぶだけ）",
+          "mayDependOn": [
+            "application",
+            "ports"
+          ]
+        },
+        {
+          "layer": "outbound adapter",
+          "responsibility": "portの実装。外部システムとの実際のやり取り",
+          "mayDependOn": [
+            "ports"
+          ]
+        }
+      ]
+    },
+    "layout": {
+      "blockType": "Layout",
+      "title": "ディレクトリ構成",
+      "tree": "src/\n  domain/\n    model/\n    value-objects/\n    services/\n  application/\n    usecases/\n  ports/\n  adapters/\n    inbound/\n    outbound/",
+      "compositionRoot": "inbound adapter の起動点（エントリーポイント）にのみ置く"
+    },
+    "conceptPlacement": {
+      "blockType": "ConceptPlacement",
+      "title": "概念 → 実現形",
+      "items": [
+        {
+          "concept": "usecase",
+          "placement": "application/usecases",
+          "pattern": "エントリメソッド1つ・ドメインは port 経由で呼ぶ"
+        },
+        {
+          "concept": "aggregate",
+          "placement": "domain/model",
+          "pattern": "不変条件はメソッド経由でのみ変更できる形にする（コンストラクタとメソッド内に検証ロジックを閉じ込める）。外部の集約はIDで参照し、直接オブジェクトとして保持しない。集約はできるだけ小さく設計する"
+        },
+        {
+          "concept": "entity",
+          "placement": "domain/model",
+          "pattern": "同一性はidで判定する（フィールドの値ではない）。単独では実装しない。必ず集約の内部にのみ存在する"
+        },
+        {
+          "concept": "value-object",
+          "placement": "domain/value-objects",
+          "pattern": "構造的等価性・不変（readonlyフィールドのみ・状態変更メソッドを持たない）"
+        },
+        {
+          "concept": "domain-service",
+          "placement": "domain/services",
+          "pattern": "ステートレス（同じ入力に対して常に同じ結果を返す）。複数集約を単一トランザクションでまとめて変更するための抜け道にはしない（1集約=1トランザクションの原則は業務サービスがあっても変わらない）"
+        },
+        {
+          "concept": "repository",
+          "placement": "ports（インターフェース）／adapters/outbound（実装）",
+          "pattern": "インターフェースはports、具象はoutbound adapterに置く"
+        },
+        {
+          "concept": "port",
+          "placement": "ports",
+          "pattern": "インターフェース定義のみ・実装を持たない。ポートは常にコア（domain/application）が「何を必要とするか」の視点で定義し、アダプター側の実装都合に引きずられない"
+        },
+        {
+          "concept": "inbound-adapter",
+          "placement": "adapters/inbound",
+          "pattern": "外部プロトコルの受け口。usecaseを呼び出すだけで業務ロジックを持たない"
+        },
+        {
+          "concept": "outbound-adapter",
+          "placement": "adapters/outbound",
+          "pattern": "portの実装。外部システムとの実際のやり取りを担う"
+        }
+      ]
+    },
+    "rules": {
+      "blockType": "ArchitectureRules",
+      "title": "規約（守るべきルール）",
+      "items": [
+        {
+          "level": "必須",
+          "rule": "依存は常に内向き（adapters→application→domain）。domainは他レイヤーを一切importしない"
+        },
+        {
+          "level": "必須",
+          "rule": "DIはコンストラクタ注入で行い、実装（class）ではなくport（インターフェース）型で受け取る"
+        },
+        {
+          "level": "必須",
+          "rule": "domain/applicationからadapter/外部ライブラリの型を直接importしない（型はportsで自前定義する）"
+        },
+        {
+          "level": "推奨",
+          "rule": "エラー伝播は、想定内の失敗（業務ルール違反等）は戻り値の判別可能な型（Result型相当）で表現し、想定外の異常はthrowする。境界（adapter）で例外を捕捉し外部向けの形に翻訳する（内側→外側方向の翻訳）"
+        },
+        {
+          "level": "必須",
+          "rule": "outbound adapter内で発生した技術的失敗（特定ライブラリ・ドライバ固有の例外型）を、そのままdomain/applicationへ伝播させない。抽象化した失敗の形に翻訳してから内側へ渡す（外側→内側方向の翻訳）"
+        },
+        {
+          "level": "禁止",
+          "rule": "outbound adapterの実装の詳細（クエリ・スキーマ形式等）がapplication/domainへ漏れること"
+        },
+        {
+          "level": "必須",
+          "rule": "レイヤー境界を越えてdomainオブジェクト（entity・aggregate）をそのまま渡さない。外部に出る形は必要な値だけをコピーした専用のDTOにする"
+        },
+        {
+          "level": "禁止",
+          "rule": "個々のusecase・adapterの中でアダプターの具体クラスをnewする。配線（DI）はcompositionRootの1箇所に集約する"
+        }
+      ]
+    },
+    "thicknessBySubdomain": {
+      "blockType": "ThicknessBySubdomain",
+      "title": "サブドメイン別の厚み",
+      "items": [
+        {
+          "category": "中核",
+          "thickness": "aggregate/entity/value-object/domain-serviceをフルに用いて厚く設計する"
+        },
+        {
+          "category": "一般",
+          "thickness": "既存ライブラリ・外部サービスを薄いadapterで包む程度に留める"
+        },
+        {
+          "category": "補完",
+          "thickness": "最小限のusecase内の手続き的処理のみ（別途domainモデルを起こさない）"
+        }
+      ]
+    }
+  },
+  "tags": []
+}

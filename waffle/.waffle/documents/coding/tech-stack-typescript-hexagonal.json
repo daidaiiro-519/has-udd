@@ -1,0 +1,93 @@
+{
+  "documentId": "tech-stack-typescript-hexagonal",
+  "documentType": "Coding",
+  "schemaRef": "CodingSchema/v2",
+  "codingKind": "tech-stack",
+  "stack": "typescript-hexagonal",
+  "status": "DRAFT",
+  "content": {
+    "title": {
+      "blockType": "Title",
+      "title": "tech-stack-typescript-hexagonal"
+    },
+    "identity": {
+      "blockType": "Identity",
+      "title": "スタック概要",
+      "tier": "backend",
+      "stackName": "typescript-hexagonal"
+    },
+    "runtime": {
+      "blockType": "Runtime",
+      "title": "ランタイム",
+      "language": "TypeScript 5.x（Node.js 20+）",
+      "target": "ローカルプロセス（ゲートウェイ機器上で常駐）",
+      "concurrency": "非同期主体（async/await・シングルスレッドイベントループ）"
+    },
+    "framework": {
+      "blockType": "Framework",
+      "title": "フレームワーク",
+      "name": "Fastify",
+      "note": "",
+      "rationale": "軽量でプラグイン機構が薄く、TypeBoxと組み合わせたスキーマファーストなルーティング定義（型とバリデーションの二重管理を避けられる）に適しているため"
+    },
+    "interface": {
+      "blockType": "Interface",
+      "title": "公開インターフェース",
+      "items": [
+        {
+          "style": "REST",
+          "implementation": "Fastify + TypeBox 製 schema provider",
+          "rationale": "ゲートウェイ上のローカルアプリとして、フロントエンド(Vue SPA)からの単純なリクエスト/レスポンスで足り、GraphQL/gRPC等の複雑な契約機構は不要なため"
+        }
+      ]
+    },
+    "middleware": {
+      "blockType": "Middleware",
+      "title": "ミドルウェア",
+      "items": [
+        {
+          "role": "database",
+          "product": "SQLite",
+          "access": "Drizzle ORM",
+          "rationale": "ゲートウェイ機器上でローカル常駐するアプリであり、外部DBサーバーを別途立てる運用コストを避け、ファイル1つで完結する永続化が要件に合うため。Drizzle ORMはTypeBoxと親和性が高い型推論を持つため選定"
+        }
+      ],
+      "note": ""
+    },
+    "libraries": {
+      "blockType": "Libraries",
+      "title": "ライブラリ",
+      "items": [
+        {
+          "category": "validation",
+          "capability": "schema-validation",
+          "implementation": "TypeBox",
+          "version": "",
+          "rationale": "Fastifyのスキーマベースルーティングとネイティブに統合でき、型注釈とランタイムバリデーションを同じスキーマ定義から生成できるため（型とバリデーションの二重管理を避ける）"
+        }
+      ]
+    },
+    "tooling": {
+      "blockType": "Tooling",
+      "title": "開発ツール",
+      "packageManager": "npm",
+      "lintFormat": "ESLint + Prettier",
+      "rationale": "Node.jsエコシステムの標準的な選択肢であり、追加のワークスペース機能等は現時点で不要なため"
+    },
+    "policy": {
+      "blockType": "Policy",
+      "title": "依存方針",
+      "items": [
+        {
+          "level": "必須",
+          "rule": "新規依存の追加は、標準ライブラリ・既存依存で代替できないことを確認してから行う"
+        },
+        {
+          "level": "禁止",
+          "rule": "同じ役割（バリデーション・ORM等）のライブラリを重複して導入する"
+        }
+      ]
+    }
+  },
+  "tags": []
+}

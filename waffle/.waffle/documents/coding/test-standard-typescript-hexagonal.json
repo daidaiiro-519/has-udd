@@ -1,0 +1,166 @@
+{
+  "documentId": "test-standard-typescript-hexagonal",
+  "documentType": "Coding",
+  "schemaRef": "CodingSchema/v2",
+  "codingKind": "test-standard",
+  "stack": "typescript-hexagonal",
+  "status": "DRAFT",
+  "content": {
+    "title": {
+      "blockType": "Title",
+      "title": "test-standard-typescript-hexagonal"
+    },
+    "testStrategy": {
+      "blockType": "TestStrategy",
+      "title": "テスト方針",
+      "pyramid": "ピラミッド形（単体テストを重視・統合はやや軽め・E2Eは行わない）",
+      "rationale": "業務ロジックの実装方法＝ドメインモデル"
+    },
+    "testPlan": {
+      "blockType": "TestPlan",
+      "title": "テスト計画",
+      "items": [
+        {
+          "item": "実行タイミング",
+          "value": "すべての変更（コミット前ローカル・PRでCI）"
+        },
+        {
+          "item": "CIトリガー",
+          "value": "push / pull_request"
+        },
+        {
+          "item": "ゲート",
+          "value": "対応するシナリオのテストが緑であることをマージ必須条件にする"
+        },
+        {
+          "item": "対象外",
+          "value": "パフォーマンステスト（中核だが性能要件なし）"
+        }
+      ]
+    },
+    "testTypes": {
+      "blockType": "TestTypes",
+      "title": "テストタイプ",
+      "items": [
+        {
+          "testType": "unit",
+          "tool": "Vitest",
+          "target": "domain / application"
+        },
+        {
+          "testType": "integration",
+          "tool": "Vitest",
+          "target": "adapters"
+        },
+        {
+          "testType": "acceptance",
+          "tool": "Vitest（要件のシナリオを見て人間またはAIが直接執筆）",
+          "target": "usecase"
+        },
+        {
+          "testType": "contract",
+          "tool": "Vitest（インターフェース定義との差分検査）",
+          "target": "外部公開インターフェース"
+        }
+      ]
+    },
+    "framework": {
+      "blockType": "TestFramework",
+      "title": "フレームワーク",
+      "unit": "Vitest",
+      "acceptance": "Vitest"
+    },
+    "scenarioBinding": {
+      "blockType": "ScenarioBinding",
+      "title": "シナリオの束ね方",
+      "items": [
+        {
+          "item": "書き方",
+          "rule": "振る舞いはGiven/When/Then形式(Gherkin)のシナリオとして書く。1シナリオ＝1つの具体的な状況→操作→結果"
+        },
+        {
+          "item": "実行可能にする",
+          "rule": "書いたシナリオはそのまま放置せず、対応する実行可能なテスト関数を書く。シナリオの文章だけでは検証済みとみなさない"
+        },
+        {
+          "item": "対応関係",
+          "rule": "1仕様単位（usecase等）につき1テストファイルを基本とし、シナリオ名とテスト関数名を対応させる"
+        },
+        {
+          "item": "ドリフト検知",
+          "rule": "シナリオ名とテスト関数名を機械的に突き合わせ、対応するテストが無いシナリオ・対応するシナリオが無いテスト関数を検出する（中身の意味が正しいかどうかまでは自動判定しない）"
+        }
+      ]
+    },
+    "placementByTarget": {
+      "blockType": "PlacementByTarget",
+      "title": "テスト対象別の配置",
+      "items": [
+        {
+          "target": "domain",
+          "testKind": "unit",
+          "path": "src/domain/**/*.test.ts"
+        },
+        {
+          "target": "application",
+          "testKind": "unit（port はテストダブル）",
+          "path": "src/application/**/*.test.ts"
+        },
+        {
+          "target": "adapters",
+          "testKind": "integration",
+          "path": "src/adapters/**/*.test.ts"
+        },
+        {
+          "target": "usecase",
+          "testKind": "acceptance（ネイティブ）",
+          "path": "tests/acceptance/"
+        },
+        {
+          "target": "システム全体の少数シナリオ",
+          "testKind": "E2E",
+          "path": "tests/e2e/（コンポジションルートによる配線を含めて検証。件数は絞る）"
+        }
+      ]
+    },
+    "rules": {
+      "blockType": "TestRules",
+      "title": "決定ルール",
+      "items": [
+        {
+          "level": "禁止",
+          "rule": "単体テストが実物のDB・外部サービスに依存する"
+        },
+        {
+          "level": "推奨",
+          "rule": "不変条件はテストダブルなしで検証する"
+        },
+        {
+          "level": "必須",
+          "rule": "テストファイル名は対応する仕様の識別子に対応させて統一する（実装モジュール名を由来にした命名は禁止）"
+        },
+        {
+          "level": "必須",
+          "rule": "値オブジェクトのテストは、値が等しければ等価であること・不変であることを検証する"
+        },
+        {
+          "level": "必須",
+          "rule": "エンティティのテストは、同一性がidで決まることを検証する"
+        },
+        {
+          "level": "必須",
+          "rule": "集約のテストは、不変条件が常にメソッド経由でしか変更できないことを検証する"
+        },
+        {
+          "level": "必須",
+          "rule": "業務サービスのテストは、ステートレスであることを検証する"
+        },
+        {
+          "level": "必須",
+          "rule": "アダプターの契約テストは、ポートのインターフェースに対して書き、本物の実装とテスト用の偽実装の両方が同じテストスイートを満たすことを確認する"
+        }
+      ]
+    }
+  },
+  "tags": []
+}

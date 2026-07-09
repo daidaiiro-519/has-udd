@@ -42,7 +42,7 @@
     "updatedAt": { "type": "string", "format": "date-time" },
 
     "_index": {
-      "description": "has-udd が x-prompt-query から自動生成する。AI は直接書かない。",
+      "description": "waffle が x-prompt-query から自動生成する。AI は直接書かない。",
       "readOnly": true,
       "type": "object",
       "properties": {
@@ -116,7 +116,7 @@
       "x-prompt-query": "このスタックの素性（ティア・スタック名）を持ちます。様式(hexagonal 等)は architecture 側が SSOT なのでここには持たない。",
       "x-render": [
         { "as": "keyvalue", "pairs": [
-          { "label": "ティア", "from": "tier" },
+          { "label": "対象領域（ティア: backend=サーバー側 / frontend=画面側 / platform=基盤側）", "from": "tier" },
           { "label": "スタック名", "from": "stackName" }
         ] }
       ],
@@ -158,13 +158,17 @@
       "x-prompt-query": "このスタックの看板となる構造フレームワーク（1つ）を持ちます。無ければ note に理由を書き items は空にします。",
       "x-render": [
         { "as": "paragraph", "from": "note" },
-        { "as": "keyvalue", "pairs": [ { "label": "フレームワーク", "from": "name" } ] }
+        { "as": "keyvalue", "pairs": [
+          { "label": "フレームワーク", "from": "name" },
+          { "label": "選定理由", "from": "rationale" }
+        ] }
       ],
       "properties": {
         "blockType": { "type": "string", "const": "Framework" },
         "title":     { "type": "string", "const": "フレームワーク" },
         "name":      { "type": "string", "x-prompt-write": "看板フレームワーク名（1つ）。無ければ空文字。例: FastAPI, React" },
-        "note":      { "type": "string", "x-prompt-write": "name が空のとき、無い理由を1文で。name があれば空文字。" }
+        "note":      { "type": "string", "x-prompt-write": "name が空のとき、無い理由を1文で。name があれば空文字。" },
+        "rationale": { "type": "string", "x-prompt-write": "name が空でなければ、他の候補（習熟度・既存資産・技術要件等）ではなくこれを選んだ理由を1文で（ADR）。name が空なら空文字。" }
       }
     },
 
@@ -175,9 +179,9 @@
       "x-render-level": 2,
       "x-prompt-query": "このスタックが外部に公開するインターフェース様式（inbound の顔）を持ちます。",
       "x-render": [
-        { "as": "table", "from": "items", "columns": [
-          { "field": "style", "header": "様式" },
-          { "field": "implementation", "header": "実装" }
+        { "as": "section", "from": "items", "titleFrom": "style", "each": [
+          { "as": "keyvalue", "pairs": [ { "label": "実装", "from": "implementation" } ] },
+          { "as": "paragraph", "heading": "選定理由", "from": "rationale" }
         ] }
       ],
       "properties": {
@@ -188,10 +192,11 @@
           "x-prompt-write": "公開する様式（REST/GraphQL/gRPC/CLI/MCP/events 等）と実装ライブラリを列挙。",
           "items": {
             "type": "object",
-            "required": ["style", "implementation"],
+            "required": ["style", "implementation", "rationale"],
             "properties": {
               "style":          { "type": "string", "x-prompt-write": "様式。例: CLI, MCP, REST" },
-              "implementation": { "type": "string", "x-prompt-write": "実装ライブラリ。例: typer, fastmcp" }
+              "implementation": { "type": "string", "x-prompt-write": "実装ライブラリ。例: typer, fastmcp" },
+              "rationale":      { "type": "string", "x-prompt-write": "他の候補（習熟度・既存資産・技術要件等）ではなくこの実装を選んだ理由を1文で（ADR）。" }
             }
           }
         }
@@ -206,10 +211,12 @@
       "x-prompt-query": "このスタックが依存するミドルウェア（サーバ実体：DB・キャッシュ・ブローカー・検索・APサーバー）を持ちます。クライアントライブラリは libraries 側。無ければ note に理由を書きます。",
       "x-render": [
         { "as": "paragraph", "from": "note" },
-        { "as": "table", "from": "items", "columns": [
-          { "field": "role", "header": "役割" },
-          { "field": "product", "header": "製品" },
-          { "field": "access", "header": "アクセス手段" }
+        { "as": "section", "from": "items", "titleFrom": "product", "each": [
+          { "as": "keyvalue", "pairs": [
+            { "label": "役割", "from": "role" },
+            { "label": "アクセス手段", "from": "access" }
+          ] },
+          { "as": "paragraph", "heading": "選定理由", "from": "rationale" }
         ] }
       ],
       "properties": {
@@ -220,11 +227,12 @@
           "x-prompt-write": "依存するミドルウェアを列挙（role=database/cache/message-broker/search/ap-server）。無ければ空配列にし note で理由を書く。",
           "items": {
             "type": "object",
-            "required": ["role", "product", "access"],
+            "required": ["role", "product", "access", "rationale"],
             "properties": {
-              "role":    { "type": "string", "enum": ["database", "cache", "message-broker", "search", "ap-server"], "x-prompt-write": "ミドルウェアの役割分類。" },
-              "product": { "type": "string", "x-prompt-write": "製品名。例: PostgreSQL, Redis" },
-              "access":  { "type": "string", "x-prompt-write": "アクセスするクライアントライブラリ。例: SQLAlchemy" }
+              "role":      { "type": "string", "enum": ["database", "cache", "message-broker", "search", "ap-server"], "x-prompt-write": "ミドルウェアの役割分類。" },
+              "product":   { "type": "string", "x-prompt-write": "製品名。例: PostgreSQL, Redis" },
+              "access":    { "type": "string", "x-prompt-write": "アクセスするクライアントライブラリ。例: SQLAlchemy" },
+              "rationale": { "type": "string", "x-prompt-write": "他の候補（別のDB製品等・実行環境の制約含む）ではなくこれを選んだ理由を1文で（ADR）。" }
             }
           }
         },
@@ -239,11 +247,13 @@
       "x-render-level": 2,
       "x-prompt-query": "このスタックが担う非ドメイン能力（driven・横断のみ。inbound は interface、永続化サーバは middleware）と実装ライブラリを持ちます。",
       "x-render": [
-        { "as": "table", "from": "items", "columns": [
-          { "field": "category", "header": "分類" },
-          { "field": "capability", "header": "用途" },
-          { "field": "implementation", "header": "実装" },
-          { "field": "version", "header": "バージョン" }
+        { "as": "section", "from": "items", "titleFrom": "implementation", "each": [
+          { "as": "keyvalue", "pairs": [
+            { "label": "分類", "from": "category" },
+            { "label": "用途", "from": "capability" },
+            { "label": "バージョン", "from": "version" }
+          ] },
+          { "as": "paragraph", "heading": "選定理由", "from": "rationale" }
         ] }
       ],
       "properties": {
@@ -254,12 +264,13 @@
           "x-prompt-write": "非ドメイン能力（observability/validation/security/messaging 等の分類）と実装ライブラリを列挙。inbound/永続化サーバは含めない。",
           "items": {
             "type": "object",
-            "required": ["category", "capability", "implementation"],
+            "required": ["category", "capability", "implementation", "rationale"],
             "properties": {
               "category":       { "type": "string", "x-prompt-write": "能力の分類（AWS カテゴリ相当）。例: validation, observability, security" },
               "capability":     { "type": "string", "x-prompt-write": "用途名。例: schema-validation, logging" },
               "implementation": { "type": "string", "x-prompt-write": "実装ライブラリ。例: jsonschema" },
-              "version":        { "type": "string", "x-prompt-write": "バージョン。固定不要なら空。" }
+              "version":        { "type": "string", "x-prompt-write": "バージョン。固定不要なら空。" },
+              "rationale":      { "type": "string", "x-prompt-write": "他の候補ではなくこの実装を選んだ理由を1文で（ADR）。" }
             }
           }
         }
@@ -268,21 +279,23 @@
 
     "ToolingBlock": {
       "type": "object",
-      "required": ["blockType", "title", "packageManager"],
+      "required": ["blockType", "title", "packageManager", "rationale"],
       "x-render-order": 7,
       "x-render-level": 2,
       "x-prompt-query": "パッケージ管理・lint/format 等の開発ツールを持ちます。",
       "x-render": [
         { "as": "keyvalue", "pairs": [
           { "label": "パッケージ管理", "from": "packageManager" },
-          { "label": "lint / format", "from": "lintFormat" }
+          { "label": "lint / format", "from": "lintFormat" },
+          { "label": "選定理由", "from": "rationale" }
         ] }
       ],
       "properties": {
         "blockType":      { "type": "string", "const": "Tooling" },
         "title":          { "type": "string", "const": "開発ツール" },
         "packageManager": { "type": "string", "x-prompt-write": "パッケージ管理ツール。例: uv（.venv / uv.lock 固定）" },
-        "lintFormat":      { "type": "string", "x-prompt-write": "lint/format ツール。任意なら空。" }
+        "lintFormat":      { "type": "string", "x-prompt-write": "lint/format ツール。任意なら空。" },
+        "rationale":       { "type": "string", "x-prompt-write": "他の候補ではなくこのパッケージ管理ツールを選んだ理由を1文で（ADR）。" }
       }
     },
 
@@ -406,7 +419,7 @@
         "items": {
           "type": "array",
           "minItems": 1,
-          "x-prompt-write": "DDD 概念ごとに配置(layout のどこか)と形(決定レベルの指針。正確なコード形は書かない)を列挙。",
+          "x-prompt-write": "DDD 概念ごとに配置(layout のどこか)と形(決定レベルの指針。正確なコード形は書かない)を列挙。（汎用限定：製品固有の仕組み・語彙は書かない。固有事項は同じcodingKindの別stack documentへ）",
           "items": {
             "type": "object",
             "required": ["concept", "placement", "pattern"],
@@ -441,7 +454,7 @@
         "title":     { "type": "string", "const": "規約（守るべきルール）" },
         "items": {
           "type": "array",
-          "x-prompt-write": "依存方向・DI の受け取り方・エラー伝播（結果型/例外の使い分け）・その他横断決定を列挙。",
+          "x-prompt-write": "依存方向・DI の受け取り方・エラー伝播（結果型/例外の使い分け）・その他横断決定を列挙。（汎用限定：製品固有の仕組み・語彙は書かない。固有事項は同じcodingKindの別stack documentへ）",
           "items": {
             "type": "object",
             "required": ["level", "rule"],
@@ -471,7 +484,7 @@
         "title":     { "type": "string", "const": "サブドメイン別の厚み" },
         "items": {
           "type": "array",
-          "x-prompt-write": "中核/一般/補完ごとの実装の厚み方針を列挙。",
+          "x-prompt-write": "中核/一般/補完ごとの実装の厚み方針を列挙。（汎用限定：製品固有の仕組み・語彙は書かない。固有事項は同じcodingKindの別stack documentへ）",
           "items": {
             "type": "object",
             "required": ["category", "thickness"],
@@ -514,7 +527,7 @@
         "title":     { "type": "string", "const": "命名" },
         "items": {
           "type": "array",
-          "x-prompt-write": "対象（モジュール/クラス/関数/private 等）ごとの命名規約を列挙。語彙は仕様のユビキタス言語に一致させる旨も含める。",
+          "x-prompt-write": "対象（モジュール/クラス/関数/private 等）ごとの命名規約を列挙。語彙は仕様のユビキタス言語に一致させる旨も含める。（汎用限定：製品固有の仕組み・語彙は書かない。固有事項は同じcodingKindの別stack documentへ）",
           "items": {
             "type": "object",
             "required": ["target", "convention"],
@@ -544,7 +557,7 @@
         "title":     { "type": "string", "const": "スタイル" },
         "items": {
           "type": "array",
-          "x-prompt-write": "型注釈・関数の責務範囲・import 規律等を列挙。",
+          "x-prompt-write": "型注釈・関数の責務範囲・import 規律等を列挙。（汎用限定：製品固有の仕組み・語彙は書かない。固有事項は同じcodingKindの別stack documentへ）",
           "items": {
             "type": "object",
             "required": ["level", "rule"],
@@ -562,7 +575,7 @@
       "required": ["blockType", "title", "style", "summaryGuidance", "target", "example"],
       "x-render-order": 3,
       "x-render-level": 2,
-      "x-prompt-query": "ドキュメントコメント（docstring）の規約を持ちます。カスタムタグ(@spec/@stack)は使わない＝言語標準スタイルのみ。要約行は x-prompt-write と同じ役割（読み方ガイド）を担い、query engine の code_scan がインデックスビュー化する前提で書く。",
+      "x-prompt-query": "ドキュメントコメント（docstring）の規約を持ちます。言語標準の docstring スタイルのみを使い、独自の注釈タグは持ち込まない。要約行は、ソースファイルを開かずに検索・判断できるよう、何をするか・いつ使うかが分かる語で書く。",
       "x-render": [
         { "as": "keyvalue", "pairs": [
           { "label": "スタイル", "from": "style" },
@@ -601,7 +614,7 @@
         "title":     { "type": "string", "const": "決定ルール" },
         "items": {
           "type": "array",
-          "x-prompt-write": "docstring 必須の範囲・コードから導出できる情報を書かない・仕様と異なる語彙で命名しない等を列挙。",
+          "x-prompt-write": "docstring 必須の範囲・コードから導出できる情報を書かない・仕様と異なる語彙で命名しない等を列挙。（汎用限定：製品固有の仕組み・語彙は書かない。固有事項は同じcodingKindの別stack documentへ）",
           "items": {
             "type": "object",
             "required": ["level", "rule"],
@@ -667,7 +680,7 @@
         "title":     { "type": "string", "const": "テスト計画" },
         "items": {
           "type": "array",
-          "x-prompt-write": "実行タイミング・CIトリガー・ゲート（シナリオ緑必須等）・対象外とする種別を列挙。",
+          "x-prompt-write": "実行タイミング・CIトリガー・ゲート（シナリオ緑必須等）・対象外とする種別を列挙。（汎用限定：製品固有の仕組み・語彙は書かない。固有事項は同じcodingKindの別stack documentへ）",
           "items": {
             "type": "object",
             "required": ["item", "value"],
@@ -738,7 +751,7 @@
         "blockType":  { "type": "string", "const": "TestFramework" },
         "title":      { "type": "string", "const": "フレームワーク" },
         "unit":       { "type": "string", "x-prompt-write": "単体テストFW。例: pytest" },
-        "acceptance": { "type": "string", "x-prompt-write": "受け入れテストFW（.feature は参照専用の仕様書・AIがこのFWでネイティブに執筆する）。無ければ空。例: pytest" }
+        "acceptance": { "type": "string", "x-prompt-write": "受け入れテストFW（仕様(要件)をこのFWでネイティブに実行可能テストとして執筆する）。無ければ空。例: pytest" }
       }
     },
 
@@ -747,7 +760,7 @@
       "required": ["blockType", "title", "items"],
       "x-render-order": 5,
       "x-render-level": 2,
-      "x-prompt-query": "仕様の TestScenarios(Gherkin) を .feature に生成し実行に束ねる規約を持ちます。.feature は spec から生成し手書きしません。",
+      "x-prompt-query": "実行可能な仕様(要件・受け入れ条件等)がある場合に、それを手書きの実行可能テストへ束ねる規約を持ちます。仕様の記述だけでは検証済みとみなさず、対応するテストの存在と内容の一致を確認できる形にする。",
       "x-render": [
         { "as": "table", "from": "items", "columns": [
           { "field": "item", "header": "項目" },
@@ -759,12 +772,12 @@
         "title":     { "type": "string", "const": "シナリオの束ね方" },
         "items": {
           "type": "array",
-          "x-prompt-write": ".feature の生成元・配置（参照専用・実行対象ではない）・ネイティブテストの配置・対応関係（1 spec=1 .feature=1 ネイティブテストファイル）・ドリフト検知方法を列挙。",
+          "x-prompt-write": "実行可能な仕様がある場合の扱い・ネイティブテストの配置・対応関係（1仕様単位=1ネイティブテストファイル等）・ドリフト検知方法（仕様とテストの対応をどう機械的または人手で確認するか）を列挙。（汎用限定：製品固有の仕組み・語彙は書かない。固有事項は同じcodingKindの別stack documentへ）",
           "items": {
             "type": "object",
             "required": ["item", "rule"],
             "properties": {
-              "item": { "type": "string", "x-prompt-write": "項目名。例: .feature の生成元" },
+              "item": { "type": "string", "x-prompt-write": "項目名。例: 対応関係" },
               "rule": { "type": "string", "x-prompt-write": "規約の内容。" }
             }
           }
@@ -790,7 +803,7 @@
         "title":     { "type": "string", "const": "テスト対象別の配置" },
         "items": {
           "type": "array",
-          "x-prompt-write": "domain/application/adapters/usecase受け入れ等の対象ごとに、テスト種別と配置パスを列挙。",
+          "x-prompt-write": "domain/application/adapters/usecase受け入れ等の対象ごとに、テスト種別と配置パスを列挙。（汎用限定：製品固有の仕組み・語彙は書かない。固有事項は同じcodingKindの別stack documentへ）",
           "items": {
             "type": "object",
             "required": ["target", "testKind", "path"],
@@ -809,7 +822,7 @@
       "required": ["blockType", "title", "items"],
       "x-render-order": 7,
       "x-render-level": 2,
-      "x-prompt-query": "テストに関する決定ルールを持ちます（ゲート1の検査対象そのもの）。",
+      "x-prompt-query": "テストに関する決定ルールを持ちます。",
       "x-render": [
         { "as": "table", "from": "items", "columns": [
           { "field": "level", "header": "種別" },
@@ -821,7 +834,7 @@
         "title":     { "type": "string", "const": "決定ルール" },
         "items": {
           "type": "array",
-          "x-prompt-write": "TestScenarios の実行可能性・.feature 手書き禁止・テストダブルの使用方針等を列挙。",
+          "x-prompt-write": "実行可能な仕様の扱い・生成物の手書き禁止（該当する場合）・テストダブルの使用方針等を列挙。（汎用限定：製品固有の仕組み・語彙は書かない。固有事項は同じcodingKindの別stack documentへ）",
           "items": {
             "type": "object",
             "required": ["level", "rule"],

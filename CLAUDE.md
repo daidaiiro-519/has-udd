@@ -1,10 +1,15 @@
 # has-udd リポジトリ
 
-## loomdb/（独立プロダクト・別リポジトリ化予定）
+## loomdb/（独立プロダクト・GitHub上に分離済み）
 
 `loomdb/` はゲートウェイ向け組込 NoSQL「LoomDB」の自己完結ディレクトリ。
 **作業する場合は必ず `loomdb/CLAUDE.md` を先に読むこと**（確定済みの意思決定・
 ユーザー要望・TDD 必須の開発プロセスが記録されている）。
+
+`git subtree split --prefix=loomdb` で https://github.com/daidaiiro-519/loomdb
+（public）へ履歴ごと切り出し済み。has-udd側の `loomdb/` は通常のサブディレクトリとして
+そのまま残っており、これまで通り直接編集してよい（submodule化はしていない）。
+分離リポジトリ側への反映は、必要になった時点で改めて subtree split を実行して同期する。
 
 ## waffle/（独立プロダクト・GitHub上に分離済み）
 

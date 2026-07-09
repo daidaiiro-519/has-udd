@@ -1,0 +1,1 @@
+../../../../knowledge/event-sourced-domain-model.md

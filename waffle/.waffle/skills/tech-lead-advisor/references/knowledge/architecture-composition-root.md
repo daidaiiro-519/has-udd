@@ -1,0 +1,1 @@
+../../../../knowledge/architecture-composition-root.md

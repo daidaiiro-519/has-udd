@@ -1,0 +1,1 @@
+../../../../knowledge/architecture-dependency-direction.md

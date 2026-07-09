@@ -151,6 +151,8 @@ OKF の概念・ワイヤ互換は頂くが、viewer と core は has-udd。fork
 - **Cytoscape.js**（力学グラフ・refs エッジ・Cited by）＋ **marked.js**（md→HTML）＋ **mermaid.js**（図）＋ **独自 CSS**（全部 CDN・既存 HTML エンベロープの延長）
 - render の出力フォーマット（例 `graph`）or `okf` の付随出力。＝ OKF 標準 viewer の弱点（独自 CSS 不可・mermaid 出ない）を補う
 
+**追記（技術選定・2026-07-09）**: UI状態管理（タブ切替・ノード選択に応じた詳細パネル更新・パンくず表示等）には**Alpine.js**をCDN経由で追加する。tech-lead-advisorへ相談し、`architecture-tech-stack-selection-chain.md`（技術方式が要求する技術要件＝ビルドプロセス不要・自己完結HTML・軽量）と`architecture-evidence-based-scope.md`（フレームワークは実証された複雑さが無い限り導入しない）の両方から、React/Vue/Svelte等の重量フレームワークではなくAlpine.js（ビルド不要・15KB未満・宣言的なHTML属性で状態管理）が妥当と判定された。Cytoscape.jsがグラフ描画そのものを、Alpine.jsが周辺UI（タブ・詳細パネル・凡例）の状態管理を担う役割分担とする。ux-advisorの`progressive-disclosure`（段階的開示）knowledgeとも整合する（初期表示は上位階層のみ、選択操作で段階的に展開する構成）。
+
 ### 3. core は不変
 - document.json（source）・query engine（意味アクセス {prompt,value}）・schema は触らない。OKF は rendered/外向き層のみ。
 

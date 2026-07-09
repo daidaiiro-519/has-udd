@@ -93,14 +93,15 @@
   "$defs": {
     "OrchestratorContent": {
       "type": "object",
-      "required": ["title", "scope", "operatingRules", "subOrchestratorRefs"],
+      "required": ["title", "scope", "operatingRules", "subOrchestratorRefs", "skillFollowUp"],
       "additionalProperties": false,
       "properties": {
         "title": { "$ref": "#/$defs/TitleBlock" },
         "scope": { "$ref": "#/$defs/ScopeBlock" },
         "operatingRules": { "$ref": "#/$defs/OperatingRulesBlock" },
         "keyCommands": { "$ref": "#/$defs/KeyCommandsBlock" },
-        "subOrchestratorRefs": { "$ref": "#/$defs/SubOrchestratorRefsBlock" }
+        "subOrchestratorRefs": { "$ref": "#/$defs/SubOrchestratorRefsBlock" },
+        "skillFollowUp": { "$ref": "#/$defs/SkillFollowUpBlock" }
       }
     },
 
@@ -237,6 +238,38 @@
               "scope": { "type": "string", "x-prompt-write": "子Orchestratorが管轄するディレクトリ。例: \"waffle/\"" },
               "documentId": { "type": "string", "x-prompt-write": "子OrchestratorのdocumentId。" },
               "note": { "type": "string", "x-prompt-write": "そのscopeで作業する際に何を確認すべきかの短い説明。" }
+            }
+          }
+        }
+      }
+    },
+
+    "SkillFollowUpBlock": {
+      "type": "object",
+      "required": ["blockType", "title", "items"],
+      "x-render-order": 5,
+      "x-render-level": 2,
+      "x-prompt-query": "特定のSkillを呼び出した後に、機械的に踏むべき次のアクション（フォローアップ）を持ちます。OperatingRulesの自由記述の運用ルールと違い、「このSkillを使ったら次に何をするか」という手順そのものを構造化して表現します。複数ステップにわたる手順をOperatingRulesに埋め込まず、ここで明示的なtrigger→actionとして表す。",
+      "x-render": [{ "as": "table", "heading": "Skillを呼び出した後に必ず行うフォローアップ", "from": "items", "emptyText": "フォローアップ手順なし", "columns": [{ "field": "afterSkill", "header": "呼び出した後" }, { "field": "thenAction", "header": "次に行うこと" }, { "field": "outputFormat", "header": "返却フォーマット", "sep": " → " }, { "field": "template", "header": "テンプレート", "code": true }, { "field": "why", "header": "理由" }] }],
+      "properties": {
+        "blockType": { "type": "string", "const": "SkillFollowUp" },
+        "title": { "type": "string", "const": "Skillフォローアップ" },
+        "items": {
+          "type": "array",
+          "x-prompt-write": "特定のSkillを呼び出した後に踏むべきフォローアップ手順を列挙してください。無ければ空配列。",
+          "items": {
+            "type": "object",
+            "required": ["afterSkill", "thenAction", "outputFormat", "template", "why"],
+            "properties": {
+              "afterSkill": { "type": "string", "x-prompt-write": "どのSkillを呼び出した後の話か（例: advisor全般／特定のSkill名）。" },
+              "thenAction": { "type": "string", "x-prompt-write": "次に何をするか（検証可能な具体的手順）。" },
+              "outputFormat": {
+                "type": "array",
+                "items": { "type": "string" },
+                "x-prompt-write": "フォローアップの結果をどんな段階構成で返すべきか、短い見出し語を順番に列挙してください（例: [\"各意見\", \"統合見解\", \"合意事項\", \"次のアクション\"]）。段落の説明文ではなく、一目で流れが追える短い語の並びにする。"
+              },
+              "template": { "type": "string", "x-prompt-write": "outputFormatの各段階を実際に埋めるためのテンプレートファイルへの参照パス（プレースホルダー付きmarkdown）。" },
+              "why": { "type": "string", "x-prompt-write": "なぜこのフォローアップが必要か。" }
             }
           }
         }

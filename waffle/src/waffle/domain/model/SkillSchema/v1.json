@@ -612,7 +612,6 @@
       ],
       "x-render-order": 8,
       "x-render-level": 2,
-      "x-prompt-write": "このSkillを実行する際に必ず守るべき制約・禁止事項・前提条件を列挙してください。",
       "x-prompt-query": "このSkillの実行制約を持ちます。Skillを実行する前に確認すべきガードレールの一覧です。",
       "x-render": [
         {
@@ -631,6 +630,7 @@
         },
         "items": {
           "type": "array",
+          "x-prompt-write": "このSkillを実行する際に必ず守るべき制約・禁止事項・前提条件を列挙してください。",
           "items": {
             "type": "string"
           }

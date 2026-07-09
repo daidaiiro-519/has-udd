@@ -45,9 +45,12 @@ tech-lead-advisorの動く最小サンプル検証。CodingSchema刷新時（[[p
 - 規模：大（新規UI/可視化層が必要・`design-engine-render-okf`等の既存ブレストの続きから着手）
 - 他のPhaseと並行しても支障のない独立ワークストリーム。
 
-## バックログ（優先度未定・急ぎではない）
+## バックログ
 
-- ddd-advisorのKnowledgeSchemaへのレトロフィット（現在は手書きmarkdownのまま。tech-lead-advisorと構成が異なる状態が続いている）
+- **ddd-advisorのKnowledgeSchemaへのレトロフィット**（優先度引き上げ済み・2026-07-09）：
+  現在は手書きmarkdownのままで、tech-lead-advisorと構成が異なる状態が続いている。
+  `brainstorm-ux-advisor-design.md`（論点1）でユーザーから正式に「ddd-advisorのknowledgeも
+  document.jsonで管理すべき」との方針が示された。着手時期はux-advisorブレスト完了後に別途調整。
 - Waffle版DevEx指標の設計（「scaffoldからvalidate緑になるまでの往復回数」等、論点1のアクション項目）
 
 ---

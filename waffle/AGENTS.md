@@ -43,3 +43,13 @@
 |---|---|---|
 
 委譲先なし（このOrchestratorの管轄範囲に、より狭いscopeを持つ子Orchestratorは存在しない）
+
+---
+
+## Skillフォローアップ
+
+### Skillを呼び出した後に必ず行うフォローアップ
+
+| 呼び出した後 | 次に行うこと | 返却フォーマット | テンプレート | 理由 |
+|---|---|---|---|---|
+| advisor（ddd-advisor/tech-lead-advisor/ux-advisor等） | 同じadvisorへ批評フェーズとして再検証させるか、対象の性質に応じて関連する他advisor（例: レイヤー配置ならtech-lead-advisor、ドメイン整合性ならddd-advisor）へ批評を依頼してから確定する | 各意見 → 統合見解 → 合意事項 → 次のアクション | `waffle/.waffle/agent/references/template-skill-critique.md` | advisorはWaffleが所有・出荷する成果物であり、単一advisorの一発出力を無検証で確定させない運用はWaffle自身のOrchestratorの責務。advisorが互いを呼ぶのではなくOrchestrator側が組合せを判断することで、Skill/advisor間のテキストベース疎結合原則を保てる |

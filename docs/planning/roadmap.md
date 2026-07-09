@@ -12,7 +12,8 @@
 | 🟠 | 設計途中（ブレスト段階・実装なし） |
 | ⚪ | 未着手 |
 
-**現在地:** コアループ（document を 作る→検証→render→配置）と engine/CLI/MCP/Spec/BDD は**実装完了**（✅）。HOW品質を守る層（規約強制・reconcile・投影・Hooks）と 知識/OKF/エージェント/マルチツール拡張は**設計止まり**（🟠）。テスト: pytest 10 / behave 63 緑。
+**現在地（2026-07-10）:** コアループ（document を 作る→検証→render→配置）と engine/CLI/MCP/Spec/BDD は**実装完了**（✅）。HOW品質を守る層（規約強制・reconcile・投影・Hooks）と OKF/マルチツール拡張は**設計止まり**（🟠）。**Stage D の一部（Agent/custom Skill/Orchestrator）は advisor エコシステムとして実装済み**（詳細＝`advisor-ecosystem-roadmap.md`）。テスト: waffle単体 pytest 188件 green。
+**インフラ変更:** Waffle・LoomDB を `git subtree split` で独立 GitHub リポジトリへ分離済み（[waffle](https://github.com/daidaiiro-519/waffle)・[loomdb](https://github.com/daidaiiro-519/loomdb)、いずれも public）。has-udd 側の `waffle/`・`loomdb/` はそのまま通常のサブディレクトリとして残置（submodule化はしていない）。両リポジトリには本ロードマップのスナップショットを `docs/planning/` 配下に配置済み。
 
 ---
 
@@ -103,15 +104,23 @@
 
 ---
 
-## Stage D — Orchestrator・エージェント・配布 ⚪ 未着手
+## Stage D — Orchestrator・エージェント・配布 🟡 一部実装済み（advisorエコシステムとして進行中）
+
+> ★2026-07 更新: 当初想定していた「Agent(Role) Schema」「custom Skill Schema」「HarnessAgent
+> （Orchestrator）」は、**advisorエコシステム**（`ddd-advisor`/`tech-lead-advisor`/`ux-advisor`/
+> `platform-advisor`）という具体的な実装対象を得て前進した。詳細な進捗管理は
+> `docs/planning/advisor-ecosystem-roadmap.md` に分離（Phase 1〜5構成、Phase 1・2・3完了）。
 
 | 項目 | 状態 | 根拠ブレスト / メモ |
 |---|---|---|
-| Agent(Role) Schema | ⚪ | `design-engine-knowledge`（roleKind）・concept |
-| custom Skill Schema | ⚪ | `design-schema-and-engine-skills` |
-| HarnessAgent（Orchestrator・engine routing） | ⚪ | `brainstorm-has-udd-concept`・engine-awareness |
+| Agent(Role) Schema（`AgentSchema/v1`・agentKind=orchestrator） | ✅ 実装 | `.has-udd/documents/agent/waffle.json` が実インスタンス。`OperatingRules`/`SubOrchestratorRefs`/`SkillFollowUp`ブロックまで実装・`CLAUDE.md`/`AGENTS.md`へrender |
+| custom Skill Schema（`SkillSchema/v1`・skillKind=custom） | ✅ 実装 | ddd-advisor(knowledge19)/tech-lead-advisor(knowledge11)/ux-advisor(knowledge5)/platform-advisor(knowledge7)の4advisorが準拠。`docs/planning/advisor-ecosystem-roadmap.md` Phase 1〜3 |
+| HarnessAgent（Orchestrator・engine routing） | ✅ 実装（Waffle自身のOrchestrator） | `waffle.json`がWaffle自身のCLAUDE.md/AGENTS.mdをrenderする実例として機能 |
+| knowledge文書のKnowledgeSchema化 | ✅ 完了 | ddd-advisor 19件・tech-lead-advisor 11件・ux-advisor 5件・platform-advisor 7件、全てKnowledgeSchema/v1準拠のdocument.jsonへ統一。物理配置は`waffle/.waffle/skills/`・`waffle/.waffle/knowledge/`に一本化し、`.claude/skills/`側はsymlink化 |
 | FeedbackReport | ⚪ | — |
 | Multi-tool 互換（Skills/Hooks/Agents/rules） | 🟠 ブレスト | `brainstorm-multi-tool-compatibility` |
+| Conformance Scorecard実装（Stage B本体） | ⚪ | `advisor-ecosystem-roadmap.md` Phase 4 |
+| OKF/カタログ実装（graph viewer本実装） | ⚪ | `advisor-ecosystem-roadmap.md` Phase 5・Stage C参照 |
 
 ---
 
@@ -142,7 +151,7 @@
 
 ## 関連 doc 索引
 
-- **計画**: `implementation-plan`（P0-7詳細）・`sprint-plan`（S1-4）・`spec-id-map`（engine→spec id）
+- **計画**: `implementation-plan`（P0-7詳細）・`sprint-plan`（S1-4）・`spec-id-map`（engine→spec id）・`advisor-ecosystem-roadmap`（Stage D詳細・Phase 1-5）
 - **概念/設計**: `brainstorm-has-udd-concept`・`brainstorm-has-udd-design`
 - **engine 群**: `design-engine-{set,query,render,scaffold,knowledge}`・`design-render-primitives`・`design-schema-and-engine-skills`
 - **Schema**: `design-spec-schema`・`design-coding-schema`

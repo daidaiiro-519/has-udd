@@ -2,7 +2,7 @@
 
 このドキュメントは、`docs/brainstorm/brainstorm-platform-engineering-application.md`（AI時代のDDD×プラットフォームエンジニアリングのブレスト）を踏まえた、advisorエコシステム（ddd-advisor/tech-lead-advisor/platform-advisor/ux-advisor）構築の実行計画。
 
-**現在地（2026-07-09）**：ddd-advisor（19 knowledge・OSS配布可能な独自解釈へ刷新済み）とtech-lead-advisor（11 knowledge）が、KnowledgeSchema/v1・SkillSchema/v1に正式準拠する形で完成し、コミット済み。**Phase 1（効果測定）・Phase 2（ブレスト全11論点）とも完了**。次はPhase 3（advisorエコシステムの拡張）から着手する。
+**現在地（2026-07-10）**：4つのadvisor（ddd-advisor 19 knowledge・tech-lead-advisor 11 knowledge・ux-advisor 5 knowledge・platform-advisor 7 knowledge）すべてが、KnowledgeSchema/v1・SkillSchema/v1に正式準拠する形で完成し、コミット済み。**Phase 1（効果測定）・Phase 2（ブレスト全11論点）・Phase 3（advisorエコシステムの拡張）とも完了**。物理ファイルは`waffle/.waffle/skills/`・`waffle/.waffle/knowledge/`に一本化し、`.claude/skills/`側はsymlinkに置き換え済み（waffleの独立リポジトリ分離に伴う整理）。次はPhase 4（Conformance Scorecard実装）またはPhase 5（OKF/カタログ実装）から着手する。
 
 ---
 
@@ -23,13 +23,14 @@ tech-lead-advisorの動く最小サンプル検証。CodingSchema刷新時（[[p
 - 論点8：「backbone/運用ルール分離」の構造パターンは全advisor共通だが、「単一書籍を厳密抽出する」重いプロセスはDDD固有（根幹だから）の特別対応であり、他advisorは公開知見の総合で足りるとした
 - 論点9：Conformance Scorecardの適合基準は`tech-lead-advisor`のknowledgeを出典とし、判定ロジックは決定的スクリプト側に実装する
 
-## Phase 3：advisorエコシステムの拡張（次はここ）
+## Phase 3：advisorエコシステムの拡張 ✅完了
 
-- `platform-advisor`（SRE・セキュリティ・クラウドアーキテクチャ）
-- `ux-advisor`（画面設計・体験設計・PresentationSpecSchema）
-- 今回確立した型（KnowledgeSchema準拠・原典知識/運用ルール分離・テキストベース疎結合インターフェース）をそのまま複製できるため、tech-lead-advisorより速く着手できる見込み。
-- 規模：中〜大（advisor2つ分）
-- **依存**：Phase 1の効果測定で型に欠陥が見つかった場合、先に直してから複製すべき
+- `ux-advisor`（画面設計・体験設計。knowledge5本: design-system-tokens/progressive-disclosure/visual-hierarchy-and-restraint/ui-copywriting/accessibility-baseline）を新設。Anthropic公式`/frontend-design`skill・Material Design・HIG等、複数の確立された実務知見の総合として構築（単一書籍出典ではない・論点8の方針通り）。
+- `platform-advisor`（SRE・セキュリティ・クラウドアーキテクチャ。knowledge7本: AWS Well-Architected全6柱＋独自合成の`sre-investment-threshold`）を新設。
+- 効果測定を実施: `platform-advisor`を実際の`waffle serve`（ローカルMCP）を題材に、「ローカルのまま」「仮にリモート公開したら」の2シナリオで動作確認し、同じ知識ベースが文脈に応じて異なる正しい判定を出すことを実証。この過程で「SRE投資の前提を満たすか」というゲーティング知識の欠落を発見し、即座に`sre-investment-threshold.md`として補強した。
+- 今回確立した型（KnowledgeSchema準拠・原典知識/運用ルール分離・テキストベース疎結合インターフェース）をそのまま複製する形で着手でき、tech-lead-advisor構築時より速く完了した。
+- バックログにあった「ddd-advisorのKnowledgeSchemaへのレトロフィット」も本Phaseの一環として完了（19件の手書きmarkdownをKnowledgeSchema/v1のdocument.jsonへ全件移行。移行前後の内容一致は自動比較スクリプトで検証済み）。
+- 副次的に、AgentSchemaへ`SkillFollowUpBlock`（advisor呼び出し後の批評フェーズ運用ルール）を新設し、Waffle自身のOrchestrator（`waffle.json`）に反映した。
 
 ## Phase 4：Stage B実装（Conformance Scorecard本体）
 
@@ -47,10 +48,7 @@ tech-lead-advisorの動く最小サンプル検証。CodingSchema刷新時（[[p
 
 ## バックログ
 
-- **ddd-advisorのKnowledgeSchemaへのレトロフィット**（優先度引き上げ済み・2026-07-09）：
-  現在は手書きmarkdownのままで、tech-lead-advisorと構成が異なる状態が続いている。
-  `brainstorm-ux-advisor-design.md`（論点1）でユーザーから正式に「ddd-advisorのknowledgeも
-  document.jsonで管理すべき」との方針が示された。着手時期はux-advisorブレスト完了後に別途調整。
+- ~~ddd-advisorのKnowledgeSchemaへのレトロフィット~~ → **Phase 3で完了済み**
 - Waffle版DevEx指標の設計（「scaffoldからvalidate緑になるまでの往復回数」等、論点1のアクション項目）
 
 ---

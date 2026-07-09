@@ -66,6 +66,9 @@
             "可用性・スケーラビリティ目標の相談 → reliability-targets-and-error-budgets.md",
             "アクセス権・セキュリティ境界の相談 → security-boundary-and-least-privilege.md",
             "監視・可観測性の相談 → observability-design.md",
+            "構成選定・性能の相談 → performance-efficiency.md",
+            "コスト・予算の相談 → cost-optimization.md",
+            "環境負荷・リソース使用率の相談 → sustainability.md",
             "複数の概念が関連する場合は全て読み込む"
           ],
           "children": []
@@ -118,6 +121,18 @@
         {
           "path": "references/knowledge/observability-design.md",
           "description": "メトリクス・ログ・トレースという可観測性の3種類と、監視項目を取捨選択する判断基準"
+        },
+        {
+          "path": "references/knowledge/performance-efficiency.md",
+          "description": "データに基づく構成選択・マネージドサービスの活用・定期的な見直しという性能効率の判断基準"
+        },
+        {
+          "path": "references/knowledge/cost-optimization.md",
+          "description": "消費モデル・効率性の測定・差別化されない作業の外部化・コストの帰属というコスト最適化の判断基準"
+        },
+        {
+          "path": "references/knowledge/sustainability.md",
+          "description": "使用率の最大化・需要平準化・データライフサイクル管理という、環境負荷を最小化する判断基準"
         }
       ]
     },

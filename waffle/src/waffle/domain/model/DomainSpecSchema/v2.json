@@ -1808,7 +1808,7 @@
       ],
       "x-render-order": 10,
       "x-render-level": 2,
-      "x-prompt-query": "集約の不変条件を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。仕様↔実装の整合点。MD（コードブロック表示）＋.feature に render され実行されます。",
+      "x-prompt-query": "集約の不変条件を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。仕様↔実装の整合点。MDにコードブロックとして描画され、AIがこのGherkinを見てネイティブテストとして執筆・実行する。",
       "x-render": [
         {
           "as": "paragraph",
@@ -1881,7 +1881,7 @@
               },
               "gherkin": {
                 "type": "string",
-                "x-prompt-write": "このシナリオの Given/When/Then（Scenario: 1つ・実行可能・.feature 化）。ドメイン語彙で書き、実装詳細（クラス名/API/SQL/UI 操作）は書かない。"
+                "x-prompt-write": "このシナリオの Given/When/Then（Scenario: 1つ・実行可能なテストとして書き起こせる形）。ドメイン語彙で書き、実装詳細（クラス名/API/SQL/UI 操作）は書かない。"
               },
               "covers": {
                 "type": "string",
@@ -1901,7 +1901,7 @@
       ],
       "x-render-order": 10,
       "x-render-level": 2,
-      "x-prompt-query": "usecaseの受け入れ基準(AcceptanceCriteria)を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。仕様↔実装の整合点。MD（コードブロック表示）＋.feature に render され実行されます。",
+      "x-prompt-query": "usecaseの受け入れ基準(AcceptanceCriteria)を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。仕様↔実装の整合点。MDにコードブロックとして描画され、AIがこのGherkinを見てネイティブテストとして執筆・実行する。",
       "x-render": [
         {
           "as": "paragraph",
@@ -1974,7 +1974,7 @@
               },
               "gherkin": {
                 "type": "string",
-                "x-prompt-write": "このシナリオの Given/When/Then（Scenario: 1つ・実行可能・.feature 化）。ドメイン語彙で書き、実装詳細（クラス名/API/SQL/UI 操作）は書かない。"
+                "x-prompt-write": "このシナリオの Given/When/Then（Scenario: 1つ・実行可能なテストとして書き起こせる形）。ドメイン語彙で書き、実装詳細（クラス名/API/SQL/UI 操作）は書かない。"
               },
               "covers": {
                 "type": "string",
@@ -2028,7 +2028,7 @@
       ],
       "x-render-order": 11,
       "x-render-level": 2,
-      "x-prompt-query": "OperationGuaranteesの各保証を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。MD＋.featureにrenderされ、TestScenariosと同じ機構でネイティブテスト化されます。",
+      "x-prompt-query": "OperationGuaranteesの各保証を検証するテストシナリオ(分類・観点・Gherkin)を持ちます。MDにコードブロックとして描画され、TestScenariosと同じ機構でAIがネイティブテストとして書き起こす。",
       "x-render": [
         {
           "as": "paragraph",
@@ -2121,7 +2121,7 @@
       ],
       "x-render-order": 7,
       "x-render-level": 2,
-      "x-prompt-query": "domainServicesの各業務サービスのふるまいを検証するテストシナリオ(分類・観点・Gherkin)を持ちます。GuaranteeScenarios(usecase単位のデータアクセス層保証)とは意味が異なる別語彙——業務ロジック層の業務サービスが何を計算/判定するかを検証する。MD＋.featureにrenderされ、TestScenariosと同じ機構でネイティブテスト化されます。",
+      "x-prompt-query": "domainServicesの各業務サービスのふるまいを検証するテストシナリオ(分類・観点・Gherkin)を持ちます。GuaranteeScenarios(usecase単位のデータアクセス層保証)とは意味が異なる別語彙——業務ロジック層の業務サービスが何を計算/判定するかを検証する。MDにコードブロックとして描画され、TestScenariosと同じ機構でAIがネイティブテストとして書き起こす。",
       "x-render": [
         {
           "as": "paragraph",

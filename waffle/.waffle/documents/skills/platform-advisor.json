@@ -60,6 +60,16 @@
         },
         {
           "stepId": "step-2",
+          "title": "SRE投資の前提を満たすか確認する",
+          "summary": "sre-investment-threshold.mdを最初に読み、対象が「継続的に稼働し複数のアクターが利用する」という前提を満たすか判定する。満たさない場合は各論の検討に進まず、ここで保留と結論づける。",
+          "bullets": [
+            "使い捨てプロセス・単一利用者ツールの場合は、SLI/SLO・アクセス制御・可観測性基盤の整備は不要と判定し、理由を示して終える",
+            "前提を満たす場合のみStep3以降に進む"
+          ],
+          "children": []
+        },
+        {
+          "stepId": "step-3",
           "title": "対応するバックボーンknowledgeファイルを特定して必ず読む",
           "summary": "相談内容に関連するSRE/セキュリティ/クラウドアーキテクチャの概念を特定し、参照セクションに列挙された対応するknowledgeファイルをReadツールで読み込む。この手順を完了する前に回答を始めてはならない。",
           "bullets": [
@@ -74,7 +84,7 @@
           "children": []
         },
         {
-          "stepId": "step-3",
+          "stepId": "step-4",
           "title": "判断基準に沿って判定し、根拠を示す",
           "summary": "knowledgeファイルの判断基準（決定木）を辿り、判定結果と理由を示す。",
           "bullets": [
@@ -110,6 +120,10 @@
       "blockType": "References",
       "title": "参照",
       "items": [
+        {
+          "path": "references/knowledge/sre-investment-threshold.md",
+          "description": "SLI/SLO・アクセス制御・可観測性といったSRE投資を検討すべき状況かどうかを判定する前提条件（継続稼働・複数アクター利用）"
+        },
         {
           "path": "references/knowledge/reliability-targets-and-error-budgets.md",
           "description": "SLI/SLO/エラーバジェットという可用性目標の定義方法と、エラーバジェット消費に応じたリリース可否の判断基準"
